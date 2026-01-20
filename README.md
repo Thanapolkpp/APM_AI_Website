@@ -90,3 +90,21 @@ git branch -d feature-planner
 
 git push origin --delete feature-planner
 
+🌱 สร้าง branch develop
+
+ต้องอยู่ที่ branch main ก่อน
+
+git checkout main
+git pull origin main
+
+
+จากนั้นสร้างและสลับไปที่ develop
+
+git checkout -b develop
+
+⬆️ push develop ขึ้น GitHub
+git push -u origin develop
+
+
+คำสั่ง -u จะผูก branch นี้กับ remote
+ครั้งต่อไปแค่ git push ก็พอ
