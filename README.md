@@ -46,3 +46,47 @@ docker compose up --build
 
 หยุดการทำงาน
 docker compose down
+
+🔀 Git Branch Workflow
+
+การใช้ Branch ช่วยให้สามารถพัฒนาแต่ละฟีเจอร์แยกจากกัน
+โดยไม่กระทบกับโค้ดหลัก (main branch)
+
+📌 ดู branch ทั้งหมด
+git branch
+
+🌱 สร้าง branch ใหม่
+git branch feature-planner
+
+🔄 เปลี่ยนไปใช้งาน branch ที่สร้าง
+git checkout feature-planner
+
+
+หรือแบบคำสั่งเดียว
+
+git checkout -b feature-planner
+
+🛠 ทำงานและ commit บน branch
+git add .
+git commit -m "Add planner feature"
+
+⬆️ push branch ขึ้น GitHub
+git push origin feature-planner
+
+🔁 กลับไปที่ main branch
+git checkout main
+
+🔗 merge branch เข้ากับ main
+git merge feature-planner
+
+🗑 ลบ branch (หลัง merge แล้ว)
+
+ลบในเครื่อง
+
+git branch -d feature-planner
+
+
+ลบบน GitHub
+
+git push origin --delete feature-planner
+
