@@ -1,3 +1,5 @@
+
+# เก็บไฟล์ที่เกี่ยวกับโครงสร้างข้อมูล (data structure)
 from pydantic import BaseModel
 from typing import List
 

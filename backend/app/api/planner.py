@@ -1,3 +1,4 @@
+# เก็บไฟล์ที่เกี่ยวกับ เส้นทาง API (endpoint)
 from fastapi import APIRouter
 from app.models.planner import PlannerRequest, PlannerResponse
 from app.services.schedule_generator import generate_schedule
