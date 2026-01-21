@@ -108,3 +108,8 @@ git push -u origin develop
 
 คำสั่ง -u จะผูก branch นี้กับ remote
 ครั้งต่อไปแค่ git push ก็พอ
+
+
+
+เกี่ยวกับ Backend
+ึคำสั่ง run test backend:   -m uvicorn app.main:app --reload
