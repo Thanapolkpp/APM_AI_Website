@@ -1,7 +1,8 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
 import ModeCard from '../components/ModeCard'; // Import เข้ามา
-import Footer from '../components/footer';     // Import เข้ามา
+import Footer from '../components/footer';
+import { AiOutlineCodepenCircle } from "react-icons/ai";   // Import เข้ามา
 
 const Home = ({ onStartChat }) => {
 
@@ -62,7 +63,7 @@ const Home = ({ onStartChat }) => {
         <header className="sticky top-0 z-50 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="size-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-sm">
-              <span className="material-symbols-outlined text-2xl">smart_toy</span>
+              <span className="material-symbols-outlined text-2xl"><AiOutlineCodepenCircle /></span>
             </div>
             <div>
               <h1 className="text-xl font-extrabold tracking-tight leading-none">Uni AI</h1>

@@ -1,4 +1,4 @@
-# “ศูนย์ควบคุม” ของ backend
+
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,9 +19,6 @@ else:
 
 app = FastAPI()
 
-# ----------------------------------------------------
-# 👇 จุดที่แก้: ตั้งค่า CORS ให้ยอมรับ Frontend (localhost:5173)
-# ----------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # อนุญาตทุกเว็บ (แก้ปัญหา CORS Blocked)
@@ -29,7 +26,6 @@ app.add_middleware(
     allow_methods=["*"],  # อนุญาตทุกคำสั่ง (GET, POST, etc.)
     allow_headers=["*"],
 )
-# ----------------------------------------------------
 
 class ChatRequest(BaseModel):
     message: str
