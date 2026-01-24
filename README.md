@@ -108,3 +108,7 @@ git push -u origin develop
 
 คำสั่ง -u จะผูก branch นี้กับ remote
 ครั้งต่อไปแค่ git push ก็พอ
+
+ติดตั้ง ไฟล์ requirements.txt
+```bash
+pip install -r requirements.txt
