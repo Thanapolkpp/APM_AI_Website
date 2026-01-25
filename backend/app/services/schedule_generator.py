@@ -1,3 +1,4 @@
+# หัวใจของระบบ (Logic / AI)
 def generate_schedule(data):
     result = []
     hours_per_subject = data.available_hours // len(data.subjects)

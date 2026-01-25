@@ -43,7 +43,7 @@ Ai_for_gen_z/
 
 ```bash
 docker compose up --build
-
+```bash
 หยุดการทำงาน
 docker compose down
 
@@ -53,21 +53,26 @@ docker compose down
 โดยไม่กระทบกับโค้ดหลัก (main branch)
 
 📌 ดู branch ทั้งหมด
+```bash
 git branch
 
 🌱 สร้าง branch ใหม่
+```bash
 git branch feature-planner
 
 🔄 เปลี่ยนไปใช้งาน branch ที่สร้าง
+```bash
 git checkout feature-planner
 
 
 หรือแบบคำสั่งเดียว
-
+```bash
 git checkout -b feature-planner
 
 🛠 ทำงานและ commit บน branch
+```bash
 git add .
+```bash
 git commit -m "Add planner feature"
 
 ⬆️ push branch ขึ้น GitHub
@@ -113,3 +118,7 @@ git push -u origin develop
 
 เกี่ยวกับ Backend
 ึคำสั่ง run test backend:    python -m uvicorn app.main:app --reload
+ติดตั้ง ไฟล์ requirements.txt
+
+```bash
+pip install -r requirements.txt
