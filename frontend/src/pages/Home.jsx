@@ -2,10 +2,13 @@ import React from 'react';
 import Navbar from '../components/Navbar';
 import ModeCard from '../components/ModeCard'; // Import เข้ามา
 import Footer from '../components/footer';
+import Login from '../pages/Login';
 import { useNavigate } from "react-router-dom";
+
 import { AiOutlineCodepenCircle } from "react-icons/ai";   // Import เข้ามา
 
 const Home = ({ onStartChat }) => {
+  const navigate = useNavigate();
 
   // ข้อมูล Config ของแต่ละโหมด (แยกออกมาให้โค้ด HTML สะอาด)
   const modes = [
@@ -82,13 +85,15 @@ const Home = ({ onStartChat }) => {
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="size-10 rounded-full bg-cover bg-center border-2 border-primary cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+              className="size-10 rounded-full bg-cover bg-center border-2 border-primary cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-80 transition-opacity"
               style={{
                 backgroundImage:
                   'url("https://images.unsplash.com/photo-1535713875002-d1d0cf377fde")',
               }}
+              title="Go to Login"
               aria-label="Go to login"
             ></button>
+
           </div>
 
         </header>
@@ -113,11 +118,10 @@ const Home = ({ onStartChat }) => {
                 description={mode.description}
                 buttonIcon={mode.buttonIcon}
                 colors={mode.colors}
-                onClick={() => onStartChat(mode.id)}
+                onClick={() => navigate(`/chat/${mode.id}`)}
               />
             ))}
           </div>
-
           <Footer />
 
         </main>
