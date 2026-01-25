@@ -112,4 +112,4 @@ git push -u origin develop
 
 
 เกี่ยวกับ Backend
-ึคำสั่ง run test backend:   -m uvicorn app.main:app --reload
+ึคำสั่ง run test backend:    python -m uvicorn app.main:app --reload
