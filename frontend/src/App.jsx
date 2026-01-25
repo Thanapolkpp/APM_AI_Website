@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Home from './pages/Home'; // ตรวจสอบ path ให้ถูกต้องว่าไฟล์ Home อยู่ที่ไหน
+import Home from './pages/Home';
 import ChatWindow from './components/ChatWindow';
 import './App.css';
 

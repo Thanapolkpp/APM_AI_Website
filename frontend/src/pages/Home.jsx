@@ -2,6 +2,7 @@ import React from 'react';
 import Navbar from '../components/Navbar';
 import ModeCard from '../components/ModeCard'; // Import เข้ามา
 import Footer from '../components/footer';
+import { useNavigate } from "react-router-dom";
 import { AiOutlineCodepenCircle } from "react-icons/ai";   // Import เข้ามา
 
 const Home = ({ onStartChat }) => {
@@ -77,11 +78,19 @@ const Home = ({ onStartChat }) => {
             <button className="size-10 rounded-full flex items-center justify-center bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105">
               <span className="material-symbols-outlined text-gray-600 dark:text-gray-300">notifications</span>
             </button>
-            <div
-              className="size-10 rounded-full bg-cover bg-center border-2 border-primary cursor-pointer"
-              style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80")' }}
-            ></div>
+
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="size-10 rounded-full bg-cover bg-center border-2 border-primary cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+              style={{
+                backgroundImage:
+                  'url("https://images.unsplash.com/photo-1535713875002-d1d0cf377fde")',
+              }}
+              aria-label="Go to login"
+            ></button>
           </div>
+
         </header>
 
         {/* Main Content */}
@@ -95,7 +104,6 @@ const Home = ({ onStartChat }) => {
             <p className="text-lg md:text-xl font-medium text-gray-500 dark:text-gray-400">How can I help you today, Bestie?</p>
           </div>
 
-          {/* Cards Section - ใช้ .map เพื่อวนลูปสร้างการ์ด */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl mb-24">
             {modes.map((mode) => (
               <ModeCard

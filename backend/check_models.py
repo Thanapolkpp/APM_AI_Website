@@ -7,20 +7,20 @@ load_dotenv()
 api_key = os.getenv("GOOGLE_API_KEY")
 
 if not api_key:
-    print("❌ ไม่เจอ API Key ในไฟล์ .env")
+    print("API Key not found in .env file")
 else:
-    print(f"✅ เจอ API Key แล้ว: {api_key[:5]}...")
+    print(f"API Key found: {api_key[:5]}...")
     genai.configure(api_key=api_key)
 
-    print("\n🔍 กำลังค้นหารุ่น AI ที่ใช้ได้...")
+    print("\nSearching for available AI models...")
     try:
         count = 0
         for m in genai.list_models():
-            if 'generateContent' in m.supported_generation_methods:
+            if "generateContent" in m.supported_generation_methods:
                 print(f"- {m.name}")
                 count += 1
-        
+
         if count == 0:
-            print("⚠️ ไม่พบโมเดลที่ใช้ Chat ได้เลย (อาจต้องสร้าง API Key ใหม่)")
+            print("No chat-capable models found (you may need to create a new API key)")
     except Exception as e:
-        print(f"❌ เกิดข้อผิดพลาด: {e}")
+        print(f"An error occurred: {e}")
