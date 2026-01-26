@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { sendMessageToAI } from "../services/aiService";
+import { sendMessageToAI } from "../services/aiservice";
 
 
 const ChatWindow = ({ mode }) => {

@@ -2,15 +2,13 @@ import React from 'react';
 import Navbar from '../components/Navbar';
 import ModeCard from '../components/ModeCard'; // Import เข้ามา
 import Footer from '../components/footer';
-import Login from '../pages/Login';
 import { useNavigate } from "react-router-dom";
+import Logo from '../assets/logo.png'
 
-import { AiOutlineCodepenCircle } from "react-icons/ai";   // Import เข้ามา
 
 const Home = ({ onStartChat }) => {
   const navigate = useNavigate();
 
-  // ข้อมูล Config ของแต่ละโหมด (แยกออกมาให้โค้ด HTML สะอาด)
   const modes = [
     {
       id: 'bro',
@@ -66,11 +64,15 @@ const Home = ({ onStartChat }) => {
         {/* Header */}
         <header className="sticky top-0 z-50 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <div className="size-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-sm">
-              <span className="material-symbols-outlined text-2xl"><AiOutlineCodepenCircle /></span>
+            <div className="size-12 rounded-xl flex items-center justify-center shadow-sm overflow-hidden">
+              <img
+                src={Logo}
+                alt="Logo"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
-              <h1 className="text-xl font-extrabold tracking-tight leading-none">Uni AI</h1>
+              <h1 className="text-xl font-extrabold tracking-tight leading-none">AI</h1>
               <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400 dark:text-gray-500">Student Companion</p>
             </div>
           </div>
