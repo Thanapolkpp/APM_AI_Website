@@ -6,11 +6,13 @@ router = APIRouter()
 
 class ChatRequest(BaseModel):
     message: str
+    mode: str
 
 @router.post("/chat")
 async def chat_with_ai(request: ChatRequest):
     try:
-        reply = get_ai_response(request.message)
+        # ส่งทั้ง message และ mode ไปให้ ai_service
+        reply = get_ai_response(request.message, request.mode)
         return {"reply": reply}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

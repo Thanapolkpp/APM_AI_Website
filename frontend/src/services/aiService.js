@@ -4,22 +4,38 @@ const API_URL = "http://127.0.0.1:8000/api/v1/ai/chat";
 
 export const sendMessageToAI = async (message, mode) => {
     try {
-        // ดึง token ที่เก็บไว้ (เช่นใน localStorage หลังจาก login สำเร็จ)
+        // ดึง token สำหรับกรณีที่คุณเปิดใช้งานระบบ Auth ในอนาคต
         const token = localStorage.getItem("access_token");
 
-        const response = await axios.post(API_URL,
-            { message, mode },
+        const response = await axios.post(
+            API_URL,
+            {
+                message: message,
+                mode: mode // ส่งโหมด (bro, girl, nerd) ไปให้ Backend
+            },
             {
                 headers: {
-                    Authorization: `Bearer ${token}` // ส่ง Token ไปให้ Backend ตรวจสอบ
+                    "Content-Type": "application/json",
+                    // ถ้ายังไม่ได้ทำระบบ Login จริงๆ บรรทัดนี้อาจจะส่งค่า null ไปก่อน ซึ่งไม่เป็นไรครับ
+                    Authorization: token ? `Bearer ${token}` : ""
                 }
             }
         );
 
+        // ตรวจสอบโครงสร้างข้อมูลที่ส่งกลับมาจาก FastAPI (ต้องตรงกับ {"reply": ...})
         return response.data.reply;
+
     } catch (error) {
-        // ถ้า error 401 หมายความว่า Token หมดอายุหรือยังไม่ได้ Login
-        console.error("Failed to communicate with AI:", error);
-        throw new Error("AI service is unavailable");
+        console.error("AI Service Error:", error.response?.data || error.message);
+
+        // จัดการ Error ตามสถานะที่ตอบกลับมา
+        if (error.response?.status === 401) {
+            throw new Error("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
+        }
+        if (error.response?.status === 404) {
+            throw new Error("ไม่พบ Endpoint ของ AI กรุณาตรวจสอบการรัน Backend");
+        }
+
+        throw new Error("ฟีลแบบระบบขิตชั่วคราว ลองใหม่นะแก");
     }
 };

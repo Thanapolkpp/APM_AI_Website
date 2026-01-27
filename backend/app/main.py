@@ -1,10 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import auth, chatbot # ดึงทั้ง Auth ของคุณ และ Chatbot ของเพื่อนมา
-from app.utils.db import engine, Base
 
-# สร้าง Table ใน MySQL อัตโนมัติ
-Base.metadata.create_all(bind=engine)
+# 1. เปลี่ยนการ import เป็นแบบระบุไฟล์โดยตรง (เพื่อเลี่ยงการโหลด auth ที่พ่วง DB มาด้วย)
+from app.api.v1.chatbot import router as chatbot_router 
 
 app = FastAPI(
     title="Gen Z AI Study Planner API",
@@ -21,10 +19,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# รวม Router ทั้งหมด (Modular Design)
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-app.include_router(chatbot.router, prefix="/api/v1/ai", tags=["AI Chatbot"])
+# 2. แก้บรรทัดนี้ให้ใช้ชื่อ chatbot_router ที่เรา import มาใหม่
+app.include_router(chatbot_router, prefix="/api/v1/ai", tags=["AI Chatbot"])
 
 @app.get("/")
 def root():
-    return {"message": "Server is running! Auth & AI Chatbot are ready."}
+    return {"message": "Server is running! AI Chatbot is ready (Database bypassed)."}
