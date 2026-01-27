@@ -1,22 +1,32 @@
-import os
 import google.generativeai as genai
-from dotenv import load_dotenv
+from PIL import Image
+import io
+import os
 
-load_dotenv()
-API_KEY = os.getenv("GOOGLE_API_KEY")
+# ดึง API Key จาก .env
+genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 
-if API_KEY:
-    genai.configure(api_key=API_KEY)
-    
-    model = genai.GenerativeModel("gemini-2.5-flash") 
-else:
-    model = None
+# เลือกใช้ Model Gemini 2.0 Flash (รองรับรูปภาพ)
+model = genai.GenerativeModel('gemini-2.0-flash-exp')
 
-def get_ai_response(prompt: str):
-    if not model:
-        return "System API key is not configured yet."
-    
-    # ใส่บุคลิก Gen Z เข้าไปตรงนี้ได้เลย
-    system_instruction = "ตอบคำถามแบบเพื่อนสนิท Gen Z ที่คอยช่วยเหลือเรื่องเรียน"
-    response = model.generate_content(f"{system_instruction} คำถาม: {prompt}")
-    return response.text
+async def get_ai_response_with_image(prompt: str, image_bytes: bytes = None):
+    try:
+        if image_bytes:
+            # แปลง bytes เป็นรูปภาพที่ AI อ่านได้
+            img = Image.open(io.BytesIO(image_bytes))
+            # ส่งทั้งข้อความและรูปภาพไปพร้อมกัน
+            response = await model.generate_content_async([prompt, img])
+        else:
+            # ถ้าไม่มีรูป ส่งแค่ข้อความปกติ
+            response = await model.generate_content_async(prompt)
+            
+        return response.text
+    except Exception as e:
+        return f"เกิดข้อผิดพลาดในการประมวลผล AI: {str(e)}"
+# เพิ่มต่อท้ายใน ai_service.py
+async def get_ai_response(message: str):
+    try:
+        response = await model.generate_content_async(message)
+        return response.text
+    except Exception as e:
+        return f"Error: {str(e)}"

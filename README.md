@@ -122,3 +122,8 @@ git push -u origin develop
 
 ```bash
 pip install -r requirements.txt
+
+
+
+เพิ่มตัว ( มา )
+pip install Pillow  

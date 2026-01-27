@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import auth, chatbot # ดึงทั้ง Auth ของคุณ และ Chatbot ของเพื่อนมา
 from app.utils.db import engine, Base
+from app.api.v1 import ai
 
 # สร้าง Table ใน MySQL อัตโนมัติ
 Base.metadata.create_all(bind=engine)
@@ -22,9 +23,13 @@ app.add_middleware(
 )
 
 # รวม Router ทั้งหมด (Modular Design)
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-app.include_router(chatbot.router, prefix="/api/v1/ai", tags=["AI Chatbot"])
 
+# 1. ระบบจัดการสมาชิก (Login/Register)
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
+# 2. ระบบแชทข้อความปกติ (จากไฟล์ chatbot.py)
+app.include_router(chatbot.router, prefix="/api/v1/chat", tags=["Standard Chat"])
+# 3. ระบบ AI วิเคราะห์รูปภาพ (จากไฟล์ ai.py ที่รองรับ Gemini 2.0)
+app.include_router(ai.router, prefix="/api/v1/vision", tags=["AI Vision Analysis"])
 @app.get("/")
 def root():
     return {"message": "Server is running! Auth & AI Chatbot are ready."}
