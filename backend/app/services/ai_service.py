@@ -6,8 +6,7 @@ import os
 # ดึง API Key จาก .env
 genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 
-# เลือกใช้ Model Gemini 2.0 Flash (รองรับรูปภาพ)
-model = genai.GenerativeModel('gemini-2.0-flash-exp')
+model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
 async def get_ai_response_with_image(prompt: str, image_bytes: bytes = None):
     try:
