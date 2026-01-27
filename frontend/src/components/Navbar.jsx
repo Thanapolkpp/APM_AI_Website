@@ -12,7 +12,6 @@ const Navbar = () => {
       : 'text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-gray-50 dark:hover:bg-white/5 md:hover:bg-transparent rounded-xl' // สไตล์ปกติ
     }`;
 
-  // รายการเมนู
   const navLinks = [
     { name: 'Home', to: '/' },
     { name: 'About', to: '/about' },
