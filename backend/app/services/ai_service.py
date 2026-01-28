@@ -1,53 +1,50 @@
-import os
-import google.generativeai as genai  # กลับมาใช้ตัวเดิมเพื่อความเสถียรกับโค้ดที่คุณเขียน
-from dotenv import load_dotenv
+import requests
 
-load_dotenv()
+OLLAMA_URL = "http://localhost:11434/api/generate"
+MODEL_NAME = "gemma3:latest"
 
-# เช็คชื่อในไฟล์ .env ของคุณด้วยนะว่าใช้ GOOGLE_API_KEY หรือ GEMINI_API_KEY
-API_KEY = os.getenv("GEMINI_API_KEY") 
-
-model = None
-
-if API_KEY:
-    try:
-        genai.configure(api_key=API_KEY)
-        # ใช้ชื่อโมเดลที่คุณเช็คมาแล้วว่ามีในโควตา
-        model = genai.GenerativeModel("gemini-3-flash-preview")
-        print("✅ AI Model Ready!")
-    except Exception as e:
-        print(f"❌ Configuration Error: {e}")
-else:
-    print("❌ API_KEY not found in .env")
 
 def get_ai_response(prompt: str, mode: str):
-    global model 
-    
-    if not model:
-        return "System API key is not configured yet. แกเช็คไฟล์ .env หรือยัง?"
-
     instructions = {
-        "bro": "คุณคือเพื่อนชายสายลุย (Bro Mode) คุยแบบ 'เพื่อน/ดิว่ะ/ฟีลแบบ/มีอะไรให้ช่วยป่ะวะ' 🧢",
-        "girl": "คุณคือเพื่อนสาวสุดคิวท์ (Bestie Mode) คุยแบบ 'ต้าว/แกรรร/นะเอย' ✨",
-        "nerd": "คุณคือที่ปรึกษาผู้รอบรู้ (Nerd Mode) ภาษาสุภาพ ข้อมูลแม่นยำ 🧪"
+        "bro": "คุณคือเพื่อนชายสายลุย (Bro Mode) คุยแบบเพื่อนสนิท ใช้คำว่า 'เพื่อน/ว่ะ/ดิ' ได้ แต่ห้ามลากเสียงหรือยืดคำ 🧢",
+        "girl": "คุณคือเพื่อนสาวสุดคิวท์ (Bestie Mode) เป็นกันเอง น่ารัก สดใส แต่ห้ามลากเสียงหรือยืดคำ ✨",
+        "nerd": "คุณคือที่ปรึกษาผู้รอบรู้ (Nerd Mode) ภาษาสุภาพ ข้อมูลแม่นยำ 🧪",
     }
 
-    persona = instructions.get(mode, "คุณคือเพื่อนสนิทที่พร้อมช่วยเหลือทุกเรื่อง")
-    format_rules = (
-        "\n\n**ข้อกำหนด:** ใช้ Markdown (**ตัวหนา**, - Bullet points, | Table |) "
-        "และปิดท้ายด้วย Emoji ที่เข้ากับโหมดเสมอ"
+    persona = instructions.get(
+        mode,
+        "คุณคือเพื่อนสนิทที่พร้อมช่วยเหลือทุกเรื่อง ไม่ว่าจะเป็นเรื่องการศึกษา หรือเรื่องส่วนตัว",
     )
 
-    full_instruction = f"{persona}{format_rules}"
-    
-    try:
-        response = model.generate_content(f"{full_instruction}\n\nคำถาม: {prompt}")
-        
-        if not response or not response.text:
-            return "ขอโทษทีแก สมองขิตชั่วคราว ลองถามใหม่อีกทีนะ"
-            
-        return response.text
-        
-    except Exception as e:
-        print(f"--- AI Error: {str(e)} ---")
-        return f"เกิดข้อผิดพลาด: {str(e)}"
+    format_rules = (
+        "\n\n**ข้อกำหนดสำคัญ (ทำตามเคร่งครัด):**\n"
+        "1) ห้ามลากเสียง/ยืดคำ เช่น แกรรรรร / น้าาาา / ก้ณณณณ\n"
+        "2) ห้ามพิมพ์คำซ้ำแบบผิดธรรมชาติ เช่น นนะ / นะะะ / ค่าาา\n"
+        "3) ตอบให้ตรงคำถามเท่านั้น ห้ามหลุดไปเรื่องอื่น\n"
+        "4) ใช้ Markdown: **ตัวหนา**, - Bullet points, | Table |\n"
+        "5) ตอบกระชับ อ่านง่าย\n"
+        "6) ปิดท้ายด้วย Emoji ให้เข้ากับโหมดเสมอ\n"
+    )
+
+    final_prompt = f"{persona}{format_rules}\n\nคำถาม: {prompt}"
+
+    payload = {
+        "model": MODEL_NAME,
+        "prompt": final_prompt,
+        "stream": False,
+        "options": {
+            "temperature": 0.4,
+            "top_p": 0.9,
+            "repeat_penalty": 1.25,
+            "num_predict": 200,
+        },
+    }
+
+    res = requests.post(OLLAMA_URL, json=payload, timeout=60)
+    res.raise_for_status()
+    data = res.json()
+
+    return {
+        "mode": mode,
+        "response": data.get("response", "").strip(),
+    }
