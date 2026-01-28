@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from "react-markdown";
 import { sendMessageToAI } from "../services/aiService";
-import remarkGfm from 'remark-gfm'; // แนะนำให้ลงเพิ่มเพื่อให้ตารางแสดงผลแม่นยำขึ้น
+import remarkGfm from "remark-gfm";
 
 const ChatWindow = ({ mode: propsMode }) => {
   const { mode: urlMode } = useParams();
@@ -15,10 +15,25 @@ const ChatWindow = ({ mode: propsMode }) => {
 
   const getSystemMessage = (currentMode) => {
     switch (currentMode) {
-      case "bro": return "Yo bro! What's up? 🧢";
-      case "girl": return "Hi bestie! ✨ Ready to study? 🎀";
-      case "nerd": return "Greetings. Let's optimize your learning. 🧪";
-      default: return "Hello! How can I help you today?";
+      case "bro":
+        return "Yo bro! What's up? 🧢";
+      case "girl":
+        return "Hi bestie! ✨ Ready to study? 🎀";
+      case "nerd":
+        return "Greetings. Let's optimize your learning. 🧪";
+      default:
+        return "Hello! How can I help you today?";
+    }
+  };
+
+  // ✅ ฟังก์ชันสำคัญ: แปลงอะไรก็ตามให้เป็น string เสมอ (กัน Markdown พัง)
+  const safeText = (value) => {
+    if (typeof value === "string") return value;
+    if (value === null || value === undefined) return "";
+    try {
+      return JSON.stringify(value, null, 2); // เผื่อหลุดมาเป็น object จะได้เห็นเป็นข้อความแทน
+    } catch (e) {
+      return String(value);
     }
   };
 
@@ -34,16 +49,27 @@ const ChatWindow = ({ mode: propsMode }) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMsg = { text: input, sender: "user" };
-    setMessages(prev => [...prev, userMsg]);
+    // ✅ เก็บค่าที่จะส่งไว้ก่อน เพราะ setInput("") แล้ว input จะหาย
+    const textToSend = input.trim();
+
+    const userMsg = { text: textToSend, sender: "user" };
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
 
     try {
-      const reply = await sendMessageToAI(input, mode);
-      setMessages(prev => [...prev, { text: reply, sender: "ai" }]);
+      const reply = await sendMessageToAI(textToSend, mode);
+
+      // ✅ กันพัง 100%: บังคับ reply เป็น string ก่อนเก็บ
+      setMessages((prev) => [
+        ...prev,
+        { text: safeText(reply), sender: "ai" },
+      ]);
     } catch (error) {
-      setMessages(prev => [...prev, { text: "Error: คุยกับ AI ไม่ได้ครับ", sender: "ai" }]);
+      setMessages((prev) => [
+        ...prev,
+        { text: safeText(error?.message || "คุยกับ AI ไม่ได้ครับ"), sender: "ai" },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -52,13 +78,21 @@ const ChatWindow = ({ mode: propsMode }) => {
   return (
     <div className="flex flex-col h-[85vh] max-w-4xl mx-auto p-2 md:p-4 bg-gray-50 rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
       {/* Header */}
-      <div className={`p-4 rounded-t-2xl font-bold capitalize shadow-md transition-all duration-500 flex items-center justify-between ${mode === 'bro' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' :
-          mode === 'girl' ? 'bg-gradient-to-r from-pink-400 to-pink-500 text-white' :
-            'bg-gradient-to-r from-purple-600 to-indigo-700 text-white'
-        }`}>
+      <div
+        className={`p-4 rounded-t-2xl font-bold capitalize shadow-md transition-all duration-500 flex items-center justify-between ${mode === "bro"
+          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+          : mode === "girl"
+            ? "bg-gradient-to-r from-pink-400 to-pink-500 text-white"
+            : "bg-gradient-to-r from-purple-600 to-indigo-700 text-white"
+          }`}
+      >
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined">
-            {mode === 'bro' ? 'smart_toy' : mode === 'girl' ? 'face_6' : 'psychology'}
+            {mode === "bro"
+              ? "smart_toy"
+              : mode === "girl"
+                ? "face_6"
+                : "psychology"}
           </span>
           <span>{mode} Mode Online</span>
         </div>
@@ -68,27 +102,40 @@ const ChatWindow = ({ mode: propsMode }) => {
       {/* Chat Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/50 backdrop-blur-sm custom-scrollbar">
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`px-4 py-3 rounded-2xl max-w-[85%] shadow-sm transition-all ${msg.sender === "user"
+          <div
+            key={i}
+            className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"
+              }`}
+          >
+            <div
+              className={`px-4 py-3 rounded-2xl max-w-[85%] shadow-sm transition-all ${msg.sender === "user"
                 ? "bg-blue-600 text-white rounded-tr-none"
                 : "bg-white text-gray-800 rounded-tl-none border border-gray-100"
-              }`}>
+                }`}
+            >
               {msg.sender === "ai" ? (
-                /* จัดการ Format Markdown ให้สวยงาม */
-                <div className="markdown-content prose prose-sm max-w-none 
+                <div
+                  className="markdown-content prose prose-sm max-w-none 
                   prose-table:border-collapse prose-table:w-full prose-table:my-2
                   prose-th:border prose-th:border-gray-300 prose-th:p-2 prose-th:bg-gray-50
                   prose-td:border prose-td:border-gray-300 prose-td:p-2
                   prose-ul:list-disc prose-ul:ml-4
-                  prose-strong:font-bold prose-strong:text-current">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+                  prose-strong:font-bold prose-strong:text-current"
+                >
+                  {/* ✅ ตรงนี้สำคัญมาก: safeText(msg.text) */}
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {safeText(msg.text)}
+                  </ReactMarkdown>
                 </div>
               ) : (
-                <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+                <p className="whitespace-pre-wrap leading-relaxed">
+                  {safeText(msg.text)}
+                </p>
               )}
             </div>
           </div>
         ))}
+
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-gray-100 px-4 py-2 rounded-2xl text-xs text-gray-400 animate-bounce">
@@ -96,11 +143,15 @@ const ChatWindow = ({ mode: propsMode }) => {
             </div>
           </div>
         )}
+
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
-      <form onSubmit={handleSend} className="flex gap-2 p-4 bg-white border-t border-gray-100">
+      <form
+        onSubmit={handleSend}
+        className="flex gap-2 p-4 bg-white border-t border-gray-100"
+      >
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -109,7 +160,10 @@ const ChatWindow = ({ mode: propsMode }) => {
           disabled={isLoading}
         />
         <button
-          className={`size-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg transition-all active:scale-90 ${isLoading ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 hover:rotate-12'
+          type="submit"
+          className={`size-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg transition-all active:scale-90 ${isLoading
+            ? "bg-gray-300 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700 hover:rotate-12"
             }`}
           disabled={isLoading}
         >

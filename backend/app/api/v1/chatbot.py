@@ -12,7 +12,6 @@ class ChatRequest(BaseModel):
 async def chat_with_ai(request: ChatRequest):
     try:
         # ส่งทั้ง message และ mode ไปให้ ai_service
-        reply = get_ai_response(request.message, request.mode)
-        return {"reply": reply}
+        return get_ai_response(request.message, request.mode)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
