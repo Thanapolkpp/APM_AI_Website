@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HiMail, HiLockClosed, HiOutlineQuestionMarkCircle, HiUser } from "react-icons/hi";
 import Footer from "../components/footer";
+import mascotImg from "../assets/Nerd.1.2.png";
 
 const Login = () => {
     const [identifier, setIdentifier] = useState("");
@@ -73,7 +74,7 @@ const Login = () => {
                     <div className="w-full md:w-1/2 p-12 flex flex-col justify-center items-center text-center bg-gradient-to-br from-primary/5 to-transparent">
                         <div className="relative mb-10 group">
                             <div className="w-64 h-64 bg-white dark:bg-gray-800 rounded-[60px] shadow-2xl flex items-center justify-center relative animate-bounce" style={{ animationDuration: '3s' }}>
-                                <span className="text-8xl select-none"></span>
+                                <img src={mascotImg} alt="Mascot" className="w-43 h-43 object-contain" />
                                 <div className="absolute -bottom-4 -right-4 bg-primary text-white p-4 rounded-2xl shadow-xl rotate-12">
                                     <p className="text-[10px] font-black uppercase tracking-widest">Studying...</p>
                                 </div>

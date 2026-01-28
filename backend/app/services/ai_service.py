@@ -1,10 +1,11 @@
+import base64
 import requests
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_URL = "http://localhost:11434/api/chat"
 MODEL_NAME = "gemma3:latest"
 
 
-def get_ai_response(prompt: str, mode: str):
+def _build_persona(mode: str) -> str:
     instructions = {
         "bro": "คุณคือเพื่อนชายสายลุย (Bro Mode) คุยแบบเพื่อนสนิท ใช้คำว่า 'เพื่อน/ว่ะ/ดิ' ได้ แต่ห้ามลากเสียงหรือยืดคำ 🧢",
         "girl": "คุณคือเพื่อนสาวสุดคิวท์ (Bestie Mode) เป็นกันเอง น่ารัก สดใส แต่ห้ามลากเสียงหรือยืดคำ ✨",
@@ -23,17 +24,29 @@ def get_ai_response(prompt: str, mode: str):
         "3) ใช้ Markdown: **ตัวหนา**, - Bullet points, | Table |\n"
     )
 
-    final_prompt = f"{persona}{format_rules}\n\nคำถาม: {prompt}"
+    return f"{persona}{format_rules}"
+
+
+def get_ai_response(prompt: str, mode: str):
+    persona = _build_persona(mode)
+    final_prompt = f"{persona}\n\nคำถาม: {prompt}"
 
     payload = {
         "model": MODEL_NAME,
-        "prompt": final_prompt,
+        "messages": [
+            {
+                "role": "user",
+                "content": final_prompt
+            }
+        ],
         "stream": False,
         "options": {
             "temperature": 0.4,
             "top_p": 0.9,
             "repeat_penalty": 1.25,
-            "num_predict": 200,
+            "num_predict": 1500,
+            "stop": ["</END>"]
+
         },
     }
 
@@ -41,8 +54,44 @@ def get_ai_response(prompt: str, mode: str):
     res.raise_for_status()
     data = res.json()
 
-    # ✅ ให้ return "reply" อย่างเดียวเลย จะได้ไม่สับสนฝั่ง frontend
-    return {
-    "reply": data.get("response", "").strip()
-}
+    # ✅ ollama /api/chat จะคืน message.content
+    reply = data.get("message", {}).get("content", "").strip()
+
+    return {"reply": reply}
+
+
+async def get_ai_response_with_image(prompt: str, mode: str, image_data: bytes | None):
+    persona = _build_persona(mode)
+    final_prompt = f"{persona}\n\nคำถาม: {prompt}"
+
+    images_b64 = []
+    if image_data:
+        images_b64 = [base64.b64encode(image_data).decode("utf-8")]
+
+    payload = {
+        "model": MODEL_NAME,
+        "messages": [
+            {
+                "role": "user",
+                "content": final_prompt,
+                "images": images_b64  # ✅ ตรงนี้คือ Vision
+            }
+        ],
+        "stream": False,
+        "options": {
+            "temperature": 0.4,
+            "top_p": 0.9,
+            "repeat_penalty": 1.25,
+            "num_predict": 1500,
+       "stop": ["</END>"]
+
+        },
+    }
+
+    res = requests.post(OLLAMA_URL, json=payload, timeout=60)
+    res.raise_for_status()
+    data = res.json()
+
+    reply = data.get("message", {}).get("content", "").strip()
+    return {"reply": reply}
 

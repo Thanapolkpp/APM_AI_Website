@@ -7,7 +7,9 @@ import LessonTabs from "../components/LessonTabs"
 import { useNavigate } from "react-router-dom"
 import Logo from "../assets/logo.png"
 import BroIcon from "../assets/Bro.png"
-import NerdIcon from "../assets/Nerd.png"
+import NerdIcon from "../assets/Nerd.1.1.png"
+import CuteGirlIcon from "../assets/Girl.png"
+
 
 
 const Home = ({ onStartChat }) => {
@@ -34,7 +36,7 @@ const Home = ({ onStartChat }) => {
     {
       id: "girl",
       title: "Cute Girl Mode",
-      icon: "🎀",
+      icon: CuteGirlIcon,
       description:
         "Hey bestie ✨ Ready to smash those goals? You’re doing amazing! Let’s do this 💕",
       buttonIcon: "favorite",
@@ -56,7 +58,7 @@ const Home = ({ onStartChat }) => {
         "Let’s dive deep into the data. Optimization is the key to academic excellence 🤓📚",
       buttonIcon: "calculate",
       colors: {
-        bg: "bg-green-100 dark:bg-green-900/20",
+        bg: "bg-gray-100 dark:bg-green-900/20",
         hoverBorder: "hover:border-green-200",
         shadow: "shadow-soft-green",
         iconBg: "bg-white/80 dark:bg-green-800/40",
@@ -123,8 +125,7 @@ const Home = ({ onStartChat }) => {
                 onClick={() => navigate("/login")}
                 className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
                 style={{
-                  backgroundImage:
-                    'url("https://images.unsplash.com/photo-1535713875002-d1d0cf377fde")',
+                  backgroundImage: `url("${CuteGirlIcon}")`,
                 }}
                 title="Go to Login"
                 aria-label="Go to login"
