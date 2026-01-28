@@ -19,11 +19,8 @@ def get_ai_response(prompt: str, mode: str):
     format_rules = (
         "\n\n**ข้อกำหนดสำคัญ (ทำตามเคร่งครัด):**\n"
         "1) ห้ามลากเสียง/ยืดคำ เช่น แกรรรรร / น้าาาา / ก้ณณณณ\n"
-        "2) ห้ามพิมพ์คำซ้ำแบบผิดธรรมชาติ เช่น นนะ / นะะะ / ค่าาา\n"
-        "3) ตอบให้ตรงคำถามเท่านั้น ห้ามหลุดไปเรื่องอื่น\n"
-        "4) ใช้ Markdown: **ตัวหนา**, - Bullet points, | Table |\n"
-        "5) ตอบกระชับ อ่านง่าย\n"
-        "6) ปิดท้ายด้วย Emoji ให้เข้ากับโหมดเสมอ\n"
+        "2) ตอบให้ตรงคำถามเท่านั้น ห้ามหลุดไปเรื่องอื่น\n"
+        "3) ใช้ Markdown: **ตัวหนา**, - Bullet points, | Table |\n"
     )
 
     final_prompt = f"{persona}{format_rules}\n\nคำถาม: {prompt}"
@@ -44,7 +41,8 @@ def get_ai_response(prompt: str, mode: str):
     res.raise_for_status()
     data = res.json()
 
+    # ✅ ให้ return "reply" อย่างเดียวเลย จะได้ไม่สับสนฝั่ง frontend
     return {
-        "mode": mode,
-        "response": data.get("response", "").strip(),
-    }
+    "reply": data.get("response", "").strip()
+}
+
