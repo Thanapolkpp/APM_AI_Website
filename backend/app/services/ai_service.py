@@ -1,7 +1,8 @@
 import base64
 import requests
+import os
 
-OLLAMA_URL = "http://localhost:11434/api/chat"
+OLLAMA_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/chat")
 MODEL_NAME = "gemma3:latest"
 
 
