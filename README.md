@@ -122,3 +122,7 @@ git push -u origin develop
 
 ```bash
 pip install -r requirements.txt
+
+รัน AI
+```bash
+ollama run gemma3:latest

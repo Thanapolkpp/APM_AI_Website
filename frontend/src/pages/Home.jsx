@@ -1,10 +1,12 @@
 import React from "react"
+import { useState } from "react"
 import Navbar from "../components/Navbar"
 import ModeCard from "../components/ModeCard"
 import Middlesection from "../components/Middlesection"
 import Footer from "../components/footer"
 import LessonTabs from "../components/LessonTabs"
 import { useNavigate } from "react-router-dom"
+import Notification from "../components/Notification"
 import Logo from "../assets/logo.png"
 import BroIcon from "../assets/Bro.png"
 import NerdIcon from "../assets/Nerd.1.1.png"
@@ -14,6 +16,7 @@ import CuteGirlIcon from "../assets/Girl.png"
 
 const Home = ({ onStartChat }) => {
   const navigate = useNavigate()
+  const [showNoti, setShowNoti] = useState(false)
 
   const modes = [
     {
@@ -78,46 +81,72 @@ const Home = ({ onStartChat }) => {
 
       <div className="layout-container flex flex-col min-h-screen relative z-10">
         {/* Header */}
-        <header className="sticky top-0 z-50 w-full bg-background-light/70 dark:bg-background-dark/70 backdrop-blur-xl border-b border-white/40 dark:border-gray-800">
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-5 grid grid-cols-2 md:grid-cols-3 items-center">
+        <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
+          <div className="mx-auto grid w-full max-w-7xl grid-cols-2 items-center px-4 py-4 sm:px-6 md:grid-cols-3">
 
-            {/* LEFT */}
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="size-11 sm:size-12 rounded-2xl flex items-center justify-center shadow-sm overflow-hidden ring-2 ring-primary/30 shrink-0">
-                <img src={Logo} alt="Logo" className="w-full h-full object-cover" />
+            {/* ✅ Left */}
+            <div className="flex min-w-0 items-center gap-3">
+              {/* Logo */}
+              <div className="relative size-11 sm:size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-2 ring-pink-300/50 shadow-md">
+                <img
+                  src={Logo}
+                  alt="Logo"
+                  className="h-full w-full object-cover transition duration-300 hover:scale-110"
+                />
+                {/* cute shine */}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
               </div>
 
+              {/* Title */}
               <div className="min-w-0">
-                <h1 className="text-base sm:text-xl font-extrabold tracking-tight leading-none truncate">
+                <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-black drop-shadow-sm dark:text-white">
                   <span className="sm:hidden">APM AI</span>
-                  <span className="hidden sm:inline">Assistant for Personal Motivation</span>
+                  <span className="hidden sm:inline">
+                    Assistant for Personal Motivation
+                  </span>
                 </h1>
 
-                <p className="text-[9px] sm:text-[10px] uppercase tracking-widest font-bold text-gray-400 dark:text-gray-500 truncate">
-                  ผู้ช่วยที่เป็นเพื่อนที่ดีสำหรับคุณ
+                <p className="truncate text-[10px] sm:text-[11px] font-semibold text-black/70 dark:text-white/70">
+                  🌷 ผู้ช่วยที่เป็นเพื่อนที่ดีสำหรับคุณ
                 </p>
               </div>
             </div>
 
-            {/* CENTER (Desktop only) ✅ */}
+            {/* ✅ Center (Desktop) */}
             <div className="hidden md:flex justify-center">
-              <Navbar />
-            </div>
-
-            {/* RIGHT */}
-            <div className="flex justify-end items-center gap-2 sm:gap-4">
-              {/* Mobile Navbar (Hamburger) */}
-              <div className="md:hidden">
+              <div className="rounded-full border border-white/20 bg-white/15 px-6 py-2 shadow-sm">
                 <Navbar />
               </div>
+            </div>
 
+            {/* Right */}
+            <div className="flex justify-end items-center gap-3">
               {/* Notification */}
-              <button className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95">
-                <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
-                  notifications
-                </span>
-                <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
-              </button>
+              {/* Notification */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowNoti(true)}
+                  className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95"
+                >
+                  <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
+                    notifications
+                  </span>
+
+                  <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
+                </button>
+
+                {/* Notification Popup */}
+                <Notification
+                  show={showNoti}
+                  type="info"
+                  title="APM AI แจ้งเตือน"
+                  message="สู้ๆน้า วันนี้เธอทำได้แน่นอน 💖✨"
+                  onClose={() => setShowNoti(false)}
+                  autoClose={true}
+                  duration={3000}
+                />
+              </div>
+
 
               {/* Avatar */}
               <button
@@ -130,9 +159,16 @@ const Home = ({ onStartChat }) => {
                 title="Go to Login"
                 aria-label="Go to login"
               />
+
+              {/* Mobile Navbar */}
+              <div className="md:hidden">
+                <Navbar />
+              </div>
             </div>
+
           </div>
         </header>
+
 
 
 
@@ -140,8 +176,11 @@ const Home = ({ onStartChat }) => {
         <main className="flex-1 flex flex-col items-center px-6 py-14 max-w-7xl mx-auto w-full">
           {/* Hero Section */}
           <div className="text-center mb-14">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/70 dark:bg-white/10 border border-white/60 dark:border-gray-800 shadow-sm text-xs font-extrabold tracking-widest uppercase text-primary">
-              ✨ Welcome bestie
+            <div className="inline-flex items-center gap-2 px-5 py-2 mb-6 rounded-full
+    bg-gradient-to-r from-pink-400/20 via-purple-400/20 to-sky-400/20
+    text-gray-900 dark:text-white font-extrabold text-sm tracking-widest
+    shadow-sm border border-gray-200/70 dark:border-white/20">
+              Welcome bestie
             </div>
 
             <h2 className="mt-5 text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
@@ -149,7 +188,7 @@ const Home = ({ onStartChat }) => {
               <span className="bg-gradient-to-r from-primary via-pink-500 to-blue-500 bg-clip-text text-transparent">
                 AI friend
               </span>{" "}
-              for uni life{" "}
+              for Uni Life
               <span className="inline-block animate-bounce">💖</span>
             </h2>
 

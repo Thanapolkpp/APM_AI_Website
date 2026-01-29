@@ -72,9 +72,6 @@ const Middlesection = () => {
             {/* mini stats */}
             <div className="mt-16 flex flex-col items-center gap-4 mb-10">
 
-                <div className="text-[10px] text-gray-400 uppercase tracking-widest font-bold text-center">
-                    Powered by APM AI • Assistant for Personal Motivation 💖
-                </div>
             </div>
         </div>
     )

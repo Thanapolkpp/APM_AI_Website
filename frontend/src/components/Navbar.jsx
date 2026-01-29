@@ -14,9 +14,10 @@ const Navbar = () => {
 
   const linkClasses = ({ isActive }) =>
     `w-full px-6 py-4 text-base font-extrabold transition-all duration-200 rounded-2xl
+     border
      ${isActive
-      ? "text-primary bg-primary/10"
-      : "text-gray-700 dark:text-gray-200 hover:text-primary hover:bg-black/5 dark:hover:bg-white/10"
+      ? "text-primary bg-gradient-to-r from-primary/15 to-pink-500/15 border-primary/20"
+      : "text-gray-700 dark:text-gray-200 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-pink-300/40 dark:hover:border-pink-400/20 hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 dark:hover:from-pink-500/10 dark:hover:to-purple-500/10"
     }`
 
   const navLinks = [
@@ -30,10 +31,18 @@ const Navbar = () => {
       {/* --- Desktop --- */}
       <nav className="hidden md:flex items-center gap-1 bg-white/60 dark:bg-white/5 backdrop-blur-md px-2 py-2 rounded-full border border-white/60 dark:border-gray-800 shadow-sm">
         {navLinks.map((link) => (
-          <NavLink key={link.to} to={link.to} className={({ isActive }) =>
-            `px-6 py-2 text-sm font-extrabold rounded-xl transition
-            ${isActive ? "text-primary bg-primary/10" : "text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-black/5 dark:hover:bg-white/10"}`
-          }>
+          <NavLink
+            key={link.to}
+            to={link.to}
+            className={({ isActive }) =>
+              `px-6 py-2 text-sm font-extrabold rounded-xl transition-all duration-200
+               border
+                ${isActive
+                ? "text-pink-600 bg-gradient-to-r from-pink-100 to-purple-100 border-pink-300/40 dark:text-pink-300 dark:from-pink-500/15 dark:to-purple-500/15 dark:border-pink-400/20"
+                : "text-gray-700 dark:text-gray-200 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-pink-300/40 dark:hover:border-pink-400/20 hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 dark:hover:from-pink-500/10 dark:hover:to-purple-500/10"
+              }`
+            }
+          >
             {link.name}
           </NavLink>
         ))}
@@ -69,9 +78,7 @@ const Navbar = () => {
                 <p className="text-xs font-extrabold tracking-widest text-white/80 uppercase">
                   Menu
                 </p>
-                <h3 className="text-2xl font-extrabold text-white">
-                  APM AI ✨
-                </h3>
+                <h3 className="text-2xl font-extrabold text-white">APM AI</h3>
               </div>
 
               <button

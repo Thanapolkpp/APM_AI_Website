@@ -1,46 +1,56 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
-import { sendMessageToAI, sendMessageToAIWithImage } from "../services/aiService";
-import remarkGfm from "remark-gfm";
+import React, { useEffect, useMemo, useRef, useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import Navbar from "../components/Navbar"
+import Logo from "../assets/logo.png"
+import GirlIcon from "../assets/Girl.png"
+import BroIcon from "../assets/Bro.png"
+import NerdIcon from "../assets/Nerd.1.1.png"
+import { sendMessageToAI, sendMessageToAIWithImage } from "../services/aiService"
 
 const ChatWindow = ({ mode: propsMode }) => {
-  const { mode: urlMode } = useParams();
-  const mode = urlMode || propsMode || "bro";
+  const navigate = useNavigate()
+  const { mode: urlMode } = useParams()
+  const mode = urlMode || propsMode || "bro"
 
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [input, setInput] = useState("")
+  const [messages, setMessages] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
 
-  // ✅ เพิ่ม state รูปภาพ
-  const [selectedImage, setSelectedImage] = useState(null);
+  // ✅ แนบรูป
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null)
 
-  const messagesEndRef = useRef(null);
-  const fileInputRef = useRef(null);
+  const messagesEndRef = useRef(null)
+  const fileInputRef = useRef(null)
 
+  // ✅ system message
   const getSystemMessage = (currentMode) => {
     switch (currentMode) {
       case "bro":
-        return "Yo bro! What's up? 🧢";
+        return "Yo bro! What's up? 🧢"
       case "girl":
-        return "Hi bestie! ✨ Ready to study? 🎀";
+        return "Hi bestie! ✨ Ready to study? 🎀"
       case "nerd":
-        return "Greetings. Let's optimize your learning. 🧪";
+        return "Greetings. Let's optimize your learning. 🧪"
       default:
-        return "Hello! How can I help you today?";
+        return "Hello! How can I help you today?"
     }
-  };
+  }
 
-  // ✅ แปลงอะไรก็ตามให้เป็น string เสมอ (กัน Markdown พัง)
+  // ✅ กัน Markdown พัง
   const safeText = (value) => {
-    if (typeof value === "string") return value;
-    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value
+    if (value === null || value === undefined) return ""
     try {
-      return JSON.stringify(value, null, 2);
+      return JSON.stringify(value, null, 2)
     } catch (e) {
-      return String(value);
+      return String(value)
     }
-  };
+  }
+
+  // ✅ build planner system prompt
   const buildPlannerSystemPrompt = (userText) => {
     return `
 คุณเป็น AI ผู้ช่วยจัด "ตารางอ่านหนังสือ + To-do + ระบบเตือนงาน" แบบเป็นระบบ
@@ -85,11 +95,10 @@ const ChatWindow = ({ mode: propsMode }) => {
 
 ข้อมูลผู้ใช้:
 ${userText}
-`.trim();
-  };
+`.trim()
+  }
 
-
-  // ✅ Quick Prompt สำหรับจัดตาราง + To-do + เตือนงาน
+  // ✅ Quick Prompt
   const plannerPrompt = `
 ช่วยจัดตารางอ่านหนังสือแบบเป็นระบบให้หน่อย
 
@@ -106,125 +115,224 @@ ${userText}
 - 1 ชั่วโมงต่อ 1 หัวข้อ
 - พักทุก 2 ชั่วโมง ครั้งละ 10-15 นาที
 - ขอแบบตารางรายสัปดาห์ + แผนวันนี้ + To-do + ระบบเตือนงาน
-`.trim();
+`.trim()
 
-
+  // ✅ preview url (ไม่กินแรม)
   useEffect(() => {
-    setMessages([{ text: getSystemMessage(mode), sender: "ai" }]);
-  }, [mode]);
+    if (!selectedImage) {
+      setImagePreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(selectedImage)
+    setImagePreviewUrl(url)
 
+    return () => URL.revokeObjectURL(url)
+  }, [selectedImage])
+
+  // ✅ init messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    setMessages([{ text: getSystemMessage(mode), sender: "ai" }])
+  }, [mode])
+
+  // ✅ auto scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
 
   const handleClearChat = () => {
-    setMessages([{ text: getSystemMessage(mode), sender: "ai" }]);
-  };
+    setMessages([{ text: getSystemMessage(mode), sender: "ai" }])
+  }
 
-  // ✅ กดปุ่มแนบรูป
+  // ✅ pick image
   const handlePickImage = () => {
-    fileInputRef.current?.click();
-  };
+    fileInputRef.current?.click()
+  }
 
-  // ✅ เลือกรูป
+  // ✅ change image
   const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]
+    if (!file) return
 
     if (!file.type.startsWith("image/")) {
-      alert("กรุณาเลือกไฟล์รูปภาพเท่านั้น");
-      return;
+      alert("กรุณาเลือกไฟล์รูปภาพเท่านั้น")
+      return
     }
 
-    setSelectedImage(file);
-  };
+    setSelectedImage(file)
+  }
 
-  // ✅ ลบรูปที่เลือก
+  // ✅ remove image
   const removeSelectedImage = () => {
-    setSelectedImage(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+    setSelectedImage(null)
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
+
+  // ✅ styles by mode
+  const headerTheme = useMemo(() => {
+    if (mode === "bro") {
+      return {
+        pill: "from-blue-500 to-blue-600",
+        ring: "ring-blue-300/40",
+        focus: "focus:ring-blue-400",
+        placeholder: "ถามอะไร bro หน่อยสิ...",
+      }
+    }
+    if (mode === "girl") {
+      return {
+        pill: "from-pink-400 to-pink-500",
+        ring: "ring-pink-300/50",
+        focus: "focus:ring-pink-400",
+        placeholder: "ถามอะไร bestie หน่อยสิ...",
+      }
+    }
+    return {
+      pill: "from-green-600 to-green-700",
+      ring: "ring-green-300/50",
+      focus: "focus:ring-green-400",
+      placeholder: "ถามอะไร nerd หน่อยสิ...",
+    }
+  }, [mode])
 
   const handleSend = async (e) => {
-    e.preventDefault();
-    if ((!input.trim() && !selectedImage) || isLoading) return;
+    e.preventDefault()
+    if ((!input.trim() && !selectedImage) || isLoading) return
 
-    const textToSend = input.trim();
+    const textToSend = input.trim()
 
-    // ✅ เพิ่มข้อความ user
     const userMsg = {
       text: textToSend || "(แนบรูปภาพ)",
       sender: "user",
-      imagePreview: selectedImage ? URL.createObjectURL(selectedImage) : null,
-    };
+      imagePreview: imagePreviewUrl || null,
+    }
 
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setIsLoading(true);
+    setMessages((prev) => [...prev, userMsg])
+    setInput("")
+    setIsLoading(true)
 
     try {
-      // ✅ ถ้าข้อความผู้ใช้มีคำว่า "ตาราง" หรือ "To-do" → เสริมระบบ planner
-      const shouldPlannerMode =
-        textToSend.includes("ตาราง") ||
-        textToSend.toLowerCase().includes("to-do") ||
-        textToSend.includes("todo") ||
-        textToSend.includes("เตือนงาน");
+      // ✅ planner trigger (ฉลาดขึ้น)
+      const shouldPlannerMode = /ตาราง|อ่านหนังสือ|สอบ|midterm|final|to-do|todo|เตือนงาน/i.test(
+        textToSend
+      )
 
       const finalPrompt = shouldPlannerMode
         ? buildPlannerSystemPrompt(textToSend)
-        : textToSend;
+        : textToSend
 
-      // ✅ ถ้ามีรูป -> ส่งแบบมีรูป
       const reply = selectedImage
         ? await sendMessageToAIWithImage(finalPrompt, mode, selectedImage)
-        : await sendMessageToAI(finalPrompt, mode);
+        : await sendMessageToAI(finalPrompt, mode)
 
-      setMessages((prev) => [...prev, { text: safeText(reply), sender: "ai" }]);
+      setMessages((prev) => [...prev, { text: safeText(reply), sender: "ai" }])
 
-      // ✅ ส่งเสร็จล้างรูป
-      removeSelectedImage();
+      removeSelectedImage()
     } catch (error) {
       setMessages((prev) => [
         ...prev,
-        { text: safeText(error?.message || "คุยกับ AI ไม่ได้ครับ"), sender: "ai" },
-      ]);
+        {
+          text: safeText(error?.message || "คุยกับ AI ไม่ได้ครับ"),
+          sender: "ai",
+        },
+      ])
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="flex flex-col h-[85vh] max-w-4xl mx-auto p-2 md:p-4 bg-gray-50 rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-      {/* Header */}
-      <div
-        className={`p-4 rounded-t-2xl font-bold capitalize shadow-md transition-all duration-500 flex items-center justify-between ${mode === "bro"
-          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-          : mode === "girl"
-            ? "bg-gradient-to-r from-pink-400 to-pink-500 text-white"
-            : "bg-gradient-to-r from-purple-600 to-indigo-700 text-white"
-          }`}
-      >
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined">
-            {mode === "bro"
-              ? "smart_toy"
-              : mode === "girl"
-                ? "face_6"
-                : "psychology"}
-          </span>
-          <span>{mode} Mode Online</span>
+      {/* ✅ App Header (รวมให้จบในอันเดียว ไม่ซ้อน) */}
+      <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
+        <div className="mx-auto grid w-full grid-cols-2 items-center px-4 py-4 sm:px-6 md:grid-cols-3">
+          {/* LEFT */}
+          <div className="flex min-w-0 items-center gap-3">
+            <div
+              className={`relative size-11 sm:size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 shadow-md ring-2 ${headerTheme.ring}`}
+            >
+              <img
+                src={Logo}
+                alt="Logo"
+                className="h-full w-full object-cover transition duration-300 hover:scale-110"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
+            </div>
+
+            <div className="min-w-0">
+              <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-gray-800 drop-shadow-sm dark:text-white">
+                <span className="sm:hidden">APM AI</span>
+                <span className="hidden sm:inline">
+                  APM AI
+                </span>
+              </h1>
+
+              <p className="truncate text-[10px] sm:text-[11px] font-semibold text-gray-600/70 dark:text-white/70">
+                🌷 ผู้ช่วยที่เป็นเพื่อนที่ดีสำหรับคุณ
+              </p>
+            </div>
+          </div>
+
+          {/* CENTER */}
+          <div className="hidden md:flex justify-center">
+            <div className="rounded-full border border-white/20 bg-white/15 px-6 py-2 shadow-sm">
+              <Navbar />
+            </div>
+          </div>
+
+          {/* RIGHT */}
+          <div className="flex justify-end items-center gap-3">
+            <button className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95">
+              <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
+                notifications
+              </span>
+              <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
+              style={{ backgroundImage: `url("${GirlIcon}")` }}
+              title="Go to Login"
+              aria-label="Go to login"
+            />
+
+            {/* Mobile Navbar */}
+            <div className="md:hidden">
+              <Navbar />
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleClearChat}
-            className="px-3 py-1 rounded-xl bg-white/20 hover:bg-white/30 transition-all text-sm"
+        {/* ✅ Mode Pill (อยู่ใน header เดียวกัน) */}
+        <div
+          className={`px-4 pb-4`}
+        >
+          <div
+            className={`w-full rounded-2xl p-4 font-bold capitalize shadow-md transition-all duration-500 flex items-center justify-between bg-gradient-to-r ${headerTheme.pill} text-white`}
           >
-            ล้างแชท
-          </button>
-          <div className="size-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
+            <div className="flex items-center gap-2">
+              <img
+                src={mode === "bro" ? BroIcon : mode === "girl" ? GirlIcon : NerdIcon}
+                alt="mode icon"
+                className="w-8 h-8 rounded-full object-cover ring-2 ring-white/60"
+              />
+
+              <span>{mode} Mode Online</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleClearChat}
+                className="px-3 py-1 rounded-xl bg-white/20 hover:bg-white/30 transition-all text-sm"
+              >
+                ล้างแชท
+              </button>
+
+              <div className="size-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Chat Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/50 backdrop-blur-sm custom-scrollbar">
@@ -239,7 +347,7 @@ ${userText}
                 : "bg-white text-gray-800 rounded-tl-none border border-gray-100"
                 }`}
             >
-              {/* ✅ ถ้า user แนบรูป ให้โชว์ preview */}
+              {/* user image preview inside chat */}
               {msg.sender === "user" && msg.imagePreview && (
                 <img
                   src={msg.imagePreview}
@@ -262,7 +370,9 @@ ${userText}
                   </ReactMarkdown>
                 </div>
               ) : (
-                <p className="whitespace-pre-wrap leading-relaxed">{safeText(msg.text)}</p>
+                <p className="whitespace-pre-wrap leading-relaxed">
+                  {safeText(msg.text)}
+                </p>
               )}
             </div>
           </div>
@@ -292,11 +402,11 @@ ${userText}
       </div>
 
       {/* Preview รูปก่อนส่ง */}
-      {selectedImage && (
+      {selectedImage && imagePreviewUrl && (
         <div className="px-4 pb-2 bg-white border-t border-gray-100">
           <div className="flex items-center gap-3">
             <img
-              src={URL.createObjectURL(selectedImage)}
+              src={imagePreviewUrl}
               alt="preview"
               className="w-16 h-16 rounded-xl object-cover border"
             />
@@ -340,14 +450,16 @@ ${userText}
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="flex-1 rounded-2xl px-5 py-3 bg-gray-100 outline-none focus:ring-2 focus:ring-blue-400 transition-all text-gray-700"
-          placeholder={`ถามอะไร ${mode} หน่อยสิ...`}
+          className={`flex-1 rounded-2xl px-5 py-3 bg-gray-100 outline-none transition-all text-gray-700 focus:ring-2 ${headerTheme.focus}`}
+          placeholder={headerTheme.placeholder}
           disabled={isLoading}
         />
 
         <button
           type="submit"
-          className={`size-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg transition-all active:scale-90 ${isLoading ? "bg-gray-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 hover:rotate-12"
+          className={`size-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg transition-all active:scale-90 ${isLoading
+            ? "bg-gray-300 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700 hover:rotate-12"
             }`}
           disabled={isLoading}
         >
@@ -355,7 +467,7 @@ ${userText}
         </button>
       </form>
     </div>
-  );
-};
+  )
+}
 
-export default ChatWindow;
+export default ChatWindow

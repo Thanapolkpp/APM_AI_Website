@@ -19,7 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 2. แก้บรรทัดนี้ให้ใช้ชื่อ chatbot_router ที่เรา import มาใหม่
 app.include_router(chatbot_router, prefix="/api/v1/ai", tags=["AI Chatbot"])
 
 @app.get("/")

@@ -1,6 +1,9 @@
 import React from "react"
 import { Github, Instagram } from "lucide-react"
 import Navbar from "../components/Navbar"
+import Logo from "../assets/logo.png"
+import CuteGirlIcon from "../assets/Girl.png"
+
 
 const Contact = () => {
     const developers = [
@@ -37,27 +40,77 @@ const Contact = () => {
                 <div className="absolute -bottom-24 -left-24 size-[28rem] md:size-[34rem] bg-purple-600/20 rounded-full blur-[110px]" />
             </div>
 
-            {/* ✅ Header */}
-            <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-[#1a234e]/70 border-b border-white/10">
-                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 grid grid-cols-2 md:grid-cols-3 items-center">
-                    {/* Left */}
-                    <div className="text-white font-extrabold text-lg">
-                        APM AI
+            {/* ✅ Header (Cute + Soft) */}
+            <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
+                <div className="mx-auto grid w-full max-w-7xl grid-cols-2 items-center px-4 py-4 sm:px-6 md:grid-cols-3">
+
+                    {/* ✅ Left */}
+                    <div className="flex min-w-0 items-center gap-3">
+                        {/* Logo */}
+                        <div className="relative size-11 sm:size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-2 ring-pink-300/50 shadow-md">
+                            <img
+                                src={Logo}
+                                alt="Logo"
+                                className="h-full w-full object-cover transition duration-300 hover:scale-110"
+                            />
+                            {/* cute shine */}
+                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
+                        </div>
+
+                        {/* Title */}
+                        <div className="min-w-0">
+                            <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-white drop-shadow-sm">
+                                <span className="sm:hidden">APM AI</span>
+                                <span className="hidden sm:inline">
+                                    Assistant for Personal Motivation
+                                </span>
+                            </h1>
+
+                            <p className="truncate text-[10px] sm:text-[11px] font-semibold text-white/70">
+                                🌷 ผู้ช่วยที่เป็นเพื่อนที่ดีสำหรับคุณ
+                            </p>
+                        </div>
                     </div>
 
-                    {/* Center (Desktop) */}
+                    {/* ✅ Center (Desktop) */}
                     <div className="hidden md:flex justify-center">
-                        <Navbar />
+                        <div className="rounded-full border border-white/20 bg-white/15 px-6 py-2 shadow-sm">
+                            <Navbar />
+                        </div>
                     </div>
 
+                    {/* ✅ Right */}
                     {/* Right */}
-                    <div className="flex justify-end">
+                    <div className="flex justify-end items-center gap-3">
+                        {/* Notification */}
+                        <button className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95">
+                            <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
+                                notifications
+                            </span>
+                            <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
+                        </button>
+
+                        {/* Avatar */}
+                        <button
+                            type="button"
+                            onClick={() => navigate("/login")}
+                            className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
+                            style={{
+                                backgroundImage: `url("${CuteGirlIcon}")`,
+                            }}
+                            title="Go to Login"
+                            aria-label="Go to login"
+                        />
+
+                        {/* Mobile Navbar */}
                         <div className="md:hidden">
                             <Navbar />
                         </div>
                     </div>
+
                 </div>
             </header>
+
 
             {/* ✅ Main */}
             <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-16">
@@ -88,10 +141,11 @@ const Contact = () => {
                                     <img
                                         src={dev.image}
                                         alt={dev.name}
-                                        className="w-full h-full object-contain object-bottom drop-shadow-[0_25px_25px_rgba(0,0,0,0.6)]"
+                                        className="w-full h-full object-contain object-bottom translate-y-6 drop-shadow-[0_25px_25px_rgba(0,0,0,0.6)]"
                                     />
-                                </div>
 
+                                </div>
+                                -
                                 {/* Badge */}
                                 <div className="absolute bottom-8 left-0 right-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                                     <div className="bg-black/50 text-white py-1.5 px-4 rounded-full w-fit mx-auto backdrop-blur-md text-xs md:text-sm">

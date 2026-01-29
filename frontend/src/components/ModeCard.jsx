@@ -12,7 +12,11 @@ const ModeCard = ({ title, icon, description, buttonIcon, colors, onClick }) => 
                 {typeof icon === "string" && icon.length <= 4 ? (
                     <span>{icon}</span>
                 ) : (
-                    <img src={icon} alt={title} className="w-15 h-15 object-contain" />
+                    <img
+                        src={icon}
+                        alt={title}
+                        className="w-16 h-16 object-contain drop-shadow-sm"
+                    />
                 )}
             </div>
 
