@@ -62,7 +62,7 @@ const Contact = () => {
                             <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-white drop-shadow-sm">
                                 <span className="sm:hidden">APM AI</span>
                                 <span className="hidden sm:inline">
-                                    Assistant for Personal Motivation
+                                    APM AI
                                 </span>
                             </h1>
 

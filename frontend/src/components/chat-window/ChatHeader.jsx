@@ -21,17 +21,6 @@ const ChatHeader = ({ mode, headerTheme, onClearChat, navigate }) => {
                         />
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
                     </div>
-
-                    <div className="min-w-0">
-                        <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-gray-800 drop-shadow-sm dark:text-white">
-                            <span className="sm:hidden">APM AI</span>
-                            <span className="hidden sm:inline">APM AI</span>
-                        </h1>
-
-                        <p className="truncate text-[10px] sm:text-[11px] font-semibold text-gray-600/70 dark:text-white/70">
-                            🌷 ผู้ช่วยที่เป็นเพื่อนที่ดีสำหรับคุณ
-                        </p>
-                    </div>
                 </div>
 
                 {/* CENTER */}

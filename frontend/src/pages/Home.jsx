@@ -102,7 +102,7 @@ const Home = ({ onStartChat }) => {
                 <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-black drop-shadow-sm dark:text-white">
                   <span className="sm:hidden">APM AI</span>
                   <span className="hidden sm:inline">
-                    Assistant for Personal Motivation
+                    APM AI
                   </span>
                 </h1>
 
@@ -218,11 +218,8 @@ const Home = ({ onStartChat }) => {
           {/* Middle Section */}
           <Middlesection />
 
-          {/* ✅ Footer อยู่ตรงนี้ */}
-          <div className="w-full mt-20">
-            <Footer />
-          </div>
         </main>
+        <Footer />
       </div>
     </div>
   )

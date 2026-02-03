@@ -7,7 +7,7 @@ import ChatHeader from "./chat-window/ChatHeader"
 import MessageList from "./chat-window/MessageList"
 import ChatInput from "./chat-window/ChatInput"
 import ImagePreview from "./chat-window/ImagePreview"
-
+import { getSystemMessage, buildPlannerSystemPrompt, plannerPrompt } from "../data/aiPrompts"
 const ChatWindow = ({ mode: propsMode }) => {
   const navigate = useNavigate()
   const { mode: urlMode } = useParams()
@@ -24,19 +24,7 @@ const ChatWindow = ({ mode: propsMode }) => {
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
 
-  // System message logic
-  const getSystemMessage = (currentMode) => {
-    switch (currentMode) {
-      case "bro":
-        return "Yo bro! What's up? 🧢"
-      case "girl":
-        return "Hi bestie! ✨ Ready to study? 🎀"
-      case "nerd":
-        return "Greetings. Let's optimize your learning. 🧪"
-      default:
-        return "Hello! How can I help you today?"
-    }
-  }
+
 
   // Safe text util (also used in MessageItem, but needed here for setting initial state if needed, mostly for error handling)
   const safeText = (value) => {
@@ -49,72 +37,9 @@ const ChatWindow = ({ mode: propsMode }) => {
     }
   }
 
-  // Planner System Prompt
-  const buildPlannerSystemPrompt = (userText) => {
-    return `
-คุณเป็น AI ผู้ช่วยจัด "ตารางอ่านหนังสือ + To-do + ระบบเตือนงาน" แบบเป็นระบบ
 
-**ห้ามทำสิ่งต่อไปนี้**
-- ห้ามใส่ตัวเลขแปลก ๆ เช่น 6730202571 | 36 หรือรหัสวิชา/ไอดีสุ่ม
-- ห้ามตอบเป็นรายการมั่ว ๆ
-- ห้ามตอบสั้นแบบแปะชื่อวิชาเฉย ๆ
 
-**รูปแบบคำตอบ (ต้องมีครบ และต้องจัดเป็น Markdown)**
-## 1) สรุปวิชา/หัวข้อที่ต้องอ่าน
-- ...
 
-## 2) ตารางอ่านหนังสือรายสัปดาห์ (แบ่งวัน)
-| วัน | เวลา | หัวข้อ | เป้าหมาย |
-|---|---|---|---|
-
-## 3) ตารางอ่านวันนี้ (6 ชั่วโมง / วัน)
-| ช่วงเวลา | ทำอะไร |
-|---|---|
-| 1 ชั่วโมงที่ 1 | ... |
-| 1 ชั่วโมงที่ 2 | ... |
-| 1 ชั่วโมงที่ 3 | ... |
-| พัก | 10-15 นาที |
-| 1 ชั่วโมงที่ 4 | ... |
-| 1 ชั่วโมงที่ 5 | ... |
-| 1 ชั่วโมงที่ 6 | ... |
-
-## 4) To-do List (Checklist)
-- [ ] ...
-- [ ] ...
-- [ ] ...
-
-## 5) ระบบเตือนงาน
-- เตือนทุกวันเวลา 20:00 ให้ทบทวนสรุป 20 นาที
-- ก่อนสอบ 7 วัน / 3 วัน / 1 วัน ต้องทำอะไร
-
-**เงื่อนไขของผู้ใช้**
-- อ่านวันละ 6 ชั่วโมง (1 ชั่วโมงต่อหัวข้อ)
-- ต้องมีเวลาพัก ห้ามอัดแน่นเกินไป
-- น้ำเสียงเป็นมิตร แต่ไม่ลากเสียง/ไม่ยืดคำ
-
-ข้อมูลผู้ใช้:
-${userText}
-`.trim()
-  }
-
-  // Quick Prompt
-  const plannerPrompt = `
-ช่วยจัดตารางอ่านหนังสือแบบเป็นระบบให้หน่อย
-
-**วิชาที่ต้องอ่าน**
-- Data Science
-- Introduction to Programming
-- Economics
-- Networking Technologies and Applications
-- Internet Technology
-- สรุป
-
-**เงื่อนไข**
-- อ่านวันละ 6 ชั่วโมง
-- 1 ชั่วโมงต่อ 1 หัวข้อ
-- พักทุก 2 ชั่วโมง ครั้งละ 10-15 นาที
-- ขอแบบตารางรายสัปดาห์ + แผนวันนี้ + To-do + ระบบเตือนงาน
-`.trim()
 
   // Preview URL effect
   useEffect(() => {

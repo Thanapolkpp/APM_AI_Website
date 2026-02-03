@@ -2,7 +2,7 @@ import React from "react"
 
 const Footer = () => {
     return (
-        <footer className="w-full bg-pink-50 border-t border-pink-100">
+        <footer className="w-full bg-pink-100 border-t border-pink-100">
             <div className="max-w-6xl mx-auto px-4 py-10">
                 {/* Top */}
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -22,7 +22,7 @@ const Footer = () => {
                             href="#"
                             className="text-gray-600 hover:text-pink-500 transition"
                         >
-                            Home
+                            Contact us
                         </a>
                         <a
                             href="#"
