@@ -11,7 +11,7 @@ const MessageItem = ({ message }) => {
         if (value === null || value === undefined) return ""
         try {
             return JSON.stringify(value, null, 2)
-        } catch (e) {
+        } catch {
             return String(value)
         }
     }
@@ -20,8 +20,8 @@ const MessageItem = ({ message }) => {
         <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
             <div
                 className={`px-4 py-3 rounded-2xl max-w-[85%] shadow-sm transition-all ${isUser
-                        ? "bg-blue-600 text-white rounded-tr-none"
-                        : "bg-white text-gray-800 rounded-tl-none border border-gray-100"
+                    ? "bg-blue-600 text-white rounded-tr-none"
+                    : "bg-white text-gray-800 rounded-tl-none border border-gray-100"
                     }`}
             >
                 {/* User image preview inside chat */}

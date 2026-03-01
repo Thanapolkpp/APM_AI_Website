@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
     HiOutlineLightBulb,
@@ -8,11 +8,12 @@ import {
 import Navbar from "../components/Navbar"
 import Logo from "../assets/logo.png"
 import CuteGirlIcon from "../assets/Girl.png"
-
+import Notification from "../components/Notification";
 
 
 const About = () => {
     const navigate = useNavigate()
+    // const [showNoti, setShowNoti] = useState(false);
 
     const features = [
         {
@@ -61,7 +62,7 @@ const About = () => {
                             <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-black drop-shadow-sm dark:text-white">
                                 <span className="sm:hidden">APM AI</span>
                                 <span className="hidden sm:inline">
-                                    Assistant for Personal Motivation
+                                    APM AI
                                 </span>
                             </h1>
 

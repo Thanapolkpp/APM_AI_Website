@@ -32,7 +32,7 @@ const ChatWindow = ({ mode: propsMode }) => {
     if (value === null || value === undefined) return ""
     try {
       return JSON.stringify(value, null, 2)
-    } catch (e) {
+    } catch {
       return String(value)
     }
   }
@@ -161,7 +161,7 @@ const ChatWindow = ({ mode: propsMode }) => {
   }
 
   return (
-    <div className="flex flex-col h-[85vh] max-w-4xl mx-auto p-2 md:p-4 bg-gray-50 rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+    <div className="flex flex-col min-h-screen max-w-4xl mx-auto p-2 md:p-4 bg-gray-50 rounded-3xl shadow-xl border border-gray-100">
 
       <ChatHeader
         mode={mode}

@@ -14,7 +14,7 @@ import CuteGirlIcon from "../assets/Girl.png"
 
 
 
-const Home = ({ onStartChat }) => {
+const Home = () => {
   const navigate = useNavigate()
   const [showNoti, setShowNoti] = useState(false)
 
@@ -93,7 +93,7 @@ const Home = ({ onStartChat }) => {
                   alt="Logo"
                   className="h-full w-full object-cover transition duration-300 hover:scale-110"
                 />
-                {/* cute shine */}
+                {/* Cute shine */}
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
               </div>
 

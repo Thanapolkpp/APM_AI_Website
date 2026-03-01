@@ -5,7 +5,9 @@ import Chat from "./pages/Chat";
 import Register from "./pages/Register";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Event from "./pages/Event";
 import Account from "./pages/Account";
+import EditAvatar from "./components/EditAvatar";
 
 function App() {
   return (
@@ -15,7 +17,9 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/account" element={<Account />} />
+      <Route path="/event" element={<Event />} />
       <Route path="/about" element={<About />} />
+      <Route path="/avatar" element={<EditAvatar />} />
       <Route path="/chat/:mode" element={<Chat />} />
     </Routes>
   );

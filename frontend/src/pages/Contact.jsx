@@ -1,4 +1,5 @@
 import React from "react"
+import { useNavigate } from "react-router-dom"
 import { Github, Instagram } from "lucide-react"
 import Navbar from "../components/Navbar"
 import Logo from "../assets/logo.png"
@@ -6,6 +7,7 @@ import CuteGirlIcon from "../assets/Girl.png"
 
 
 const Contact = () => {
+    const navigate = useNavigate()
     const developers = [
         {
             id: 1,

@@ -1,26 +1,40 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { HiMail, HiLockClosed, HiOutlineQuestionMarkCircle, HiUser } from "react-icons/hi";
 import Footer from "../components/footer";
-import mascotImg from "../assets/Nerd.1.2.png";
+import Logo from "../assets/logo.png";
 
 const Login = () => {
+    const navigate = useNavigate();
+
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
+
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
-    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setError("");
 
+        // ✅ Test user
+        const TEST_USER = "test";
+        const TEST_PASS = "1234";
+
+        // ✅ ถ้าเป็น test ไม่ต้องยิง API
+        if (identifier === TEST_USER && password === TEST_PASS) {
+            localStorage.setItem("token", "test-token");
+            navigate("/");
+            setIsLoading(false);
+            return;
+        }
+
+        // ✅ ถ้าไม่ใช่ test → ยิง API จริง
         try {
             const loginData = {
-                username: identifier.includes('@') ? "" : identifier,
-                email: identifier.includes('@') ? identifier : "",
-                password: password
+                username: identifier.includes("@") ? "" : identifier,
+                email: identifier.includes("@") ? identifier : "",
+                password: password,
             };
 
             const response = await fetch("http://localhost:5000/api/login", {
@@ -37,7 +51,7 @@ const Login = () => {
             } else {
                 setError(data.message || "Login failed. Please check your credentials.");
             }
-        } catch (err) {
+        } catch {
             setError("Unable to connect to the server. Please try again later.");
         } finally {
             setIsLoading(false);
@@ -45,137 +59,80 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark font-display relative overflow-hidden flex flex-col">
-
-            {/* Background Decor */}
-            <div className="absolute -top-48 -left-48 w-[500px] h-[500px] bg-primary/10 blur-[100px] rounded-full z-0" />
-            <div className="absolute -bottom-48 -right-48 w-[500px] h-[500px] bg-purple-500/10 blur-[100px] rounded-full z-0" />
-
-            {/* Header */}
-            <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between z-10">
-                <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate("/")}>
-                    <div className="size-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
-                        <span className="material-symbols-outlined font-bold">rocket_launch</span>
+        <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex flex-col">
+            <main className="flex-1 flex items-center justify-center px-6 py-16">
+                <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-8">
+                    {/* ✅ Logo กลม ตรงกลาง */}
+                    <div className="flex justify-center -mt-16 mb-6">
+                        <div className="size-24 rounded-full overflow-hidden bg-white shadow-md ring-2 ring-pink-300/60">
+                            <img src={Logo} alt="Logo" className="h-full w-full object-cover" />
+                        </div>
                     </div>
-                    <h1 className="text-xl font-extrabold tracking-tight dark:text-white">
-                        UniBuddy <span className="text-primary">AI</span>
+
+                    <h1 className="text-3xl font-black text-gray-800 dark:text-white text-center mb-2">
+                        Login
                     </h1>
-                </div>
-                <button className="flex items-center gap-1 text-sm font-bold text-gray-500 hover:text-primary transition-colors">
-                    <HiOutlineQuestionMarkCircle className="text-lg" />
-                    <span>Help?</span>
-                </button>
-            </header>
 
-            <main className="flex-1 flex items-center justify-center px-6 py-8 z-10">
-                <div className="w-full max-w-[1050px] flex flex-col md:flex-row bg-white/70 dark:bg-gray-900/80 backdrop-blur-2xl rounded-[40px] shadow-2xl overflow-hidden border border-white/20 dark:border-white/5">
+                    <p className="text-gray-500 dark:text-gray-300 text-center mb-8 text-sm">
+                        เข้าสู่ระบบเพื่อใช้งานระบบ APM AI
+                    </p>
 
-                    {/* Left Side: Mascot */}
-                    <div className="w-full md:w-1/2 p-12 flex flex-col justify-center items-center text-center bg-gradient-to-br from-primary/5 to-transparent">
-                        <div className="relative mb-10 group">
-                            <div className="w-64 h-64 bg-white dark:bg-gray-800 rounded-[60px] shadow-2xl flex items-center justify-center relative animate-bounce" style={{ animationDuration: '3s' }}>
-                                <img src={mascotImg} alt="Mascot" className="w-43 h-43 object-contain" />
-                                <div className="absolute -bottom-4 -right-4 bg-primary text-white p-4 rounded-2xl shadow-xl rotate-12">
-                                    <p className="text-[10px] font-black uppercase tracking-widest">Studying...</p>
-                                </div>
-                            </div>
+                    {error && (
+                        <div className="mb-6 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm font-bold text-center">
+                            {error}
                         </div>
-                        <h2 className="text-3xl font-extrabold text-gray-800 dark:text-white mb-4 leading-tight">
-                            Your AI Friend <br /> for Uni Life
-                        </h2>
-                        <p className="text-gray-500 dark:text-pink-100/40 text-lg max-w-sm">
-                            Simplifying studies with AI personalities that understand you.
-                        </p>
-                    </div>
+                    )}
 
-                    {/* Right Side: Form Container */}
-                    <div className="flex-1 p-8 md:p-16 bg-white/30 dark:bg-black/20">
-                        {/* Tabs สลับหน้า */}
-                        <div className="flex gap-8 mb-10 border-b border-gray-100 dark:border-white/5">
-                            <button
-                                className="pb-4 text-lg font-bold border-b-4 border-primary text-gray-800 dark:text-white"
-                                onClick={() => navigate("/login")}
-                            >
-                                Login
-                            </button>
-                            <button
-                                className="pb-4 text-lg font-bold text-gray-400 hover:text-primary transition-colors"
-                                onClick={() => navigate("/register")}
-                            >
-                                Register
-                            </button>
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div>
+                            <label className="block text-sm font-bold text-gray-600 dark:text-gray-300 mb-2">
+                                Username / Email
+                            </label>
+                            <input
+                                type="text"
+                                value={identifier}
+                                onChange={(e) => setIdentifier(e.target.value)}
+                                placeholder="Enter username or email"
+                                required
+                                className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-primary/60 dark:text-white"
+                            />
                         </div>
 
-                        {error && (
-                            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-2xl text-sm font-bold text-center animate-pulse">
-                                {error}
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-600 dark:text-gray-300 ml-1">Username or Email</label>
-                                <div className="relative group">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl group-focus-within:text-primary transition-colors">
-                                        {identifier.includes('@') ? <HiMail /> : <HiUser />}
-                                    </div>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={identifier}
-                                        onChange={(e) => setIdentifier(e.target.value)}
-                                        placeholder="Enter username or email"
-                                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-primary/50 dark:text-white transition-all outline-none"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="flex justify-between items-center px-1">
-                                    <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Password</label>
-                                    <span className="text-xs font-bold text-primary cursor-pointer hover:underline">Forgot?</span>
-                                </div>
-                                <div className="relative group">
-                                    <HiLockClosed className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl group-focus-within:text-primary transition-colors" />
-                                    <input
-                                        type="password"
-                                        required
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="••••••••"
-                                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-primary/50 dark:text-white transition-all outline-none"
-                                    />
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full py-4 bg-primary text-white rounded-2xl font-bold text-lg shadow-xl shadow-primary/30 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-                            >
-                                {isLoading ? (
-                                    <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                ) : "Login"}
-                            </button>
-                        </form>
-
-                        <div className="mt-10">
-                            <div className="flex items-center gap-4 mb-8">
-                                <div className="h-px grow bg-gray-100 dark:bg-white/5"></div>
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">OR LOGIN WITH</span>
-                                <div className="h-px grow bg-gray-100 dark:bg-white/5"></div>
-                            </div>
-
-                            <div className="flex justify-center">
-                                <button className="flex items-center justify-center gap-3 py-3.5 px-8 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm active:scale-95 font-bold dark:text-white text-sm">
-                                    <img src="https://www.google.com/favicon.ico" className="size-4" alt="Google" />
-                                    Google
-                                </button>
-                            </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-600 dark:text-gray-300 mb-2">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                required
+                                className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-primary/60 dark:text-white"
+                            />
                         </div>
+
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full py-3 rounded-2xl bg-primary text-white font-extrabold shadow-lg hover:brightness-110 active:scale-[0.98] transition disabled:opacity-70"
+                        >
+                            {isLoading ? "Loading..." : "Login"}
+                        </button>
+                    </form>
+
+                    <div className="mt-6 text-center text-sm">
+                        <span className="text-gray-500 dark:text-gray-300">ยังไม่มีบัญชี?</span>{" "}
+                        <button
+                            onClick={() => navigate("/register")}
+                            className="font-extrabold text-primary hover:underline"
+                        >
+                            Register
+                        </button>
                     </div>
                 </div>
             </main>
+
             <Footer />
         </div>
     );

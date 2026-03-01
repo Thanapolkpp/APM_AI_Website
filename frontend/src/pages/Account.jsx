@@ -3,12 +3,17 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/footer";
 import Logo from "../assets/logo.png";
+
+import BroIcon from "../assets/Bro.png";
 import CuteGirlIcon from "../assets/Girl.png";
+import NerdIcon from "../assets/Nerd.1.2.png";
+
+import Notification from "../components/Notification";
 
 const Account = () => {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState({
+    const [user] = useState({
         name: "Bestie User",
         email: "bestie@university.ac.th",
         studentId: "66010xxx",
@@ -17,23 +22,50 @@ const Account = () => {
         preferredMode: "Cute Girl Mode",
     });
 
-    // ✅ Dark Mode State
-    const [isDark, setIsDark] = useState(false);
+    // รูปภาพสำรอง (Fallback) กรณีที่ยังไม่ได้เซฟรูป 3D
+    const avatarMap = {
+        girl: CuteGirlIcon,
+        nerd: NerdIcon,
+        Bro: BroIcon,
+    };
 
-    // ✅ โหลดค่าที่เคยตั้งไว้จาก localStorage + sync กับ html class
+    // 🌟 1. สร้าง State สำหรับเก็บ Source ของรูปภาพที่จะแสดง
+    const [profileImage, setProfileImage] = useState(() => {
+        // ลองหาว่ามีรูป 3D ที่ถูกถ่ายเก็บไว้ไหม
+        const savedImage = localStorage.getItem("avatarImage");
+        if (savedImage) return savedImage;
+
+        // ถ้าไม่มีรูป 3D ให้กลับไปดูว่าเลือกตัวละคร id ไหนไว้ แล้วใช้รูป 2D แทน
+        const savedAvatar = localStorage.getItem("avatar") || "Bro";
+        return avatarMap[savedAvatar] || BroIcon;
+    });
+
     useEffect(() => {
-        const savedTheme = localStorage.getItem("theme"); // "dark" | "light"
+        // 🌟 2. อัปเดตเมื่อโหลดหน้าเว็บ
+        const savedImage = localStorage.getItem("avatarImage");
+        if (savedImage) {
+            setProfileImage(savedImage);
+        } else {
+            const savedAvatar = localStorage.getItem("avatar") || "Bro";
+            setProfileImage(avatarMap[savedAvatar] || BroIcon);
+        }
+    }, []);
+
+    // ✅ Dark Mode State
+    const [isDark, setIsDark] = useState(() => {
+        const savedTheme = localStorage.getItem("theme");
         const dark = savedTheme === "dark";
-        setIsDark(dark);
 
         if (dark) {
             document.documentElement.classList.add("dark");
         } else {
             document.documentElement.classList.remove("dark");
         }
-    }, []);
+        return dark;
+    });
 
-    // ✅ Toggle Dark Mode จริง
+    const [showNoti, setShowNoti] = useState(false);
+
     const toggleDarkMode = () => {
         setIsDark((prev) => {
             const next = !prev;
@@ -60,25 +92,32 @@ const Account = () => {
                 {/* Header */}
                 <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
                     <div className="mx-auto grid w-full max-w-7xl grid-cols-2 items-center px-4 py-4 sm:px-6 md:grid-cols-3">
-                        {/* Left: Logo */}
-                        <div
-                            className="flex items-center gap-3 cursor-pointer"
-                            onClick={() => navigate("/")}
-                        >
-                            <div className="relative size-10 shrink-0 overflow-hidden rounded-xl bg-white/20 ring-2 ring-pink-300/50">
-                                <img src={Logo} alt="Logo" className="h-full w-full object-cover" />
+                        {/* ✅ Left */}
+                        <div className="flex min-w-0 items-center gap-3">
+                            {/* Logo */}
+                            <div className="relative size-11 sm:size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-2 ring-pink-300/50 shadow-md">
+                                <img
+                                    src={Logo}
+                                    alt="Logo"
+                                    className="h-full w-full object-cover transition duration-300 hover:scale-110"
+                                />
+                                <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
                             </div>
-                            <div className="hidden sm:block">
-                                <h1 className="text-lg font-black leading-none dark:text-white">
-                                    APM AI
+
+                            {/* Title */}
+                            <div className="min-w-0">
+                                <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-black drop-shadow-sm dark:text-white">
+                                    <span className="sm:hidden">APM AI</span>
+                                    <span className="hidden sm:inline">APM AI</span>
                                 </h1>
-                                <p className="text-[10px] font-bold opacity-70">
-                                    Account Settings
+
+                                <p className="truncate text-[10px] sm:text-[11px] font-semibold text-black/70 dark:text-white/70">
+                                    🌷 ผู้ช่วยที่เป็นเพื่อนที่ดีสำหรับคุณ
                                 </p>
                             </div>
                         </div>
 
-                        {/* Center: Navbar */}
+                        {/* ✅ Center (Desktop) */}
                         <div className="hidden md:flex justify-center">
                             <div className="rounded-full border border-white/20 bg-white/15 px-6 py-2 shadow-sm">
                                 <Navbar />
@@ -87,14 +126,44 @@ const Account = () => {
 
                         {/* Right */}
                         <div className="flex justify-end items-center gap-3">
-                            <button
-                                onClick={() => navigate("/")}
-                                className="hidden sm:flex items-center gap-1 text-sm font-bold text-gray-500 hover:text-pink-500 transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-lg">home</span>
-                                Home
-                            </button>
+                            {/* Notification */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowNoti(true)}
+                                    className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95"
+                                >
+                                    <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
+                                        notifications
+                                    </span>
 
+                                    <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
+                                </button>
+
+                                <Notification
+                                    show={showNoti}
+                                    type="info"
+                                    title="APM AI แจ้งเตือน"
+                                    message="สู้ๆน้า วันนี้เธอทำได้แน่นอน 💖✨"
+                                    onClose={() => setShowNoti(false)}
+                                    autoClose={true}
+                                    duration={3000}
+                                />
+                            </div>
+
+                            {/* 🌟 3. เปลี่ยนรูปใน Navbar ให้ดึงจาก profileImage */}
+                            <button
+                                type="button"
+                                onClick={() => navigate("/login")}
+                                className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
+                                style={{
+                                    backgroundImage: `url("${profileImage}")`,
+                                    backgroundColor: "white" // กันเหนียวเผื่อพื้นหลังใส
+                                }}
+                                title="Go to Login"
+                                aria-label="Go to login"
+                            />
+
+                            {/* Mobile Navbar */}
                             <div className="md:hidden">
                                 <Navbar />
                             </div>
@@ -110,10 +179,11 @@ const Account = () => {
 
                         <div className="px-8 pb-8">
                             <div className="relative -mt-16 flex flex-col items-center sm:flex-row sm:items-end sm:gap-6">
-                                {/* Avatar */}
-                                <div className="size-32 rounded-3xl border-4 border-white dark:border-gray-800 shadow-lg overflow-hidden bg-white">
+
+                                {/* 🌟 4. เปลี่ยนรูปโปรไฟล์ใหญ่ ให้ดึงจาก profileImage */}
+                                <div className="size-32 rounded-3xl border-4 border-white dark:border-gray-800 shadow-lg overflow-hidden bg-white flex items-center justify-center">
                                     <img
-                                        src={CuteGirlIcon}
+                                        src={profileImage}
                                         alt="Profile"
                                         className="h-full w-full object-cover"
                                     />
@@ -128,8 +198,11 @@ const Account = () => {
                                     </p>
                                 </div>
 
-                                <button className="mt-4 px-6 py-2 bg-white dark:bg-gray-700 hover:bg-pink-50 dark:hover:bg-gray-600 text-pink-600 dark:text-pink-300 font-bold rounded-full border border-pink-100 dark:border-gray-600 transition-all shadow-sm active:scale-95">
-                                    Edit Profile
+                                <button
+                                    onClick={() => navigate("/avatar")}
+                                    className="mt-4 px-6 py-2 bg-white dark:bg-gray-700 hover:bg-pink-50 dark:hover:bg-gray-600 text-pink-600 dark:text-pink-300 font-bold rounded-full border border-pink-100 dark:border-gray-600 transition-all shadow-sm active:scale-95"
+                                >
+                                    Edit Avatar
                                 </button>
                             </div>
 
@@ -178,7 +251,7 @@ const Account = () => {
                                         </div>
                                     </div>
 
-                                    {/* ✅ Dark Mode Toggle ใช้ได้จริง */}
+                                    {/* ✅ Dark Mode Toggle */}
                                     <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/30 border border-gray-100 dark:border-gray-800">
                                         <div className="flex items-center gap-4">
                                             <span className="material-symbols-outlined text-orange-400">
