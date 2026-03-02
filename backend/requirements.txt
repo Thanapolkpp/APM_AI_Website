@@ -3,7 +3,7 @@ uvicorn[standard]
 requests
 
 sqlalchemy
-pymysql
+mysql-connector-python
 cryptography
 
 python-jose[cryptography]
