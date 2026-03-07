@@ -1,11 +1,20 @@
 import React from "react"
-import Navbar from "../Navbar"
+import Navbar from "../Layout/Navbar"
 import Logo from "../../assets/logo.png"
 import GirlIcon from "../../assets/Girl.png"
 import BroIcon from "../../assets/Bro.png"
-import NerdIcon from "../../assets/Nerd.1.1.png"
+import NerdIcon from "../../assets/Nerd.1.2.png"
 
-const ChatHeader = ({ mode, headerTheme, onClearChat, navigate }) => {
+const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, isLoggedIn }) => {
+    const [profileImage] = React.useState(() => {
+        if (!localStorage.getItem("token")) return Logo;
+        const savedImage = localStorage.getItem("avatarImage");
+        if (savedImage) return savedImage;
+        const savedAvatar = localStorage.getItem("avatar") || "bro";
+        const map = { girl: GirlIcon, nerd: NerdIcon, bro: BroIcon };
+        return map[savedAvatar.toLowerCase()] || BroIcon;
+    });
+
     return (
         <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
             <div className="mx-auto grid w-full grid-cols-2 items-center px-4 py-4 sm:px-6 md:grid-cols-3">
@@ -41,9 +50,9 @@ const ChatHeader = ({ mode, headerTheme, onClearChat, navigate }) => {
 
                     <button
                         type="button"
-                        onClick={() => navigate("/login")}
+                        onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
                         className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
-                        style={{ backgroundImage: `url("${GirlIcon}")` }}
+                        style={{ backgroundImage: `url("${profileImage}")`, backgroundColor: "white" }}
                         title="Go to Login"
                         aria-label="Go to login"
                     />
@@ -69,6 +78,13 @@ const ChatHeader = ({ mode, headerTheme, onClearChat, navigate }) => {
 
                         <span>{mode} Mode Online</span>
                     </div>
+
+                    {!isLoggedIn && (
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-xs font-bold shadow-sm">
+                            <span className="material-symbols-outlined text-[14px]">bolt</span>
+                            <div>เหลือ {5 - guestChatCount} ครั้ง</div>
+                        </div>
+                    )}
 
                     <div className="flex items-center gap-3">
                         <button

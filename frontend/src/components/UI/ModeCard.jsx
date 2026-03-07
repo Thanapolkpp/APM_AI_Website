@@ -15,7 +15,7 @@ const ModeCard = ({ title, icon, description, buttonIcon, colors, onClick }) => 
                     <img
                         src={icon}
                         alt={title}
-                        className="w-16 h-16 object-contain drop-shadow-sm"
+                        className="w-20 h-20 rounded-full object-cover drop-shadow-sm"
                     />
                 )}
             </div>

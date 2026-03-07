@@ -1,15 +1,16 @@
 import React from "react"
 import { useState } from "react"
-import Navbar from "../components/Navbar"
-import ModeCard from "../components/ModeCard"
-import Middlesection from "../components/Middlesection"
-import Footer from "../components/footer"
-import LessonTabs from "../components/LessonTabs"
+import Navbar from "../components/Layout/Navbar"
+import ModeCard from "../components/UI/ModeCard"
+import Middlesection from "../components/Layout/Middlesection"
+import Footer from "../components/Layout/footer"
+import LessonTabs from "../components/Course/LessonTabs"
+import HomeworkSummary from "../components/Course/HomeworkSummary"
 import { useNavigate } from "react-router-dom"
-import Notification from "../components/Notification"
+import Notification from "../components/UI/Notification"
 import Logo from "../assets/logo.png"
 import BroIcon from "../assets/Bro.png"
-import NerdIcon from "../assets/Nerd.1.1.png"
+import NerdIcon from "../assets/Nerd.1.2.png"
 import CuteGirlIcon from "../assets/Girl.png"
 
 
@@ -17,6 +18,15 @@ import CuteGirlIcon from "../assets/Girl.png"
 const Home = () => {
   const navigate = useNavigate()
   const [showNoti, setShowNoti] = useState(false)
+
+  const [profileImage] = useState(() => {
+    if (!localStorage.getItem("token")) return Logo;
+    const savedImage = localStorage.getItem("avatarImage");
+    if (savedImage) return savedImage;
+    const savedAvatar = localStorage.getItem("avatar") || "bro";
+    const map = { girl: CuteGirlIcon, nerd: NerdIcon, bro: BroIcon };
+    return map[savedAvatar.toLowerCase()] || BroIcon;
+  });
 
   const modes = [
     {
@@ -151,10 +161,11 @@ const Home = () => {
               {/* Avatar */}
               <button
                 type="button"
-                onClick={() => navigate("/login")}
+                onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
                 className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
                 style={{
-                  backgroundImage: `url("${CuteGirlIcon}")`,
+                  backgroundImage: `url("${profileImage}")`,
+                  backgroundColor: "white"
                 }}
                 title="Go to Login"
                 aria-label="Go to login"
@@ -214,6 +225,9 @@ const Home = () => {
               />
             ))}
           </div>
+
+          {/* Homework Summary Section */}
+          <HomeworkSummary />
 
           {/* Middle Section */}
           <Middlesection />

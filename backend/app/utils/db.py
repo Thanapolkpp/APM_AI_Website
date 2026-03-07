@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 load_dotenv()
 
 # ดึงค่าจาก .env ถ้าหาไม่เจอให้ใช้ localhost เป็นค่าเริ่มต้น
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:@localhost:3306/app/utils/db.py")
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:@localhost:3306/apm_ai")
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

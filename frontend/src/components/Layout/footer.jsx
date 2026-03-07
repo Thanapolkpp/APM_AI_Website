@@ -51,7 +51,7 @@ const Footer = () => {
                         </p>
 
                         <a
-                            href="https://docs.google.com/forms/d/e/1FAIpQLSdj0wFFzJlCFEkaQeFHSrxsl2TpOLeE8frO8861AHRysxyRRg/viewform?usp=publish-editor"
+                            href="https://docs.google.com/forms/d/e/1FAIpQLScd6CNZibj2bnY9mjHOLXR4iy7yoowv7DOFiK9h1U4vvdjfXw/viewform?usp=publish-editor"
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-white border border-pink-100 shadow-sm text-sm text-pink-600 hover:bg-pink-100 transition"

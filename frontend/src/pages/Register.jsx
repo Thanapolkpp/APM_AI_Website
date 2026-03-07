@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Footer from "../components/footer";
 import Logo from "../assets/logo.png";
+import BroIcon from "../assets/Bro.png";
+import NerdIcon from "../assets/Nerd.1.2.png";
 
 const Register = () => {
     const navigate = useNavigate();
@@ -26,13 +27,12 @@ const Register = () => {
         setError("");
 
         if (formData.password !== formData.confirmPassword) {
-            setError("รหัสผ่านไม่ตรงกัน");
+            setError("รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง");
             setIsLoading(false);
             return;
         }
-
         try {
-            const response = await fetch("http://localhost:5000/api/register", {
+            const response = await fetch("http://localhost:8000/api/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -57,70 +57,63 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex flex-col">
-            <main className="flex-1 flex items-center justify-center px-6 py-16">
-                <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-8">
+        <div className="min-h-screen bg-gradient-to-br from-[#e0e7ff] via-[#fae8ff] to-[#fce7f3] font-display flex items-center justify-center p-6 lg:p-12 relative overflow-hidden">
 
-                    {/* ✅ Logo กลม ตรงกลาง */}
-                    <div className="flex justify-center mb-6">
-                        <div className="size-20 rounded-full overflow-hidden bg-white shadow-md ring-2 ring-pink-300/60">
-                            <img
-                                src={Logo}
-                                alt="Logo"
-                                className="h-full w-full object-cover"
-                            />
+            {/* Background Blobs for Glassmorphism */}
+            <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] bg-sky-300/30 rounded-full blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-[10%] right-[10%] w-[500px] h-[500px] bg-pink-300/30 rounded-full blur-[150px] pointer-events-none"></div>
+
+            <div className="w-full max-w-[1100px] flex flex-col-reverse lg:flex-row bg-white/40 backdrop-blur-2xl rounded-[40px] shadow-2xl border border-white/60 overflow-hidden z-10">
+
+                {/* Left Side - Register Form */}
+                <div className="w-full lg:w-3/5 p-8 md:p-12 lg:p-16 flex flex-col justify-center">
+                    <div className="lg:hidden flex justify-center mb-6">
+                        <div className="w-20 h-20 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/80 shadow-md overflow-hidden">
+                            <img src={Logo} alt="Logo" className="w-full h-full object-cover" />
                         </div>
                     </div>
 
-                    <h1 className="text-3xl font-black text-gray-800 dark:text-white text-center mb-2">
-                        Register
-                    </h1>
-
-                    <p className="text-gray-500 dark:text-gray-300 text-center mb-8 text-sm">
-                        สมัครสมาชิกเพื่อเริ่มใช้งานระบบ
-                    </p>
+                    <h1 className="text-3xl lg:text-4xl font-black text-gray-900 mb-2">สร้างบัญชีใหม่ ✨</h1>
+                    <p className="text-gray-500 font-medium mb-8">เข้าร่วมครอบครัว APM AI เพื่อเริ่มใช้งานผู้ช่วยในการเรียนของคุณ</p>
 
                     {error && (
-                        <div className="mb-6 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm font-bold text-center">
+                        <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-sm font-bold flex items-center gap-2 shadow-sm">
+                            <span className="material-symbols-outlined text-lg">error</span>
                             {error}
                         </div>
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-5">
-                        <div>
-                            <label className="block text-sm font-bold text-gray-600 dark:text-gray-300 mb-2">
-                                Username
-                            </label>
-                            <input
-                                type="text"
-                                name="username"
-                                required
-                                value={formData.username}
-                                onChange={handleChange}
-                                placeholder="Enter username"
-                                className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-primary/60 dark:text-white"
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Username</label>
+                                <input
+                                    type="text"
+                                    name="username"
+                                    required
+                                    value={formData.username}
+                                    onChange={handleChange}
+                                    placeholder="your_username"
+                                    className="w-full px-5 py-3.5 rounded-2xl bg-white/60 backdrop-blur-sm border border-gray-200/50 shadow-sm outline-none focus:ring-4 focus:ring-sky-300/30 focus:bg-white transition-all text-gray-800"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Email</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="student@ku.th"
+                                    className="w-full px-5 py-3.5 rounded-2xl bg-white/60 backdrop-blur-sm border border-gray-200/50 shadow-sm outline-none focus:ring-4 focus:ring-sky-300/30 focus:bg-white transition-all text-gray-800"
+                                />
+                            </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-gray-600 dark:text-gray-300 mb-2">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                name="email"
-                                required
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="student@ku.th"
-                                className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-primary/60 dark:text-white"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-bold text-gray-600 dark:text-gray-300 mb-2">
-                                Password
-                            </label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Password</label>
                             <input
                                 type="password"
                                 name="password"
@@ -128,14 +121,12 @@ const Register = () => {
                                 value={formData.password}
                                 onChange={handleChange}
                                 placeholder="••••••••"
-                                className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-primary/60 dark:text-white"
+                                className="w-full px-5 py-3.5 rounded-2xl bg-white/60 backdrop-blur-sm border border-gray-200/50 shadow-sm outline-none focus:ring-4 focus:ring-sky-300/30 focus:bg-white transition-all text-gray-800"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-gray-600 dark:text-gray-300 mb-2">
-                                Confirm Password
-                            </label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Confirm Password</label>
                             <input
                                 type="password"
                                 name="confirmPassword"
@@ -143,34 +134,59 @@ const Register = () => {
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
                                 placeholder="••••••••"
-                                className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-primary/60 dark:text-white"
+                                className="w-full px-5 py-3.5 rounded-2xl bg-white/60 backdrop-blur-sm border border-gray-200/50 shadow-sm outline-none focus:ring-4 focus:ring-sky-300/30 focus:bg-white transition-all text-gray-800"
                             />
                         </div>
 
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-3 rounded-2xl bg-primary text-white font-extrabold shadow-lg hover:brightness-110 active:scale-[0.98] transition disabled:opacity-70"
+                            className="w-full py-4 mt-4 rounded-2xl bg-gray-900 border border-transparent text-white font-black text-lg shadow-xl hover:bg-black hover:-translate-y-1 active:scale-[0.98] transition-all disabled:opacity-70 disabled:hover:translate-y-0"
                         >
-                            {isLoading ? "Loading..." : "Register"}
+                            {isLoading ? "กำลังสร้างบัญชี..." : "Register Now"}
                         </button>
                     </form>
 
-                    <div className="mt-6 text-center text-sm">
-                        <span className="text-gray-500 dark:text-gray-300">
-                            มีบัญชีอยู่แล้ว?
-                        </span>{" "}
+                    <div className="mt-8 text-center text-gray-500 font-medium">
+                        มีบัญชีอยู่แล้วใช่ไหม?{" "}
                         <button
                             onClick={() => navigate("/login")}
-                            className="font-extrabold text-primary hover:underline"
+                            className="font-extrabold text-pink-500 hover:text-pink-600 underline underline-offset-4 decoration-2 transition"
                         >
-                            Login
+                            เข้าสู่ระบบ
                         </button>
                     </div>
                 </div>
-            </main>
 
-            <Footer />
+                {/* Right Side - Brand & Graphics */}
+                <div className="hidden lg:flex w-2/5 flex-col items-center justify-center p-12 bg-gradient-to-br from-indigo-400/10 to-sky-400/10 relative overflow-hidden border-l border-white/40">
+                    <div className="absolute -top-32 -right-32 w-80 h-80 bg-indigo-400/20 rounded-full blur-3xl"></div>
+
+                    <div className="relative z-10 flex flex-col items-center text-center">
+                        <div className="w-40 h-40 rounded-[2.5rem] bg-white/70 backdrop-blur-md border border-white/80 shadow-2xl overflow-hidden mb-10 transform rotate-3 hover:rotate-0 transition duration-500">
+                            <img src={Logo} alt="Logo" className="w-full h-full object-cover scale-110" />
+                        </div>
+
+                        <h2 className="text-3xl font-black text-gray-800 tracking-tight mb-4">Start Your <br /> Journey!</h2>
+                        <p className="text-gray-600 font-medium leading-relaxed max-w-xs">
+                            อนาคตของการเรียนหนังสืออยู่ในมือคุณแล้ว เริ่มให้ไว ไปได้ไกลกว่า 🚀
+                        </p>
+
+                        <div className="mt-12 flex gap-[-10px]">
+                            <img src={BroIcon} alt="Bro" className="w-14 h-14 rounded-full border-4 border-white/80 shadow-lg transform -rotate-12 z-20" />
+                            <img src={NerdIcon} alt="Nerd" className="w-14 h-14 rounded-full border-4 border-white/80 shadow-lg transform rotate-6 -ml-4 z-10" />
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <button
+                onClick={() => navigate("/")}
+                className="absolute top-8 left-8 flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/50 backdrop-blur-md border border-white/50 text-gray-700 font-bold shadow-sm hover:bg-white transition z-20"
+            >
+                <span className="material-symbols-outlined text-lg">arrow_back</span> กลับหน้าหลัก
+            </button>
         </div>
     );
 };

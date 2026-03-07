@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { sendMessageToAI, sendMessageToAIWithImage } from "../services/aiService"
+import pdfToText from "react-pdftotext"
+import { sendMessageToAI, sendMessageToAIWithImage } from "../../services/aiService"
 
 // New Components
-import ChatHeader from "./chat-window/ChatHeader"
-import MessageList from "./chat-window/MessageList"
-import ChatInput from "./chat-window/ChatInput"
-import ImagePreview from "./chat-window/ImagePreview"
-import { getSystemMessage, buildPlannerSystemPrompt, plannerPrompt } from "../data/aiPrompts"
+import ChatHeader from "../chat-window/ChatHeader"
+import MessageList from "../chat-window/MessageList"
+import ChatInput from "../chat-window/ChatInput"
+import ImagePreview from "../chat-window/ImagePreview"
+import { getSystemMessage, buildPlannerSystemPrompt, plannerPrompt } from "../../data/aiPrompts"
 const ChatWindow = ({ mode: propsMode }) => {
   const navigate = useNavigate()
   const { mode: urlMode } = useParams()
@@ -23,6 +24,7 @@ const ChatWindow = ({ mode: propsMode }) => {
 
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
+  const pdfInputRef = useRef(null)
 
 
 
@@ -88,6 +90,39 @@ const ChatWindow = ({ mode: propsMode }) => {
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
+  const handlePickPdf = () => {
+    pdfInputRef.current?.click()
+  }
+
+  const handlePdfChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type !== "application/pdf") {
+      alert("กรุณาเลือกไฟล์ PDF เท่านั้น")
+      return
+    }
+
+    setIsLoading(true)
+    pdfToText(file)
+      .then((text) => {
+        setInput(prev => prev + "\n[เนื้อหาจาก PDF]:\n" + text)
+        alert("อ่านไฟล์ PDF สำเร็จแล้ว! คุณสามารถส่งข้อความต่อได้เลย")
+      })
+      .catch((error) => {
+        console.error("Failed to extract text from pdf", error)
+        alert("ขออภัย ไม่สามารถอ่านไฟล์ PDF นี้ได้")
+      })
+      .finally(() => {
+        setIsLoading(false)
+        if (pdfInputRef.current) pdfInputRef.current.value = ""
+      })
+  }
+
+  const [guestChatCount, setGuestChatCount] = useState(() => {
+    return parseInt(localStorage.getItem("guest_chat_count") || "0")
+  })
+
   // Theme logic
   const headerTheme = useMemo(() => {
     if (mode === "bro") {
@@ -114,10 +149,20 @@ const ChatWindow = ({ mode: propsMode }) => {
     }
   }, [mode])
 
+  const isLoggedIn = !!localStorage.getItem("token")
+  const isLimitReached = !isLoggedIn && guestChatCount >= 5
+
   // Handle Send
   const handleSend = async (e) => {
     e.preventDefault()
     if ((!input.trim() && !selectedImage) || isLoading) return
+
+    // Guest Limit Check
+    if (isLimitReached) {
+      alert("คุณใช้งานครบจำนวนจำกัด 5 ครั้งแล้ว กรุณาเข้าสู่ระบบเพื่อใช้งานต่อครับ")
+      navigate("/login")
+      return
+    }
 
     const textToSend = input.trim()
 
@@ -130,6 +175,13 @@ const ChatWindow = ({ mode: propsMode }) => {
     setMessages((prev) => [...prev, userMsg])
     setInput("")
     setIsLoading(true)
+
+    // Increment guest count if not logged in
+    if (!isLoggedIn) {
+      const newCount = guestChatCount + 1
+      setGuestChatCount(newCount)
+      localStorage.setItem("guest_chat_count", newCount.toString())
+    }
 
     try {
       const shouldPlannerMode = /ตาราง|อ่านหนังสือ|สอบ|midterm|final|to-do|todo|เตือนงาน/i.test(
@@ -161,28 +213,34 @@ const ChatWindow = ({ mode: propsMode }) => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen max-w-4xl mx-auto p-2 md:p-4 bg-gray-50 rounded-3xl shadow-xl border border-gray-100">
+    <div className="flex flex-col h-full max-w-4xl mx-auto p-2 md:p-4 bg-gray-50 rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
 
       <ChatHeader
         mode={mode}
         headerTheme={headerTheme}
         onClearChat={handleClearChat}
         navigate={navigate}
+        guestChatCount={guestChatCount}
+        isLoggedIn={isLoggedIn}
       />
 
       <MessageList
         messages={messages}
         isLoading={isLoading}
         messagesEndRef={messagesEndRef}
+        mode={mode}
       />
 
       {/* Quick Action Button - kept in main file as it interacts with setInput directly */}
       <div className="px-4 pb-2 bg-white border-t border-gray-100">
         <button
           type="button"
-          disabled={isLoading}
+          disabled={isLoading || isLimitReached}
           onClick={() => setInput(plannerPrompt)}
-          className="w-full px-4 py-3 rounded-2xl bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-all"
+          className={`w-full px-4 py-3 rounded-2xl font-semibold transition-all ${isLoading || isLimitReached
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
         >
           📅 ช่วยจัดตาราง + To-do + เตือนงาน
         </button>
@@ -194,6 +252,21 @@ const ChatWindow = ({ mode: propsMode }) => {
         onRemove={removeSelectedImage}
       />
 
+      {isLimitReached && (
+        <div className="mx-4 mb-2 p-3 rounded-xl bg-red-50 border border-red-100 flex items-center justify-between text-sm text-red-600 font-bold animate-bounce shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-lg">error</span>
+            <span>คุณใช้งานครบ 5 ครั้งแล้ว กรุณาเข้าสู่ระบบนะครับ 🌷</span>
+          </div>
+          <button
+            onClick={() => navigate("/login")}
+            className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            ไปหน้า Login
+          </button>
+        </div>
+      )}
+
       <ChatInput
         input={input}
         setInput={setInput}
@@ -202,7 +275,11 @@ const ChatWindow = ({ mode: propsMode }) => {
         handlePickImage={handlePickImage}
         fileInputRef={fileInputRef}
         handleImageChange={handleImageChange}
+        pdfInputRef={pdfInputRef}
+        handlePickPdf={handlePickPdf}
+        handlePdfChange={handlePdfChange}
         headerTheme={headerTheme}
+        disabled={isLimitReached}
       />
     </div>
   )

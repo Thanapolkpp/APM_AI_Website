@@ -1,12 +1,23 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Footer from "../components/footer";
+import Navbar from "../components/Layout/Navbar";
+import Footer from "../components/Layout/footer";
 import Logo from "../assets/logo.png";
+import BroIcon from "../assets/Bro.png";
+import NerdIcon from "../assets/Nerd.1.2.png";
 import CuteGirlIcon from "../assets/Girl.png";
 
 const Event = () => {
     const navigate = useNavigate();
+
+    const [profileImage] = React.useState(() => {
+        if (!localStorage.getItem("token")) return Logo;
+        const savedImage = localStorage.getItem("avatarImage");
+        if (savedImage) return savedImage;
+        const savedAvatar = localStorage.getItem("avatar") || "bro";
+        const map = { girl: CuteGirlIcon, nerd: NerdIcon, bro: BroIcon };
+        return map[savedAvatar.toLowerCase()] || BroIcon;
+    });
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex flex-col">
@@ -56,10 +67,11 @@ const Event = () => {
                         {/* ✅ Avatar → ไปหน้า /avatar */}
                         <button
                             type="button"
-                            onClick={() => navigate("/avatar")}
+                            onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
                             className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
                             style={{
-                                backgroundImage: `url("${CuteGirlIcon}")`,
+                                backgroundImage: `url("${profileImage}")`,
+                                backgroundColor: "white"
                             }}
                             title="Edit Avatar"
                             aria-label="Edit Avatar"

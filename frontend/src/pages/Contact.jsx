@@ -1,13 +1,24 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import { Github, Instagram } from "lucide-react"
-import Navbar from "../components/Navbar"
+import Navbar from "../components/Layout/Navbar"
 import Logo from "../assets/logo.png"
+import BroIcon from "../assets/Bro.png"
+import NerdIcon from "../assets/Nerd.1.2.png"
 import CuteGirlIcon from "../assets/Girl.png"
-
 
 const Contact = () => {
     const navigate = useNavigate()
+
+    const [profileImage] = React.useState(() => {
+        if (!localStorage.getItem("token")) return Logo;
+        const savedImage = localStorage.getItem("avatarImage");
+        if (savedImage) return savedImage;
+        const savedAvatar = localStorage.getItem("avatar") || "bro";
+        const map = { girl: CuteGirlIcon, nerd: NerdIcon, bro: BroIcon };
+        return map[savedAvatar.toLowerCase()] || BroIcon;
+    });
+
     const developers = [
         {
             id: 1,
@@ -95,10 +106,11 @@ const Contact = () => {
                         {/* Avatar */}
                         <button
                             type="button"
-                            onClick={() => navigate("/login")}
+                            onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
                             className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
                             style={{
-                                backgroundImage: `url("${CuteGirlIcon}")`,
+                                backgroundImage: `url("${profileImage}")`,
+                                backgroundColor: "white"
                             }}
                             title="Go to Login"
                             aria-label="Go to login"

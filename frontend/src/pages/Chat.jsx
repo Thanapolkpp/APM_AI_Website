@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
-import ChatWindow from '../components/ChatWindow';
+import ChatWindow from '../components/Chat/ChatWindow';
+import ChatSidebar from '../components/Chat/ChatSidebar';
 
 const Chat = () => {
     const { mode } = useParams();
@@ -8,10 +9,11 @@ const Chat = () => {
         /* h-screen: บังคับความสูงเท่าจอพอดี 
            overflow-hidden: ป้องกันไม่ให้หน้าเพจเลื่อนขึ้นลงเกินจำเป็น (ให้แชทเลื่อนข้างในเอง)
         */
-        <div className="flex h-screen w-full bg-gray-50 dark:bg-gray-950 overflow-hidden">
+        <div className="flex flex-col lg:flex-row h-screen w-full bg-gray-50 dark:bg-gray-950 overflow-hidden">
+
 
             {/* --- ส่วนที่ 1: Chat Window (อยู่ตรงกลาง) --- */}
-            <main className="flex-1 flex justify-center items-center p-4 md:p-10 relative">
+            <main className="flex-1 flex justify-center items-center p-2 md:p-10 relative overflow-hidden">
                 {/* ตกแต่งพื้นหลังให้นุ่มนวล */}
                 <div className="absolute inset-0 overflow-hidden -z-10">
                     <div className="absolute -top-[10%] -left-[10%] size-[400px] bg-pink-200/20 blur-[100px] rounded-full" />
@@ -22,6 +24,9 @@ const Chat = () => {
                     <ChatWindow mode={mode} />
                 </div>
             </main>
+
+            {/* --- ส่วนที่ 2: Sidebar (ด้านขวา) --- */}
+            <ChatSidebar />
 
         </div>
     );

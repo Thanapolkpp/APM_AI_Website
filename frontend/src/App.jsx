@@ -7,7 +7,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Event from "./pages/Event";
 import Account from "./pages/Account";
-import EditAvatar from "./components/EditAvatar";
+import EditAvatar from "./components/Profile/EditAvatar";
 
 function App() {
   return (

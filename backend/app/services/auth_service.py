@@ -5,6 +5,9 @@ from app.utils.security import hash_password
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
+def get_user_by_username(db: Session, username: str):
+    return db.query(User).filter(User.username == username).first()
+
 def create_user(db: Session, user_data):
     hashed_pwd = hash_password(user_data.password)
     db_user = User(
