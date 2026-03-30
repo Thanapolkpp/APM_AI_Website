@@ -8,9 +8,11 @@ cryptography
 
 python-jose[cryptography]
 passlib[bcrypt]
+bcrypt==4.0.1
 python-multipart
 
 pydantic
 pydantic-settings
+email-validator
 python-dotenv
 

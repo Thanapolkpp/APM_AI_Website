@@ -63,7 +63,10 @@ def get_ai_response(prompt: str, mode: str):
     reply = data.get("message", {}).get("content", "").strip()
     return {"reply": reply}
 
-async def get_ai_response_with_image(prompt: str, mode: str, image_data: bytes | None):
+
+from typing import Optional
+
+async def get_ai_response_with_image(prompt: str, mode: str, image_data: Optional[bytes]):
     persona = _build_persona(mode)
     final_prompt = f"{persona}\n\nคำถาม: {prompt}"
 

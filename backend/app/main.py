@@ -1,13 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# 1. เปลี่ยนการ import เป็นแบบระบุไฟล์โดยตรง (เพื่อเลี่ยงการโหลด auth ที่พ่วง DB มาด้วย)
+# นำเข้า Router และระบบฐานข้อมูล
 from app.api.v1.chatbot import router as chatbot_router 
 from app.api.v1.auth import router as auth_router
+from app.utils.db import engine, Base
+# นำเข้า models ทุกตัวเพื่อให้ SQLAlchemy มองเห็นตารางก่อนสร้าง
+from app.models import user, planner
+
+# สั่งสร้างตารางฐานข้อมูลทั้งหมด
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Gen Z AI Study Planner API",
-    description="Backend สำหรับระบบจัดตารางเรียนและ Chatbot AI",
+    description="Backend สำหรับระบบจัดตารางเรียนและ Chatbot AI พร้อมระบบผู้ใช้",
     version="1.1.0"
 )
 
@@ -22,8 +28,8 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/api")
 app.include_router(chatbot_router, prefix="/api/v1/ai", tags=["AI Chatbot"])
+app.include_router(auth_router, prefix="/api/v1/user", tags=["Users"])
 
 @app.get("/")
 def root():
-    return {"message": "Server is running! AI Chatbot and Auth are ready."}
-
+    return {"message": "Server is running! Database is active and ready."}

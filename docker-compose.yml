@@ -8,6 +8,8 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/app:/code/app
+    env_file:
+      - ./backend/.env
     environment:
       - OLLAMA_API_URL=http://host.docker.internal:11434/api/chat
     extra_hosts:
