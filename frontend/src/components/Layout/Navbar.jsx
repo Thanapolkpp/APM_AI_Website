@@ -22,9 +22,11 @@ const Navbar = () => {
 
   const navLinks = [
     { name: "Home", to: "/" },
-    { name: "About", to: "/about" },
-    { name: "Event", to: "/event" },
-    { name: "Contact", to: "/contact" },
+    { name: "Mall", to: "/avatar" },
+    { name: "Summaries", to: "/summaries" },
+    { name: "ToDo List", to: "/todo" },
+    { name: "Reading", to: "/reading" },
+    { name: "Events", to: "/event" },
   ]
 
   return (
@@ -36,7 +38,7 @@ const Navbar = () => {
             key={link.to}
             to={link.to}
             className={({ isActive }) =>
-              `px-6 py-2 text-sm font-extrabold rounded-xl transition-all duration-200
+              `px-4 py-2 text-sm font-extrabold rounded-xl transition-all duration-200
                border
                 ${isActive
                 ? "text-pink-600 bg-gradient-to-r from-pink-100 to-purple-100 border-pink-300/40 dark:text-pink-300 dark:from-pink-500/15 dark:to-purple-500/15 dark:border-pink-400/20"

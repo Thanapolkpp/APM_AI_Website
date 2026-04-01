@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { HiOutlineBookOpen, HiOutlineDownload, HiOutlineEye, HiOutlineSparkles, HiOutlineX, HiOutlinePlus } from "react-icons/hi"
+import { BookText, FileText, Code2, Calculator, Atom, Palette, PlusCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import jsPDF from "jspdf"
 
@@ -29,8 +30,10 @@ const HomeworkSummary = () => {
             price: "Free",
             rating: 4.9,
             views: "1.2k",
-            color: "bg-blue-50 text-blue-600 border-blue-100",
-            iconColor: "text-blue-500",
+            Icon: Code2,
+            gradient: "from-blue-400 to-indigo-500",
+            bgLight: "bg-blue-50/50",
+            textAccent: "text-blue-600",
             fullContent: "หน่วยประมวลผลกลาง (CPU) ประกอบด้วย Register, ALU และ Control Unit... สถาปัตยกรรมแบบ Von Neumann แยกส่วนความจำและหน่วยประมวลผล... การจัดลำดับคำสั่งแบบ Pipelining ช่วยเพิ่มความเร็วในการทำงาน...",
             pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
         },
@@ -41,8 +44,10 @@ const HomeworkSummary = () => {
             price: "Free",
             rating: 4.7,
             views: "850",
-            color: "bg-pink-50 text-pink-600 border-pink-100",
-            iconColor: "text-pink-500",
+            Icon: Atom,
+            gradient: "from-rose-400 to-pink-500",
+            bgLight: "bg-pink-50/50",
+            textAccent: "text-pink-600",
             fullContent: "กฎของนิวตัน: F=ma... การเคลื่อนที่แนวตรง: v=u+at, s=ut+1/2at^2... งานและพลังงาน: W=Fscosθ, Ek=1/2mv^2, Ep=mgh...",
             pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
         },
@@ -53,8 +58,10 @@ const HomeworkSummary = () => {
             price: "Free",
             rating: 4.8,
             views: "2.1k",
-            color: "bg-purple-50 text-purple-600 border-purple-100",
-            iconColor: "text-purple-500",
+            Icon: Calculator,
+            gradient: "from-purple-400 to-violet-500",
+            bgLight: "bg-purple-50/50",
+            textAccent: "text-purple-600",
             fullContent: "Entity คือ สิ่งที่เราสนใจเก็บข้อมูล... Relationship คือ ความสัมพันธ์ระหว่าง Entity (1:1, 1:N, M:N)... Attribute คือ คุณลักษณะของ Entity...",
             pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
         },
@@ -65,8 +72,10 @@ const HomeworkSummary = () => {
             price: "Free",
             rating: 4.5,
             views: "540",
-            color: "bg-emerald-50 text-emerald-600 border-emerald-100",
-            iconColor: "text-emerald-500",
+            Icon: BookText,
+            gradient: "from-emerald-400 to-teal-500",
+            bgLight: "bg-emerald-50/50",
+            textAccent: "text-emerald-600",
             fullContent: "Present Simple: S + V.1 (s/es)... Past Simple: S + V.2... Present Continuous: S + is/am/are + V.ing...",
             pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
         },
@@ -79,7 +88,6 @@ const HomeworkSummary = () => {
         setIsGenerating(true)
         setSummaryText("")
 
-        // จำลองการสรุปโดย AI
         setTimeout(() => {
             const aiSummary = `✨ สรุปเนื้อหาสำคัญโดย APM AI ✨\n\nหัวข้อ: ${item.title}\nหมวดหมู่: ${item.subject}\n\n[ประเด็นสำคัญ]\n1. เนื้อหาหลักครอบคลุมเรื่องสถาปัตยกรรมพื้นฐานและทฤษฎีสำคัญ\n2. สรุปความสัมพันธ์เชิงตรรกะและสูตรที่ต้องจำ\n3. แนวข้อสอบเก่าที่มักจะออกในหัวข้อนี้\n\n[รายละเอียดสรุป]\n${item.fullContent}\n\n--- สรุปนี้สร้างขึ้นเพื่อเป็นแนวทางในการทบทวนบทเรียน ---`
             setSummaryText(aiSummary)
@@ -89,183 +97,159 @@ const HomeworkSummary = () => {
 
     const downloadPDF = () => {
         const doc = new jsPDF()
-
-        // จัดการเรื่องฟอนต์เบื้องต้น (Thai font support requires adding font to jsPDF)
-        // เพื่อให้ง่ายในตอนนี้ เราจะใช้ตัวอักษรมาตรฐานที่รองรับภาษาอังกฤษได้ดี
-        // แต่ถ้าต้องการภาษาไทยสมบูรณ์แบบ ต้องมีการทำ font rendering
-
         doc.setFontSize(20)
         doc.text("APM AI - Homework Summary", 10, 20)
-
         doc.setFontSize(14)
         doc.text(`Title: ${selectedItem.title}`, 10, 40)
         doc.text(`Subject: ${selectedItem.subject}`, 10, 50)
-
         doc.setFontSize(12)
         const splitText = doc.splitTextToSize(summaryText, 180)
         doc.text(splitText, 10, 70)
-
         doc.save(`${selectedItem.title}_Summary.pdf`)
     }
 
-    const handleUploadPdf = (e) => {
-        if (!checkAuth()) return
-        const file = e.target.files?.[0]
-        if (!file) return
-
-        if (file.type !== "application/pdf") {
-            alert("กรุณาอัปโหลดไฟล์ PDF เท่านั้นครับ 🌷")
-            return
-        }
-
-        // จำลองการเพิ่มข้อมูลสรุปใหม่จากการอัปโหลด
-        const newSummary = {
-            id: summaries.length + 1,
-            title: file.name.replace(".pdf", ""),
-            subject: "Uploaded Assignment",
-            price: "Free",
-            rating: 5.0,
-            views: "0",
-            color: "bg-amber-50 text-amber-600 border-amber-100",
-            iconColor: "text-amber-500",
-            fullContent: "เนื้อหาจากไฟล์สรุปที่คุณอัปโหลด กำลังรอการวิเคราะห์ข้อมูลเพิ่มเติม...",
-            pdfUrl: URL.createObjectURL(file)
-        }
-
-        setSummaries(prev => [newSummary, ...prev])
-        alert(`อัปโหลดไฟล์ ${file.name} สำเร็จแล้ว! สรุปของคุณถูกเพิ่มเข้าคลังเรียบร้อยครับ ✨`)
-    }
-
     return (
-        <section className="w-full max-w-6xl mx-auto py-12 px-6">
-            <div className="flex items-center justify-between mb-8">
+        <section className="w-full max-w-7xl mx-auto py-16 px-6 relative">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <div>
-                    <h2 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                        <span className="p-2 rounded-2xl bg-amber-100 text-amber-600">
-                            <HiOutlineBookOpen size={28} />
-                        </span>
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-[12px] tracking-wider uppercase mb-4 border border-primary/20">
+                        Homework Archive
+                    </div>
+                    <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
                         คลังสรุปการบ้านตัวทึง ✨
                     </h2>
-                    <p className="text-gray-500 dark:text-gray-400 font-medium mt-2">แหล่งรวมสรุปเนื้อหาจากเพื่อนๆ สารพัดวิชา</p>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium mt-3 text-lg">
+                        ไม่ใช่แค่สรุปไฟล์เดิมไปวันๆ แต่ให้ AI ช่วยติวให้เข้าใจง่ายขึ้น 💗
+                    </p>
                 </div>
-                <button className="px-6 py-2.5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 transition-all shadow-sm">
+                <button 
+                    onClick={() => navigate("/summaries")}
+                    className="h-fit px-8 py-3 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 font-black text-gray-700 dark:text-gray-200 hover:bg-white transition-all shadow-sm hover:shadow-lg active:scale-95"
+                >
                     ดูทั้งหมด
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Upload Card */}
-                <label className="group bg-dashed-border bg-white/40 dark:bg-gray-800/20 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-[32px] p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-white/60 transition-all duration-300">
-                    <input type="file" accept="application/pdf" className="hidden" onChange={handleUploadPdf} />
-                    <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary/10 transition-all">
-                        <HiOutlinePlus size={32} className="text-gray-400 group-hover:text-primary" />
-                    </div>
-                    <p className="font-bold text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors">เพิ่มสรุป PDF ของคุณ</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-medium italic">ส่งต่อความรู้ให้เพื่อนๆ 🌷</p>
-                </label>
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {summaries.map((item) => (
                     <div
                         key={item.id}
-                        className="group bg-white dark:bg-gray-800/60 backdrop-blur-xl border border-white dark:border-gray-700 rounded-[32px] p-6 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col h-full"
+                        className="group relative h-[380px] bg-white/40 dark:bg-white/5 backdrop-blur-3xl border border-white/60 dark:border-white/10 rounded-[40px] overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col"
                     >
-                        {/* Clickable Area for PDF Viewer */}
+                        {/* THE COVER - Visual first approach */}
                         <div
-                            className="flex-1 cursor-pointer"
+                            className={`h-40 w-full bg-gradient-to-br ${item.gradient} relative flex items-center justify-center overflow-hidden cursor-pointer`}
                             onClick={() => {
                                 if (!checkAuth()) return;
                                 setSelectedItem(item);
                                 setIsPdfModalOpen(true);
                             }}
                         >
-                            <div className={`absolute -right-6 -top-6 w-20 h-20 rounded-full opacity-10 group-hover:opacity-20 transition-opacity ${item.color.split(' ')[0]}`}></div>
-
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-sm ${item.color} border`}>
-                                <HiOutlineBookOpen size={24} />
+                            {/* Decorative background pattern */}
+                            <div className="absolute inset-0 opacity-10 mix-blend-overlay">
+                                <svg width="100%" height="100%"><pattern id={`pattern-${item.id}`} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M0 40L40 0" fill="none" stroke="white" strokeWidth="2" /></pattern><rect width="100%" height="100%" fill={`url(#pattern-${item.id})`} /></svg>
                             </div>
 
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-tight group-hover:text-primary transition-colors">
-                                {item.title}
-                            </h3>
+                            <div className="relative z-10 w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-2xl group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">
+                                <item.Icon size={40} className="text-white drop-shadow-md" />
+                            </div>
 
-                            <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mb-4">
-                                📚 {item.subject}
-                            </p>
-
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="flex items-center gap-1 text-gray-400 text-xs font-bold">
-                                    <HiOutlineEye size={14} />
-                                    {item.views}
-                                </div>
-                                <div className="text-amber-500 text-xs font-bold flex items-center gap-1">
-                                    ⭐ {item.rating}
-                                </div>
+                            {/* Hover info badge */}
+                            <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[10px] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                Click to View
                             </div>
                         </div>
 
-                        {/* Control Section (Not strictly part of the clickable preview) */}
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={() => handleAIGenerate(item)}
-                                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95"
-                            >
-                                <HiOutlineSparkles /> สรุปด้วย AI
-                            </button>
-
-                            <div className="flex items-center justify-between pt-4 border-t border-gray-50 dark:border-gray-700/50">
-                                <span className="text-xs font-black text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                                    {item.price}
+                        {/* CONTENT SECTION */}
+                        <div className="flex-1 p-6 flex flex-col">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${item.textAccent} ${item.bgLight} dark:bg-white/5 uppercase tracking-wide`}>
+                                    {item.subject}
                                 </span>
-                                <span className="text-[10px] font-bold text-gray-400">กดที่การ์ดเพื่อดูไฟล์</span>
+                                <div className="flex items-center gap-1 text-[10px] font-bold text-amber-500 ml-auto">
+                                    ⭐ {item.rating}
+                                </div>
+                            </div>
+
+                            <h3 className="text-lg font-black text-gray-900 dark:text-white leading-tight mb-auto group-hover:text-primary transition-colors">
+                                {item.title}
+                            </h3>
+
+                            <div className="mt-4 flex flex-col gap-3">
+                                <button
+                                    onClick={() => handleAIGenerate(item)}
+                                    className="w-full py-3.5 rounded-[20px] bg-gradient-to-r from-purple-500 to-pink-500 text-white font-black text-[13px] flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                >
+                                    <HiOutlineSparkles size={18} /> สรุปด้วย AI
+                                </button>
+
+                                <div className="flex items-center justify-between px-1">
+                                    <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500 text-[11px] font-bold uppercase tracking-wider">
+                                        <HiOutlineEye size={14} />
+                                        {item.views} Views
+                                    </div>
+                                    <span className="text-[11px] font-black text-emerald-500 tracking-widest uppercase">
+                                        {item.price}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* AI Summary Modal */}
+            {/* AI Summary Modal - Redesigned to match Login/Account glassy style */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-                    <div className="bg-white dark:bg-gray-800 rounded-[40px] w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl relative z-10 border border-white dark:border-gray-700 flex flex-col animate-in fade-in zoom-in duration-300">
-                        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-purple-500 text-white flex items-center justify-center">
-                                    <HiOutlineSparkles size={24} />
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity" onClick={() => setIsModalOpen(false)}></div>
+                    <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl rounded-[48px] w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-[0_32px_64px_rgba(0,0,0,0.2)] relative z-10 border border-white/60 dark:border-white/10 flex flex-col animate-in fade-in zoom-in duration-500 ease-out">
+
+                        <div className="p-8 pb-4 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center shadow-xl shadow-purple-500/20">
+                                    <HiOutlineSparkles size={30} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-gray-900 dark:text-white">AI สรุปให้แล้วนะ!</h3>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Generated by APM AI Friend</p>
+                                    <h3 className="text-2xl font-black text-gray-900 dark:text-white">AI สรุปให้แล้วนะ!</h3>
+                                    <p className="text-xs text-primary font-black uppercase tracking-[0.2em] mt-0.5">APM AI Assistant</p>
                                 </div>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-full hover:bg-white dark:hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                            <button onClick={() => setIsModalOpen(false)} className="w-12 h-12 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-white transition-all hover:rotate-90">
                                 <HiOutlineX size={24} />
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-8 text-gray-700 dark:text-gray-300 font-medium leading-relaxed whitespace-pre-wrap">
+                        <div className="flex-1 overflow-y-auto p-10 text-gray-700 dark:text-gray-200 font-medium leading-[1.8] whitespace-pre-wrap text-lg">
                             {isGenerating ? (
-                                <div className="flex flex-col items-center justify-center py-12 gap-4">
-                                    <div className="w-12 h-12 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin"></div>
-                                    <p className="font-bold text-gray-500 animate-pulse">กำลังสรุปเนื้อหาให้เพื่อนอยู่ แป๊บนึงนะ...</p>
+                                <div className="flex flex-col items-center justify-center py-20 gap-6">
+                                    <div className="relative">
+                                        <div className="w-20 h-20 rounded-full border-4 border-purple-100 dark:border-purple-500/20 border-t-purple-600 animate-spin"></div>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="w-10 h-10 bg-purple-500/10 rounded-full animate-ping"></div>
+                                        </div>
+                                    </div>
+                                    <p className="font-black text-gray-500 dark:text-gray-400 text-xl animate-pulse">กำลังติวสรุปให้เพื่อนอยู่ แป๊บนึงนะ... ✨</p>
                                 </div>
                             ) : (
-                                summaryText
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    {summaryText}
+                                </div>
                             )}
                         </div>
 
-                        <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex gap-4">
+                        <div className="p-8 flex gap-4 bg-gray-50/50 dark:bg-white/5">
                             <button
                                 onClick={downloadPDF}
                                 disabled={isGenerating}
-                                className="flex-1 py-4 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black flex items-center justify-center gap-3 shadow-lg shadow-purple-200 dark:shadow-none transition-all active:scale-95 disabled:opacity-50"
+                                className="flex-1 py-5 rounded-[28px] bg-gradient-to-r from-purple-600 to-indigo-600 hover:scale-[1.02] active:scale-[0.98] text-white font-black text-lg flex items-center justify-center gap-3 shadow-2xl shadow-indigo-500/30 transition-all disabled:opacity-50"
                             >
                                 <HiOutlineDownload size={22} />
-                                ดาวน์โหลดเป็น PDF
+                                ดาวน์โหลด PDF
                             </button>
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="px-8 py-4 rounded-2xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-200 font-bold hover:bg-gray-50 transition-all"
+                                className="px-10 py-5 rounded-[28px] bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white font-black text-lg hover:bg-gray-50 transition-all active:scale-95"
                             >
                                 ปิด
                             </button>
@@ -273,69 +257,59 @@ const HomeworkSummary = () => {
                     </div>
                 </div>
             )}
+
             {/* PDF Viewer Modal */}
             {isPdfModalOpen && selectedItem && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setIsPdfModalOpen(false)}></div>
-                    <div className="bg-white dark:bg-gray-900 rounded-[40px] w-full max-w-5xl h-[90vh] overflow-hidden shadow-2xl relative z-10 border border-white dark:border-gray-700 flex flex-col animate-in fade-in zoom-in duration-300">
-                        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center">
-                                    <HiOutlineBookOpen size={24} />
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-8">
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-xl transition-opacity" onClick={() => setIsPdfModalOpen(false)}></div>
+                    <div className="bg-white dark:bg-gray-900 rounded-[48px] w-full max-w-6xl h-full overflow-hidden shadow-[0_32px_128px_rgba(0,0,0,0.4)] relative z-10 border border-white/20 flex flex-col animate-in fade-in zoom-in duration-500">
+                        <div className="p-8 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
+                            <div className="flex items-center gap-5">
+                                <div className={`w-14 h-14 rounded-3xl bg-gradient-to-br ${selectedItem.gradient} text-white flex items-center justify-center shadow-xl`}>
+                                    <selectedItem.Icon size={30} />
                                 </div>
-                                <div>
-                                    <h3 className="font-black text-gray-900 dark:text-white truncate max-w-md">{selectedItem.title}</h3>
-                                    <p className="text-xs text-gray-500 font-bold uppercase">{selectedItem.subject}</p>
+                                <div className="min-w-0">
+                                    <h3 className="text-2xl font-black text-gray-900 dark:text-white truncate max-w-lg">{selectedItem.title}</h3>
+                                    <p className="text-xs text-primary font-black uppercase tracking-[0.2em] mt-1">{selectedItem.subject}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
                                 <a
                                     href={selectedItem.pdfUrl}
                                     download={`${selectedItem.title}.pdf`}
-                                    className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-blue-500 transition-colors"
-                                    title="ดาวน์โหลดไฟล์"
+                                    className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white flex items-center justify-center hover:bg-white dark:hover:bg-primary transition-all shadow-sm hover:shadow-lg"
                                 >
-                                    <HiOutlineDownload size={22} />
+                                    <HiOutlineDownload size={24} />
                                 </a>
-                                <button onClick={() => setIsPdfModalOpen(false)} className="p-2.5 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
+                                <button onClick={() => setIsPdfModalOpen(false)} className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all hover:rotate-90">
                                     <HiOutlineX size={24} />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="flex-1 bg-gray-100 dark:bg-gray-950 flex flex-col items-center justify-center relative">
-                            {/* PDF Viewer */}
-                            {selectedItem.pdfUrl.startsWith("http") ? (
-                                <iframe
-                                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(selectedItem.pdfUrl)}&embedded=true`}
-                                    className="w-full h-full border-none z-10"
-                                    title="PDF Viewer"
-                                ></iframe>
-                            ) : (
-                                <iframe
-                                    src={selectedItem.pdfUrl}
-                                    className="w-full h-full border-none z-10"
-                                    title="PDF Viewer"
-                                ></iframe>
-                            )}
-
-                            {/* Background Loading / Fallback UI */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                                <div className="w-16 h-16 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin mb-4"></div>
-                                <h4 className="font-bold text-gray-500 mb-2">กำลังเรียกดูไฟล์ PDF...</h4>
-                                <p className="text-sm text-gray-400 max-w-xs mb-4">หากไฟล์ไม่แสดงโดยอัตโนมัติ คุณสามารถกดปุ่มด้านล่างเพื่อเปิดโดยตรงได้ครับ</p>
-                                <div className="flex gap-3">
-                                    <a
-                                        href={selectedItem.pdfUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="px-6 py-2 rounded-xl bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-200"
-                                    >
-
-                                        เปิดในแท็บใหม่
-                                    </a>
-                                </div>
+                        <div className="flex-1 bg-gray-100 dark:bg-black relative">
+                            {/* PDF Viewer with fallback loading state */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
+                                <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-6"></div>
+                                <h4 className="text-2xl font-black text-gray-900 dark:text-white mb-3">กำลังเปิดไฟล์สรุป...</h4>
+                                <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8 font-medium">รอแป๊บนึงนะเพื่อน กำลังโหลดสถาปัตยกรรมสุดเจ๋งมาให้ดูอยู่ 🚀</p>
+                                <a
+                                    href={selectedItem.pdfUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="px-10 py-4 rounded-[28px] bg-primary text-white font-black text-lg shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all"
+                                >
+                                    เปิดในหน้าต่างใหม่
+                                </a>
                             </div>
+
+                            <iframe
+                                src={selectedItem.pdfUrl.startsWith("http")
+                                    ? `https://docs.google.com/viewer?url=${encodeURIComponent(selectedItem.pdfUrl)}&embedded=true`
+                                    : selectedItem.pdfUrl}
+                                className="w-full h-full border-none relative z-10"
+                                title="PDF Viewer"
+                            ></iframe>
                         </div>
                     </div>
                 </div>
@@ -345,3 +319,4 @@ const HomeworkSummary = () => {
 }
 
 export default HomeworkSummary
+

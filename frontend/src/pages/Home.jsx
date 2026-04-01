@@ -8,25 +8,24 @@ import LessonTabs from "../components/Course/LessonTabs"
 import HomeworkSummary from "../components/Course/HomeworkSummary"
 import { useNavigate } from "react-router-dom"
 import Notification from "../components/UI/Notification"
+import CoinBadge from "../components/UI/CoinBadge"
 import Logo from "../assets/logo.png"
 import BroIcon from "../assets/Bro.png"
 import NerdIcon from "../assets/Nerd.1.2.png"
 import CuteGirlIcon from "../assets/Girl.png"
-
-
 
 const Home = () => {
   const navigate = useNavigate()
   const [showNoti, setShowNoti] = useState(false)
 
   const [profileImage] = useState(() => {
-    if (!localStorage.getItem("token")) return Logo;
-    const savedImage = localStorage.getItem("avatarImage");
-    if (savedImage) return savedImage;
-    const savedAvatar = localStorage.getItem("avatar") || "bro";
-    const map = { girl: CuteGirlIcon, nerd: NerdIcon, bro: BroIcon };
-    return map[savedAvatar.toLowerCase()] || BroIcon;
-  });
+    if (!localStorage.getItem("token")) return Logo
+    const savedImage = localStorage.getItem("avatarImage")
+    if (savedImage) return savedImage
+    const savedAvatar = localStorage.getItem("avatar") || "bro"
+    const map = { girl: CuteGirlIcon, nerd: NerdIcon, bro: BroIcon }
+    return map[savedAvatar.toLowerCase()] || BroIcon
+  })
 
   const modes = [
     {
@@ -71,68 +70,56 @@ const Home = () => {
         "Let’s dive deep into the data. Optimization is the key to academic excellence 🤓📚",
       buttonIcon: "calculate",
       colors: {
-        bg: "bg-gray-100 dark:bg-green-900/20",
-        hoverBorder: "hover:border-green-200",
-        shadow: "shadow-soft-green",
-        iconBg: "bg-white/80 dark:bg-green-800/40",
-        text: "text-green-700/80 dark:text-green-300",
+        bg: "bg-primary/10 dark:bg-primary/20",
+        hoverBorder: "hover:border-primary/30",
+        shadow: "shadow-soft-purple",
+        iconBg: "bg-white/80 dark:bg-primary/30",
+        text: "text-primary dark:text-pink-200",
         button:
-          "bg-white dark:bg-green-600 dark:text-white text-green-600 group-hover:bg-green-50",
+          "bg-white dark:bg-primary dark:text-white text-primary group-hover:bg-primary/5",
       },
     },
   ]
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen text-[#333333] dark:text-gray-100 transition-colors duration-300 font-display relative overflow-hidden">
-      {/* cute pastel background blobs */}
-      <div className="pointer-events-none absolute -top-24 -left-24 size-80 rounded-full bg-pink-300/25 blur-3xl" />
-      <div className="pointer-events-none absolute top-40 -right-24 size-80 rounded-full bg-blue-300/25 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 size-[32rem] rounded-full bg-purple-300/15 blur-3xl" />
+      {/* refined brand background blobs */}
+      <div className="pointer-events-none absolute -top-24 -left-24 size-80 rounded-full bg-primary/15 blur-3xl" />
+      <div className="pointer-events-none absolute top-40 -right-24 size-80 rounded-full bg-pink-300/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 size-[32rem] rounded-full bg-primary/10 blur-3xl" />
 
       <div className="layout-container flex flex-col min-h-screen relative z-10">
-        {/* Header */}
         <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
-          <div className="mx-auto grid w-full max-w-7xl grid-cols-2 items-center px-4 py-4 sm:px-6 md:grid-cols-3">
-
-            {/* ✅ Left */}
-            <div className="flex min-w-0 items-center gap-3">
-              {/* Logo */}
+          <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-4 py-4 sm:px-6">
+            {/* Left: Logo */}
+            <div className="flex items-center gap-3 shrink-0">
               <div className="relative size-11 sm:size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-2 ring-pink-300/50 shadow-md">
                 <img
                   src={Logo}
                   alt="Logo"
                   className="h-full w-full object-cover transition duration-300 hover:scale-110"
                 />
-                {/* Cute shine */}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-primary/20" />
               </div>
-
-              {/* Title */}
-              <div className="min-w-0">
+              <div className="min-w-0 hidden sm:block">
                 <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-black drop-shadow-sm dark:text-white">
-                  <span className="sm:hidden">APM AI</span>
-                  <span className="hidden sm:inline">
-                    APM AI
-                  </span>
+                  APM AI
                 </h1>
-
                 <p className="truncate text-[10px] sm:text-[11px] font-semibold text-black/70 dark:text-white/70">
-                  🌷 ผู้ช่วยที่เป็นเพื่อนที่ดีสำหรับคุณ
+                  🌷 ผู้ช่วยที่ดีสำหรับคุณ
                 </p>
               </div>
             </div>
 
-            {/* ✅ Center (Desktop) */}
-            <div className="hidden md:flex justify-center">
-              <div className="rounded-full border border-white/20 bg-white/15 px-6 py-2 shadow-sm">
-                <Navbar />
-              </div>
+            {/* Center: Navbar (Desktop Only) */}
+            <div className="hidden lg:flex flex-1 justify-center px-4">
+              <Navbar />
             </div>
 
-            {/* Right */}
-            <div className="flex justify-end items-center gap-3">
-              {/* Notification */}
-              {/* Notification */}
+            {/* Right: Actions */}
+            <div className="flex justify-end items-center gap-2 sm:gap-4 shrink-0">
+              <CoinBadge className="hidden sm:flex" />
+
               <div className="relative">
                 <button
                   onClick={() => setShowNoti(true)}
@@ -141,11 +128,9 @@ const Home = () => {
                   <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
                     notifications
                   </span>
-
                   <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
                 </button>
 
-                {/* Notification Popup */}
                 <Notification
                   show={showNoti}
                   type="info"
@@ -157,46 +142,34 @@ const Home = () => {
                 />
               </div>
 
-
-              {/* Avatar */}
               <button
                 type="button"
                 onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
                 className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
                 style={{
                   backgroundImage: `url("${profileImage}")`,
-                  backgroundColor: "white"
+                  backgroundColor: "white",
                 }}
-                title="Go to Login"
-                aria-label="Go to login"
+                title="Go to Account"
+                aria-label="Go to account"
               />
 
-              {/* Mobile Navbar */}
-              <div className="md:hidden">
+              <div className="lg:hidden">
                 <Navbar />
               </div>
             </div>
-
           </div>
         </header>
 
-
-
-
-        {/* Main Content */}
         <main className="flex-1 flex flex-col items-center px-6 py-14 max-w-7xl mx-auto w-full">
-          {/* Hero Section */}
           <div className="text-center mb-14">
-            <div className="inline-flex items-center gap-2 px-5 py-2 mb-6 rounded-full
-    bg-gradient-to-r from-pink-400/20 via-purple-400/20 to-sky-400/20
-    text-gray-900 dark:text-white font-extrabold text-sm tracking-widest
-    shadow-sm border border-gray-200/70 dark:border-white/20">
+            <div className="inline-flex items-center gap-2 px-5 py-2 mb-6 rounded-full bg-gradient-to-r from-primary/20 via-pink-300/20 to-primary/20 text-gray-900 dark:text-white font-extrabold text-sm tracking-widest shadow-sm border border-gray-200/70 dark:border-white/20">
               Welcome bestie
             </div>
 
             <h2 className="mt-5 text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
               Your{" "}
-              <span className="bg-gradient-to-r from-primary via-pink-500 to-blue-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary via-pink-400 to-primary bg-clip-text text-transparent">
                 AI friend
               </span>{" "}
               for Uni Life
@@ -206,12 +179,8 @@ const Home = () => {
             <p className="mt-4 text-lg md:text-xl font-medium text-gray-500 dark:text-gray-400">
               How can I help you today, Bestie? 🌷
             </p>
-
-            <LessonTabs />
-
           </div>
 
-          {/* Mode Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl mb-20">
             {modes.map((mode) => (
               <ModeCard
@@ -226,13 +195,12 @@ const Home = () => {
             ))}
           </div>
 
-          {/* Homework Summary Section */}
+          <LessonTabs />
+
           <HomeworkSummary />
-
-          {/* Middle Section */}
           <Middlesection />
-
         </main>
+
         <Footer />
       </div>
     </div>

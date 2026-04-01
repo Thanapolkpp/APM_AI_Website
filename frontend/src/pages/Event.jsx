@@ -23,9 +23,9 @@ const Event = () => {
         <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex flex-col">
             {/* ✅ Header */}
             <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
-                <div className="mx-auto grid w-full max-w-7xl grid-cols-2 items-center px-4 py-4 sm:px-6 md:grid-cols-3">
+                <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-4 py-4 sm:px-6">
                     {/* ✅ Left */}
-                    <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex items-center gap-3 shrink-0" onClick={() => navigate("/")}>
                         <div className="relative size-11 sm:size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-2 ring-pink-300/50 shadow-md">
                             <img
                                 src={Logo}
@@ -35,27 +35,23 @@ const Event = () => {
                             <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
                         </div>
 
-                        <div className="min-w-0">
-                            <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-black drop-shadow-sm">
-                                <span className="sm:hidden">APM AI</span>
-                                <span className="hidden sm:inline">APM AI</span>
+                        <div className="min-w-0 hidden sm:block">
+                            <h1 className="truncate text-xl font-extrabold tracking-tight leading-none text-black dark:text-white">
+                                APM AI
                             </h1>
-
-                            <p className="truncate text-[10px] sm:text-[11px] font-semibold text-black/70">
+                            <p className="truncate text-[10px] sm:text-[11px] font-semibold text-black/70 dark:text-white/60">
                                 🌷 ผู้ช่วยที่เป็นเพื่อนที่ดีสำหรับคุณ
                             </p>
                         </div>
                     </div>
 
-                    {/* ✅ Center */}
-                    <div className="hidden md:flex justify-center">
-                        <div className="rounded-full border border-white/20 bg-white/15 px-6 py-2 shadow-sm">
-                            <Navbar />
-                        </div>
+                    {/* ✅ Center: Navbar (Desktop Only) */}
+                    <div className="hidden lg:flex flex-1 justify-center px-4">
+                        <Navbar />
                     </div>
 
                     {/* ✅ Right */}
-                    <div className="flex justify-end items-center gap-3">
+                    <div className="flex justify-end items-center gap-3 shrink-0">
                         {/* Notification */}
                         <button className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95">
                             <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
@@ -64,7 +60,7 @@ const Event = () => {
                             <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
                         </button>
 
-                        {/* ✅ Avatar → ไปหน้า /avatar */}
+                        {/* ✅ Avatar */}
                         <button
                             type="button"
                             onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
@@ -73,12 +69,12 @@ const Event = () => {
                                 backgroundImage: `url("${profileImage}")`,
                                 backgroundColor: "white"
                             }}
-                            title="Edit Avatar"
-                            aria-label="Edit Avatar"
+                            title="Account"
+                            aria-label="Account"
                         />
 
                         {/* Mobile Navbar */}
-                        <div className="md:hidden">
+                        <div className="lg:hidden">
                             <Navbar />
                         </div>
                     </div>

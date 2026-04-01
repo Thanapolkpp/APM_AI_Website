@@ -46,170 +46,101 @@ const Contact = () => {
     ]
 
     return (
-        <section className="relative min-h-screen overflow-hidden bg-[#1a234e]">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark font-display relative overflow-hidden transition-colors duration-300">
             {/* Background blobs */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute -top-24 -right-24 size-[28rem] md:size-[34rem] bg-blue-600/20 rounded-full blur-[110px]" />
-                <div className="absolute -bottom-24 -left-24 size-[28rem] md:size-[34rem] bg-purple-600/20 rounded-full blur-[110px]" />
+                <div className="absolute -top-24 -right-24 size-[34rem] bg-pink-300/20 dark:bg-pink-500/10 rounded-full blur-[110px]" />
+                <div className="absolute -bottom-24 -left-24 size-[34rem] bg-primary/15 dark:bg-primary/10 rounded-full blur-[110px]" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[40rem] bg-purple-300/10 dark:bg-purple-500/5 rounded-full blur-[130px]" />
             </div>
 
-            {/* ✅ Header (Cute + Soft) */}
-            <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
-                <div className="mx-auto grid w-full max-w-7xl grid-cols-2 items-center px-4 py-4 sm:px-6 md:grid-cols-3">
-
-                    {/* ✅ Left */}
-                    <div className="flex min-w-0 items-center gap-3">
-                        {/* Logo */}
-                        <div className="relative size-11 sm:size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-2 ring-pink-300/50 shadow-md">
-                            <img
-                                src={Logo}
-                                alt="Logo"
-                                className="h-full w-full object-cover transition duration-300 hover:scale-110"
+            <div className="flex flex-col min-h-screen relative z-10 w-full max-w-7xl mx-auto md:px-6">
+                <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
+                    <div className="mx-auto grid w-full max-w-7xl grid-cols-2 items-center px-4 py-4 sm:px-6 md:grid-cols-3">
+                        <div className="flex min-w-0 items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
+                            <div className="relative size-11 sm:size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-2 ring-pink-300/50 shadow-md">
+                                <img src={Logo} alt="Logo" className="h-full w-full object-cover transition duration-300 hover:scale-110" />
+                                <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
+                            </div>
+                            <div className="min-w-0">
+                                <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-gray-900 dark:text-white drop-shadow-sm">APM AI</h1>
+                                <p className="truncate text-[10px] sm:text-[11px] font-semibold text-gray-500 dark:text-gray-400">🌷 ทีมผู้พัฒนาสุดเท่</p>
+                            </div>
+                        </div>
+                        <div className="hidden md:flex justify-center">
+                            <div className="rounded-full border border-white/20 bg-white/15 px-6 py-2 shadow-sm">
+                                <Navbar />
+                            </div>
+                        </div>
+                        <div className="flex justify-end items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
+                                className="size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer hover:scale-105 transition-all shadow-sm"
+                                style={{ backgroundImage: `url("${profileImage}")`, backgroundColor: "white" }}
                             />
-                            {/* cute shine */}
-                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
-                        </div>
-
-                        {/* Title */}
-                        <div className="min-w-0">
-                            <h1 className="truncate text-[15px] sm:text-xl font-extrabold tracking-tight leading-none text-white drop-shadow-sm">
-                                <span className="sm:hidden">APM AI</span>
-                                <span className="hidden sm:inline">
-                                    APM AI
-                                </span>
-                            </h1>
-
-                            <p className="truncate text-[10px] sm:text-[11px] font-semibold text-white/70">
-                                🌷 ผู้ช่วยที่เป็นเพื่อนที่ดีสำหรับคุณ
-                            </p>
+                            <div className="md:hidden"><Navbar /></div>
                         </div>
                     </div>
+                </header>
 
-                    {/* ✅ Center (Desktop) */}
-                    <div className="hidden md:flex justify-center">
-                        <div className="rounded-full border border-white/20 bg-white/15 px-6 py-2 shadow-sm">
-                            <Navbar />
+                <main className="relative z-10 w-full max-w-7xl mx-auto px-6 py-16">
+                    <div className="text-center mb-16">
+                        <div className="inline-flex items-center gap-2 px-6 py-2.5 mb-6 rounded-full bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border border-white/60 dark:border-white/10 text-primary font-black text-sm tracking-widest uppercase">
+                            The Creators ✨
                         </div>
+                        <h2 className="text-gray-900 dark:text-white text-5xl md:text-7xl font-black tracking-tight leading-tight">
+                            Website by <br />
+                            <span className="bg-gradient-to-r from-primary via-pink-400 to-primary bg-clip-text text-transparent">AI for Gen Z</span>
+                        </h2>
                     </div>
 
-                    {/* ✅ Right */}
-                    {/* Right */}
-                    <div className="flex justify-end items-center gap-3">
-                        {/* Notification */}
-                        <button className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95">
-                            <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
-                                notifications
-                            </span>
-                            <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
-                        </button>
-
-                        {/* Avatar */}
-                        <button
-                            type="button"
-                            onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
-                            className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
-                            style={{
-                                backgroundImage: `url("${profileImage}")`,
-                                backgroundColor: "white"
-                            }}
-                            title="Go to Login"
-                            aria-label="Go to login"
-                        />
-
-                        {/* Mobile Navbar */}
-                        <div className="md:hidden">
-                            <Navbar />
-                        </div>
-                    </div>
-
-                </div>
-            </header>
-
-
-            {/* ✅ Main */}
-            <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-16">
-                {/* Header text */}
-                <div className="text-center mb-12 md:mb-16">
-                    <h2 className="text-white text-4xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">
-                        Developer
-                    </h2>
-                    <p className="mt-3 text-white/90 text-lg md:text-2xl font-extrabold tracking-tight uppercase italic">
-                        Website by AI for Gen Z
-                    </p>
-                    <p className="mt-2 text-white/60 text-sm md:text-base font-medium">
-                        ทีมผู้พัฒนา APM AI ✨
-                    </p>
-                </div>
-
-                {/* ✅ Team (Mobile = 1 col, Desktop = 3 col) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-end">
-                    {developers.map((dev, index) => (
-                        <div
-                            key={dev.id}
-                            className={`group relative flex flex-col items-center transition-all duration-500
-              ${index === 1 ? "md:-mt-8" : ""}`}
-                        >
-                            {/* Image */}
-                            <div className={`relative transition-all duration-500 group-hover:-translate-y-3 ${index === 1 ? "md:scale-110" : "md:scale-95"}`}>
-                                <div className="w-64 sm:w-72 md:w-80 h-[320px] sm:h-[360px] md:h-[500px] overflow-hidden flex items-end justify-center">
-                                    <img
-                                        src={dev.image}
-                                        alt={dev.name}
-                                        className="w-full h-full object-contain object-bottom translate-y-6 drop-shadow-[0_25px_25px_rgba(0,0,0,0.6)]"
-                                    />
-
-                                </div>
-                                -
-                                {/* Badge */}
-                                <div className="absolute bottom-8 left-0 right-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
-                                    <div className="bg-black/50 text-white py-1.5 px-4 rounded-full w-fit mx-auto backdrop-blur-md text-xs md:text-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                        {developers.map((dev, index) => (
+                            <div
+                                key={dev.id}
+                                className={`group relative flex flex-col items-center transition-all duration-500 ${index === 1 ? "md:-mt-8" : ""}`}
+                            >
+                                <div className={`relative transition-all duration-500 group-hover:-translate-y-4 ${index === 1 ? "md:scale-110" : "md:scale-95"}`}>
+                                    <div className="w-full max-w-[320px] aspect-[3/4] bg-white/40 dark:bg-white/5 backdrop-blur-2xl rounded-[48px] border border-white/60 dark:border-white/10 shadow-xl overflow-hidden flex items-end justify-center p-6">
+                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <img
+                                            src={dev.image}
+                                            alt={dev.name}
+                                            className="w-full h-full object-contain object-bottom drop-shadow-2xl translate-y-4 group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                    </div>
+                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-6 py-2 rounded-2xl shadow-xl border border-white/50 dark:border-white/10 text-xs font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">
                                         {dev.position}
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Contact Card */}
-                            <div className="mt-4 bg-white/10 md:bg-white/5 backdrop-blur-xl p-5 rounded-3xl w-full max-w-[20rem] border border-white/15 text-center shadow-2xl group-hover:bg-white/15 transition-colors">
-                                <h3 className="text-white text-lg font-extrabold truncate">
-                                    {dev.name}
-                                </h3>
-
-                                <p className="mt-1 text-blue-200 text-sm font-bold uppercase tracking-wider truncate">
-                                    {dev.position}
-                                </p>
-
-                                <div className="mt-4 flex justify-center gap-4">
-                                    <a
-                                        href={dev.ig}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="p-3 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-2xl text-white hover:scale-110 active:scale-95 transition-all shadow-lg"
-                                    >
-                                        <Instagram size={20} />
-                                    </a>
-
-                                    {dev.github && (
-                                        <a
-                                            href={dev.github}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="p-3 bg-black/40 rounded-2xl text-white hover:scale-110 active:scale-95 transition-all border border-white/20 shadow-lg"
-                                        >
-                                            <Github size={20} />
+                                <div className="mt-8 bg-white/60 dark:bg-white/5 backdrop-blur-2xl p-8 rounded-[40px] w-full max-w-[20rem] border border-white/60 dark:border-white/10 text-center shadow-xl group-hover:shadow-2xl transition-all">
+                                    <h3 className="text-gray-900 dark:text-white text-xl font-black mb-1">{dev.name}</h3>
+                                    <p className="text-gray-400 font-bold text-xs uppercase tracking-[0.2em] mb-6">{dev.position}</p>
+                                    
+                                    <div className="flex justify-center gap-4">
+                                        <a href={dev.ig} target="_blank" rel="noopener noreferrer" className="size-12 rounded-2xl bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg hover:shadow-pink-500/30">
+                                            <Instagram size={24} />
                                         </a>
-                                    )}
+                                        {dev.github && (
+                                            <a href={dev.github} target="_blank" rel="noopener noreferrer" className="size-12 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg border border-white/20">
+                                                <Github size={24} />
+                                            </a>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
 
-                {/* Footer */}
-                <div className="mt-14 text-center text-white/50 text-xs font-bold tracking-widest uppercase">
-                    APM AI • Assistant for Personal Motivation 💖
-                </div>
-            </main>
-        </section>
+                    <div className="mt-24 text-center">
+                        <div className="h-[2px] w-24 bg-gradient-to-r from-transparent via-primary/30 to-transparent mx-auto mb-8" />
+                        <p className="text-gray-400 font-black text-[11px] tracking-[0.4em] uppercase">APM AI • Personal Motivation Engine 💖</p>
+                    </div>
+                </main>
+            </div>
+        </div>
     )
 }
 

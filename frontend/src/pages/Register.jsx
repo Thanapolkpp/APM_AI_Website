@@ -57,27 +57,26 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#e0e7ff] via-[#fae8ff] to-[#fce7f3] font-display flex items-center justify-center p-6 lg:p-12 relative overflow-hidden">
-
+        <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex items-center justify-center p-6 lg:p-12 relative overflow-hidden transition-colors duration-300">
             {/* Background Blobs for Glassmorphism */}
-            <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] bg-sky-300/30 rounded-full blur-[120px] pointer-events-none"></div>
-            <div className="absolute bottom-[10%] right-[10%] w-[500px] h-[500px] bg-pink-300/30 rounded-full blur-[150px] pointer-events-none"></div>
+            <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
+            <div className="absolute bottom-[10%] right-[10%] w-[500px] h-[500px] bg-pink-300/20 rounded-full blur-[150px] pointer-events-none animate-pulse"></div>
 
-            <div className="w-full max-w-[1100px] flex flex-col-reverse lg:flex-row bg-white/40 backdrop-blur-2xl rounded-[40px] shadow-2xl border border-white/60 overflow-hidden z-10">
+            <div className="w-full max-w-[1100px] flex flex-col-reverse lg:flex-row bg-white/40 dark:bg-white/5 backdrop-blur-2xl rounded-[48px] shadow-2xl border border-white/60 dark:border-white/10 overflow-hidden z-10 transition-all">
 
                 {/* Left Side - Register Form */}
                 <div className="w-full lg:w-3/5 p-8 md:p-12 lg:p-16 flex flex-col justify-center">
                     <div className="lg:hidden flex justify-center mb-6">
-                        <div className="w-20 h-20 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/80 shadow-md overflow-hidden">
+                        <div className="w-20 h-20 rounded-2xl bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-white/80 dark:border-white/20 shadow-md overflow-hidden">
                             <img src={Logo} alt="Logo" className="w-full h-full object-cover" />
                         </div>
                     </div>
 
-                    <h1 className="text-3xl lg:text-4xl font-black text-gray-900 mb-2">สร้างบัญชีใหม่ ✨</h1>
-                    <p className="text-gray-500 font-medium mb-8">เข้าร่วมครอบครัว APM AI เพื่อเริ่มใช้งานผู้ช่วยในการเรียนของคุณ</p>
+                    <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">สร้างบัญชีใหม่ ✨</h1>
+                    <p className="text-gray-500 dark:text-gray-400 font-bold mb-8">เข้าร่วมครอบครัว APM AI เพื่อเริ่มใช้งานผู้ช่วยในการเรียนของคุณ</p>
 
                     {error && (
-                        <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-sm font-bold flex items-center gap-2 shadow-sm">
+                        <div className="mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-bold flex items-center gap-2 shadow-sm animate-shake">
                             <span className="material-symbols-outlined text-lg">error</span>
                             {error}
                         </div>
@@ -86,7 +85,7 @@ const Register = () => {
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Username</label>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Username</label>
                                 <input
                                     type="text"
                                     name="username"
@@ -94,12 +93,12 @@ const Register = () => {
                                     value={formData.username}
                                     onChange={handleChange}
                                     placeholder="your_username"
-                                    className="w-full px-5 py-3.5 rounded-2xl bg-white/60 backdrop-blur-sm border border-gray-200/50 shadow-sm outline-none focus:ring-4 focus:ring-sky-300/30 focus:bg-white transition-all text-gray-800"
+                                    className="w-full px-6 py-4 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 focus:bg-white dark:focus:bg-white/10 transition-all text-gray-800 dark:text-white font-bold"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Email</label>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Email</label>
                                 <input
                                     type="email"
                                     name="email"
@@ -107,13 +106,13 @@ const Register = () => {
                                     value={formData.email}
                                     onChange={handleChange}
                                     placeholder="student@ku.th"
-                                    className="w-full px-5 py-3.5 rounded-2xl bg-white/60 backdrop-blur-sm border border-gray-200/50 shadow-sm outline-none focus:ring-4 focus:ring-sky-300/30 focus:bg-white transition-all text-gray-800"
+                                    className="w-full px-6 py-4 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 focus:bg-white dark:focus:bg-white/10 transition-all text-gray-800 dark:text-white font-bold"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Password</label>
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Password</label>
                             <input
                                 type="password"
                                 name="password"
@@ -121,12 +120,12 @@ const Register = () => {
                                 value={formData.password}
                                 onChange={handleChange}
                                 placeholder="••••••••"
-                                className="w-full px-5 py-3.5 rounded-2xl bg-white/60 backdrop-blur-sm border border-gray-200/50 shadow-sm outline-none focus:ring-4 focus:ring-sky-300/30 focus:bg-white transition-all text-gray-800"
+                                className="w-full px-6 py-4 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 focus:bg-white dark:focus:bg-white/10 transition-all text-gray-800 dark:text-white font-bold"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Confirm Password</label>
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Confirm Password</label>
                             <input
                                 type="password"
                                 name="confirmPassword"
@@ -134,24 +133,24 @@ const Register = () => {
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
                                 placeholder="••••••••"
-                                className="w-full px-5 py-3.5 rounded-2xl bg-white/60 backdrop-blur-sm border border-gray-200/50 shadow-sm outline-none focus:ring-4 focus:ring-sky-300/30 focus:bg-white transition-all text-gray-800"
+                                className="w-full px-6 py-4 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 focus:bg-white dark:focus:bg-white/10 transition-all text-gray-800 dark:text-white font-bold"
                             />
                         </div>
 
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-4 mt-4 rounded-2xl bg-gray-900 border border-transparent text-white font-black text-lg shadow-xl hover:bg-black hover:-translate-y-1 active:scale-[0.98] transition-all disabled:opacity-70 disabled:hover:translate-y-0"
+                            className="w-full py-5 mt-4 rounded-2xl bg-gray-900 dark:bg-white dark:text-gray-900 text-white font-black text-lg shadow-xl hover:bg-black dark:hover:bg-gray-100 hover:-translate-y-1 active:scale-[0.98] transition-all disabled:opacity-70 disabled:hover:translate-y-0"
                         >
-                            {isLoading ? "กำลังสร้างบัญชี..." : "Register Now"}
+                            {isLoading ? "กำลังสร้างบัญชี..." : "REGISTER NOW"}
                         </button>
                     </form>
 
-                    <div className="mt-8 text-center text-gray-500 font-medium">
+                    <div className="mt-8 text-center text-gray-500 font-bold">
                         มีบัญชีอยู่แล้วใช่ไหม?{" "}
                         <button
                             onClick={() => navigate("/login")}
-                            className="font-extrabold text-pink-500 hover:text-pink-600 underline underline-offset-4 decoration-2 transition"
+                            className="font-black text-primary hover:text-pink-600 underline underline-offset-4 decoration-2 transition"
                         >
                             เข้าสู่ระบบ
                         </button>
@@ -159,22 +158,22 @@ const Register = () => {
                 </div>
 
                 {/* Right Side - Brand & Graphics */}
-                <div className="hidden lg:flex w-2/5 flex-col items-center justify-center p-12 bg-gradient-to-br from-indigo-400/10 to-sky-400/10 relative overflow-hidden border-l border-white/40">
-                    <div className="absolute -top-32 -right-32 w-80 h-80 bg-indigo-400/20 rounded-full blur-3xl"></div>
+                <div className="hidden lg:flex w-2/5 flex-col items-center justify-center p-12 bg-gradient-to-br from-primary/10 to-pink-400/10 relative overflow-hidden border-l border-white/40 dark:border-white/10">
+                    <div className="absolute -top-32 -right-32 w-80 h-80 bg-primary/20 rounded-full blur-3xl"></div>
 
                     <div className="relative z-10 flex flex-col items-center text-center">
-                        <div className="w-40 h-40 rounded-[2.5rem] bg-white/70 backdrop-blur-md border border-white/80 shadow-2xl overflow-hidden mb-10 transform rotate-3 hover:rotate-0 transition duration-500">
+                        <div className="w-40 h-40 rounded-[2.5rem] bg-white/70 dark:bg-white/10 backdrop-blur-md border border-white/80 dark:border-white/20 shadow-2xl overflow-hidden mb-10 transform rotate-3 hover:rotate-0 transition duration-500">
                             <img src={Logo} alt="Logo" className="w-full h-full object-cover scale-110" />
                         </div>
 
-                        <h2 className="text-3xl font-black text-gray-800 tracking-tight mb-4">Start Your <br /> Journey!</h2>
-                        <p className="text-gray-600 font-medium leading-relaxed max-w-xs">
+                        <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight mb-4 leading-tight">Start Your <br /> Journey!</h2>
+                        <p className="text-gray-500 dark:text-gray-400 font-bold leading-relaxed max-w-xs">
                             อนาคตของการเรียนหนังสืออยู่ในมือคุณแล้ว เริ่มให้ไว ไปได้ไกลกว่า 🚀
                         </p>
 
                         <div className="mt-12 flex gap-[-10px]">
-                            <img src={BroIcon} alt="Bro" className="w-14 h-14 rounded-full border-4 border-white/80 shadow-lg transform -rotate-12 z-20" />
-                            <img src={NerdIcon} alt="Nerd" className="w-14 h-14 rounded-full border-4 border-white/80 shadow-lg transform rotate-6 -ml-4 z-10" />
+                            <img src={BroIcon} alt="Bro" className="w-14 h-14 rounded-full border-4 border-white/80 shadow-lg transform -rotate-12 z-20 hover:scale-110 transition-transform" />
+                            <img src={NerdIcon} alt="Nerd" className="w-14 h-14 rounded-full border-4 border-white/80 shadow-lg transform rotate-6 -ml-4 z-10 hover:scale-110 transition-transform" />
                         </div>
                     </div>
                 </div>
@@ -183,9 +182,9 @@ const Register = () => {
 
             <button
                 onClick={() => navigate("/")}
-                className="absolute top-8 left-8 flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/50 backdrop-blur-md border border-white/50 text-gray-700 font-bold shadow-sm hover:bg-white transition z-20"
+                className="absolute top-8 left-8 flex items-center gap-2 px-6 py-3 rounded-full bg-white/50 dark:bg-white/10 backdrop-blur-md border border-white/50 dark:border-white/10 text-gray-700 dark:text-white font-black shadow-sm hover:bg-white dark:hover:bg-white/20 transition z-20 active:scale-95"
             >
-                <span className="material-symbols-outlined text-lg">arrow_back</span> กลับหน้าหลัก
+                <span className="material-symbols-outlined text-lg">arrow_back</span> กลับหน้าแรก
             </button>
         </div>
     );
