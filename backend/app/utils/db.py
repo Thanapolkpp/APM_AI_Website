@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 load_dotenv()
 
 # ดึงค่าจาก .env ถ้าหาไม่เจอให้ใช้ localhost เป็นค่าเริ่มต้น
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:@host.docker.internal:3306/apm_project")
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:@localhost:3306/apm_project")
 
 # Path ไปยังไฟล์ ca.pem ที่ก็อปปี้มาไว้ในโฟลเดอร์ app
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
