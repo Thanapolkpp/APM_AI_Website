@@ -38,7 +38,7 @@ const Login = () => {
                 password: password,
             };
 
-            const response = await fetch("http://localhost:8000/api/login", {
+            const response = await fetch("http://localhost:8000/api/v1/user/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(loginData),
@@ -55,7 +55,7 @@ const Login = () => {
 
                 navigate("/");
             } else {
-                setError(data.message || "Login failed. Please check your credentials.");
+                setError(data.detail || "Login failed. Please check your credentials.");
             }
         } catch {
             setError("Unable to connect to the server. Please try again later.");
@@ -141,7 +141,13 @@ const Login = () => {
                         </div>
 
                         <div className="flex justify-end">
-                            <button type="button" className="text-sm font-bold text-primary hover:text-pink-600 transition">ลืมรหัสผ่าน?</button>
+                            <button 
+                                type="button" 
+                                onClick={() => navigate("/forgot-password")}
+                                className="text-sm font-bold text-primary hover:text-pink-600 transition"
+                            >
+                                ลืมรหัสผ่าน?
+                            </button>
                         </div>
 
                         <button

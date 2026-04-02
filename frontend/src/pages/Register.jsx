@@ -26,13 +26,36 @@ const Register = () => {
         setIsLoading(true);
         setError("");
 
-        if (formData.password !== formData.confirmPassword) {
+        // ตรวจความปลอดภัยรหัสผ่าน
+        const password = formData.password;
+        if (password.length < 8) {
+            setError("รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร");
+            setIsLoading(false);
+            return;
+        }
+        if (!/[A-Z]/.test(password)) {
+            setError("รหัสผ่านต้องมีตัวอักษรพิมพ์ใหญ่ (A-Z) อย่างน้อย 1 ตัว");
+            setIsLoading(false);
+            return;
+        }
+        if (!/[a-z]/.test(password)) {
+            setError("รหัสผ่านต้องมีตัวอักษรพิมพ์เล็ก (a-z) อย่างน้อย 1 ตัว");
+            setIsLoading(false);
+            return;
+        }
+        if (!/[0-9]/.test(password)) {
+            setError("รหัสผ่านต้องมีตัวเลข (0-9) อย่างน้อย 1 ตัว");
+            setIsLoading(false);
+            return;
+        }
+
+        if (password !== formData.confirmPassword) {
             setError("รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง");
             setIsLoading(false);
             return;
         }
         try {
-            const response = await fetch("http://localhost:8000/api/register", {
+            const response = await fetch("http://localhost:8000/api/v1/user/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -47,7 +70,7 @@ const Register = () => {
             if (response.ok) {
                 navigate("/login");
             } else {
-                setError(data.message || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
+                setError(data.detail || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
             }
         } catch {
             setError("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
@@ -55,6 +78,14 @@ const Register = () => {
             setIsLoading(false);
         }
     };
+
+    const isLengthValid = formData.password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(formData.password);
+    const hasLowerCase = /[a-z]/.test(formData.password);
+    const hasNumber = /[0-9]/.test(formData.password);
+    const passwordsMatch = formData.password === formData.confirmPassword && formData.confirmPassword !== "";
+
+    const isReady = isLengthValid && hasUpperCase && hasLowerCase && hasNumber && passwordsMatch;
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex items-center justify-center p-6 lg:p-12 relative overflow-hidden transition-colors duration-300">
@@ -122,6 +153,28 @@ const Register = () => {
                                 placeholder="••••••••"
                                 className="w-full px-6 py-4 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 focus:bg-white dark:focus:bg-white/10 transition-all text-gray-800 dark:text-white font-bold"
                             />
+
+                            {/* Password Requirements Checklist */}
+                            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2.5 px-1 bg-gray-50/50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5">
+                                {[
+                                    { label: "อย่างน้อย 8 ตัวอักษร", met: isLengthValid },
+                                    { label: "ตัวพิมพ์ใหญ่ (A-Z)", met: hasUpperCase },
+                                    { label: "ตัวพิมพ์เล็ก (a-z)", met: hasLowerCase },
+                                    { label: "มีตัวเลข (0-9)", met: hasNumber },
+                                ].map((req, index) => (
+                                    <div 
+                                        key={index} 
+                                        className={`flex items-center gap-2 text-[11px] font-black transition-all duration-300 ${
+                                            req.met ? "text-green-500 dark:text-green-400" : "text-gray-400 dark:text-gray-500 opacity-70"
+                                        }`}
+                                    >
+                                        <span className="material-symbols-outlined text-[16px]">
+                                            {req.met ? "check_circle" : "circle"}
+                                        </span>
+                                        {req.label}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         <div>
@@ -135,12 +188,24 @@ const Register = () => {
                                 placeholder="••••••••"
                                 className="w-full px-6 py-4 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 focus:bg-white dark:focus:bg-white/10 transition-all text-gray-800 dark:text-white font-bold"
                             />
+                            {formData.confirmPassword && (
+                                <div className={`mt-2 flex items-center gap-2 text-[11px] font-black ml-1 ${passwordsMatch ? "text-green-500" : "text-red-400"}`}>
+                                    <span className="material-symbols-outlined text-[16px]">
+                                        {passwordsMatch ? "check_circle" : "error"}
+                                    </span>
+                                    {passwordsMatch ? "รหัสผ่านตรงกัน" : "รหัสผ่านไม่ตรงกัน"}
+                                </div>
+                            )}
                         </div>
 
                         <button
                             type="submit"
-                            disabled={isLoading}
-                            className="w-full py-5 mt-4 rounded-2xl bg-gray-900 dark:bg-white dark:text-gray-900 text-white font-black text-lg shadow-xl hover:bg-black dark:hover:bg-gray-100 hover:-translate-y-1 active:scale-[0.98] transition-all disabled:opacity-70 disabled:hover:translate-y-0"
+                            disabled={isLoading || !isReady}
+                            className={`w-full py-5 mt-4 rounded-2xl font-black text-lg shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${
+                                isReady 
+                                ? "bg-gray-900 dark:bg-white dark:text-gray-900 text-white" 
+                                : "bg-gray-300 dark:bg-gray-700 text-gray-500"
+                            }`}
                         >
                             {isLoading ? "กำลังสร้างบัญชี..." : "REGISTER NOW"}
                         </button>

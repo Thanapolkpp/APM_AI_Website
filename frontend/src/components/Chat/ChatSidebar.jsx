@@ -29,26 +29,50 @@ const ChatSidebar = () => {
         }
     ]
 
+    const [history, setHistory] = React.useState([])
+
+    React.useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                const token = localStorage.getItem("token")
+                const response = await fetch("http://localhost:8000/api/v1/chat/history", {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                })
+                if (response.ok) {
+                    const data = await response.json()
+                    setHistory(data.slice(0, 3)) // แสดงแค่ 3 อันล่าสุด
+                }
+            } catch (err) {
+                console.error("Failed to fetch history", err)
+            }
+        }
+        if (localStorage.getItem("token")) {
+            fetchHistory()
+        }
+    }, [])
+
     return (
-        <aside className="flex flex-col w-full lg:w-72 h-auto lg:h-full p-3 lg:p-4 bg-white/30 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-white/40 overflow-x-auto lg:overflow-y-auto z-40">
-            <div className="flex flex-row lg:flex-col gap-4 lg:gap-6 items-center justify-center lg:justify-start lg:items-stretch">
-                {/* Brand / Title - Hidden or smaller on mobile */}
-                <div className="hidden lg:block px-2 pt-4">
+        <aside className="flex flex-col w-full lg:w-80 h-auto lg:h-full p-3 lg:p-4 bg-white/30 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-white/40 overflow-x-auto lg:overflow-y-auto z-40">
+            <div className="flex flex-row lg:flex-col gap-4 lg:gap-6 items-center lg:items-stretch h-full">
+                {/* Brand / Title */}
+                <div className="hidden lg:block px-2 pt-2">
                     <h2 className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500">
                         AI BESTIES ✨
                     </h2>
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">
-                        เลือกคุยกับเพื่อนที่คุณชอบ
+                        เลือกเพื่อนที่คุณชอบ
                     </p>
                 </div>
 
-                {/* Avatar Selection List - Horizontal on mobile, Vertical on desktop */}
+                {/* Avatar Selection List */}
                 <div className="flex flex-row lg:flex-col gap-3 justify-center lg:justify-start overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 scrollbar-hide">
                     {avatars.map(a => (
                         <button
                             key={a.id}
                             onClick={() => navigate(`/chat/${a.id}`)}
-                            className={`group flex items-center gap-3 lg:gap-4 p-2 lg:p-3.5 rounded-[20px] lg:rounded-[24px] border-2 transition-all duration-300 shrink-0
+                            className={`group flex items-center gap-3 lg:gap-4 p-2 lg:p-3 rounded-[20px] lg:rounded-[22px] border-2 transition-all duration-300 shrink-0
                             ${selectedAvatar === a.id
                                     ? `${a.glow} bg-white border-white scale-102`
                                     : "border-transparent bg-white/20 hover:bg-white/50 hover:scale-101"}
@@ -57,44 +81,61 @@ const ChatSidebar = () => {
                             <div className="relative">
                                 <img
                                     src={a.image}
-                                    className={`w-10 h-10 lg:w-12 lg:h-12 rounded-full shadow-md transition-transform duration-500 group-hover:rotate-6
+                                    className={`w-9 h-9 lg:w-10 lg:h-10 rounded-full shadow-md transition-transform duration-500 group-hover:rotate-6
                                     ${selectedAvatar === a.id ? "ring-2 ring-primary/20 p-0.5" : ""}
                                     `}
                                     alt={a.name}
                                 />
-                                {selectedAvatar === a.id && (
-                                    <div className="absolute -top-1 -right-1 w-3 h-3 lg:w-4 lg:h-4 bg-green-500 border-2 border-white rounded-full animate-pulse" />
-                                )}
                             </div>
-
                             <div className="flex flex-col items-start leading-tight">
                                 <span className={`font-black text-xs lg:text-sm transition-colors
                                 ${selectedAvatar === a.id ? "text-gray-900" : "text-gray-600 group-hover:text-gray-900"}
                                 `}>
                                     {a.name}
                                 </span>
-                                <span className="hidden lg:inline text-[10px] font-bold text-gray-400">
-                                    {selectedAvatar === a.id ? "กำลังคุยอยู่..." : "พร้อมแสตนบาย"}
-                                </span>
                             </div>
                         </button>
                     ))}
                 </div>
 
-                {/* Stats - Hidden on mobile to save space */}
-                <div className="hidden lg:block mt-8 space-y-4">
-                    <div className="bg-white/40 p-5 rounded-[28px] border border-white/60 shadow-sm transition-all hover:shadow-md">
+                {/* --- ส่วนใหม่: ประวัติการคุย 3 อันล่าสุด --- */}
+                <div className="hidden lg:flex flex-col mt-4 space-y-4 flex-1">
+                    <div className="px-2">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[2px]">ความทรงจำล่าสุด 💌</span>
+                    </div>
+                    
+                    <div className="space-y-3">
+                        {history.length > 0 ? (
+                            history.map((item, idx) => (
+                                <div key={idx} className="bg-white/40 p-4 rounded-[24px] border border-white/60 shadow-sm transition-all hover:translate-x-1 hover:bg-white/60 cursor-default">
+                                    <div className="flex gap-2 items-center mb-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-pink-400"></div>
+                                        <span className="text-[10px] font-bold text-gray-400">ล่าสุด</span>
+                                    </div>
+                                    <p className="text-[12px] font-bold text-gray-700 line-clamp-2 leading-relaxed italic">
+                                        "{item.user_message}"
+                                    </p>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-8 text-center text-gray-400">
+                                <span className="material-symbols-outlined text-3xl opacity-30 block mb-2">auto_stories</span>
+                                <p className="text-[10px] font-bold">ยังไม่มีความทรงจำใหม่ๆ</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Stats */}
+                <div className="hidden lg:block mt-auto pb-4 space-y-4">
+                    <div className="bg-white/40 p-4 rounded-[28px] border border-white/60 shadow-sm transition-all hover:shadow-md">
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-[10px] font-black text-purple-600 uppercase tracking-wider">พลังความสนิท</span>
-                            <span className="text-[10px] font-bold text-gray-400">EXP 65%</span>
+                            <span className="text-[10px] font-bold text-gray-400">65%</span>
                         </div>
-                        <div className="h-2.5 w-full bg-gray-200/50 rounded-full overflow-hidden p-0.5 border border-white/50">
+                        <div className="h-1.5 w-full bg-gray-200/50 rounded-full overflow-hidden">
                             <div className="h-full w-[65%] bg-gradient-to-r from-pink-400 to-purple-400 rounded-full shadow-sm"></div>
                         </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-blue-500/10 to-purple-600/10 p-5 rounded-[28px] border border-white/60 text-center">
-                        <p className="text-[11px] font-bold text-gray-500 italic">"คุยกับ AI บ่อยๆ <br /> เพื่อปลดล็อคชุดใหม่ๆ นะ 🌷"</p>
                     </div>
                 </div>
             </div>
