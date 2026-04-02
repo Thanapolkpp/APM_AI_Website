@@ -2,11 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # นำเข้า Router และระบบฐานข้อมูล
-from app.api.v1.chatbot import router as chatbot_router 
+from app.api.v1.chatbot import router as chatbot_router
 from app.api.v1.auth import router as auth_router
+from app.api.v1.inventory import router as inventory_router
+from app.api.v1.study_sheets import router as study_sheets_router
+from app.api.v1.todos import router as todos_router
+from app.api.v1.chat import router as chat_router
 from app.utils.db import engine, Base
 # นำเข้า models ทุกตัวเพื่อให้ SQLAlchemy มองเห็นตารางก่อนสร้าง
-from app.models import user, planner
+from app.models import user, planner, avatar, room, user_avatar, user_room
+from app.models import study_sheet, todo, chat_history
 
 # สั่งสร้างตารางฐานข้อมูลทั้งหมด
 Base.metadata.create_all(bind=engine)
@@ -29,6 +34,10 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api")
 app.include_router(chatbot_router, prefix="/api/v1/ai", tags=["AI Chatbot"])
 app.include_router(auth_router, prefix="/api/v1/user", tags=["Users"])
+app.include_router(inventory_router, prefix="/api/v1/inventory", tags=["Inventory"])
+app.include_router(study_sheets_router, prefix="/api/v1/study-sheets", tags=["Study Sheets"])
+app.include_router(todos_router, prefix="/api/v1/todos", tags=["Todos"])
+app.include_router(chat_router, prefix="/api/v1/chat", tags=["Chat"])
 
 @app.get("/")
 def root():

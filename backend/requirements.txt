@@ -1,18 +1,30 @@
+# Web Framework
 fastapi
 uvicorn[standard]
-requests
 
+# Database
 sqlalchemy
 pymysql
 cryptography
 
+# Authentication & Security
 python-jose[cryptography]
 passlib[bcrypt]
 bcrypt==4.0.1
+
+# File Upload & Forms
 python-multipart
 
+# PDF Text Extraction
+pypdf2
+
+# Data Validation
 pydantic
 pydantic-settings
 email-validator
-python-dotenv
 
+# HTTP Requests (Ollama)
+requests
+
+# Environment Variables
+python-dotenv
