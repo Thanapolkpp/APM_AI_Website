@@ -11,7 +11,7 @@ from app.api.v1.chat import router as chat_router
 from app.utils.db import engine, Base
 # นำเข้า models ทุกตัวเพื่อให้ SQLAlchemy มองเห็นตารางก่อนสร้าง
 from app.models import user, planner, avatar, room, user_avatar, user_room
-from app.models import study_sheet, todo, chat_history
+from app.models import study_sheet, todo, chat_history, user_sheet, password_reset_token
 
 # สั่งสร้างตารางฐานข้อมูลทั้งหมด
 Base.metadata.create_all(bind=engine)
