@@ -71,3 +71,18 @@ def toggle_todo(
         "task_text": todo.task_text,
         "is_completed": todo.is_completed,
     }
+
+
+@router.delete("/{todo_id}")
+def delete_todo(
+    todo_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    todo = db.query(Todo).filter(Todo.id == todo_id, Todo.user_id == current_user.id).first()
+    if not todo:
+        raise HTTPException(status_code=404, detail="ไม่พบ Todo นี้")
+
+    db.delete(todo)
+    db.commit()
+    return {"message": "ลบ Todo สำเร็จ"}

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react"
+import React, { useState, useMemo, useEffect, useCallback } from "react"
 import { HiOutlineDownload, HiOutlineEye, HiOutlineSparkles, HiOutlineX } from "react-icons/hi"
 import { BookText, FileText, Code2, Calculator, Atom, Palette, PlusCircle, Search, Filter, Upload, Coins } from "lucide-react"
 import { useNavigate } from "react-router-dom"
@@ -10,6 +10,7 @@ import BroIcon from "../assets/Bro.png"
 import NerdIcon from "../assets/Nerd.1.2.png"
 import CuteGirlIcon from "../assets/Girl.png"
 import { jsPDF } from "jspdf"
+import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice } from "../services/aiService"
 
 // แมพชื่อ string เข้ากับ Component จริงๆ เพื่อป้องกัน Error: Element type is invalid
 const ICON_MAP = {
@@ -75,19 +76,63 @@ const Summaries = () => {
     const [selectedPrice, setSelectedPrice] = useState("ทั้งหมด")
     const [selectedSubject, setSelectedSubject] = useState("ทั้งหมด")
     const [currentView, setCurrentView] = useState("market")
+    const [purchasedSheets, setPurchasedSheets] = useState([])
+    const [editingPriceId, setEditingPriceId] = useState(null)
+    const [editingPriceValue, setEditingPriceValue] = useState(0)
 
     const categories = ["ทั้งหมด", "บทเรียน", "สรุปสอบ", "ชีทติว", "งานวิจัย"]
     const prices = ["ทั้งหมด", "Free", "Paid"]
     const subjects = ["ทั้งหมด", "Computer Engineering", "Science", "Information Technology", "General Education"]
 
     // My Summaries State
-    const [mySummaries, setMySummaries] = useState(() => {
-        const saved = localStorage.getItem("my_summaries")
-        return saved ? JSON.parse(saved) : []
-    })
+    const [mySummaries, setMySummaries] = useState([])
+    const [marketSheets, setMarketSheets] = useState([])
+    const [isLoadingSheets, setIsLoadingSheets] = useState(false)
 
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
-    const [uploadForm, setUploadForm] = useState({ title: "", subject: "Computer Engineering", price: "Free", category: "ชีทติว" })
+    const [uploadForm, setUploadForm] = useState({ title: "", price: 0, is_public: false })
+
+    // โหลด my sheets + market จาก backend
+    const loadSheets = useCallback(async () => {
+        const token = localStorage.getItem("token")
+        if (!token) return
+        setIsLoadingSheets(true)
+        try {
+            const [mine, market, purchased] = await Promise.all([
+                fetchMySheets(),
+                fetchMarketSheets(),
+                fetchPurchasedSheets(),
+            ])
+            setMySummaries(mine)
+            setMarketSheets(market)
+            setPurchasedSheets(purchased)
+        } catch {
+            // silently fail
+        } finally {
+            setIsLoadingSheets(false)
+        }
+    }, [])
+
+    useEffect(() => { loadSheets() }, [loadSheets])
+
+    const handleTogglePublish = async (sheetId) => {
+        try {
+            await toggleSheetPublish(sheetId)
+            await loadSheets()
+        } catch {
+            alert("เกิดข้อผิดพลาด กรุณาลองใหม่")
+        }
+    }
+
+    const handleUpdatePrice = async (sheetId) => {
+        try {
+            await updateSheetPrice(sheetId, editingPriceValue)
+            setEditingPriceId(null)
+            await loadSheets()
+        } catch {
+            alert("เกิดข้อผิดพลาด กรุณาลองใหม่")
+        }
+    }
 
     const filteredSummaries = useMemo(() => {
         return SUMMARIES_DATA.filter(item => {
@@ -138,45 +183,32 @@ const Summaries = () => {
         doc.save(`${selectedItem.title}.pdf`)
     }
 
-    const handleAddMySheet = (e) => {
+    const handleAddMySheet = async (e) => {
         const file = e.target.files[0]
         if (!file) return
-
-        const newSheet = {
-            id: Date.now(),
-            ...uploadForm,
-            rating: 5.0,
-            views: "0",
-            iconName: "FileText",
-            gradient: "from-amber-400 to-orange-500",
-            fullContent: "ไฟล์สรุปของคุณถูกอัปโหลดสำเร็จแล้ว รอการตรวจสอบเนื้อหา...",
-            pdfUrl: URL.createObjectURL(file)
+        if (!uploadForm.title.trim()) { alert("กรุณาใส่ชื่อชีทด้วยนะครับ"); return }
+        try {
+            await uploadSheet(uploadForm.title, uploadForm.price, uploadForm.is_public, file)
+            await loadSheets()
+            setIsUploadModalOpen(false)
+            setUploadForm({ title: "", price: 0, is_public: false })
+            alert("เย้! ชีทของคุณขึ้นระบบแล้วครับ ✨")
+        } catch {
+            alert("อัปโหลดไม่สำเร็จ กรุณาลองใหม่")
         }
-
-        const nextMySummaries = [newSheet, ...mySummaries]
-        setMySummaries(nextMySummaries)
-        localStorage.setItem("my_summaries", JSON.stringify(nextMySummaries))
-        setIsUploadModalOpen(false)
-        setUploadForm({ title: "", subject: "Computer Engineering", price: "Free", category: "ชีทติว" })
-        alert("เย้! ชีทของคุณขึ้นระบบแล้วครับ ✨")
     }
 
-    const handleCollectSheet = (item) => {
+    const handleCollectSheet = async (item) => {
         if (!checkAuth()) return
-        const isAlreadyOwned = mySummaries.find(s => s.id === item.id)
-        if (isAlreadyOwned) {
-            alert("เพื่อนมีชีทนี้อยู่แล้วนะครับ! ✨")
-            return
+        try {
+            await buySheet(item.id)
+            await loadSheets()
+            alert(`เย้! ซื้อสรุป "${item.title}" สำเร็จแล้วครับ 🌷`)
+        } catch (err) {
+            alert(err?.response?.data?.detail || "ซื้อไม่สำเร็จ กรุณาลองใหม่")
         }
 
-        const newItem = {
-            ...item,
-            id: Date.now() + Math.random(), // New ID for personal collection
-            views: "0",
-            category: item.category + " (ตลาด)",
-            gradient: item.gradient || "from-blue-400 to-indigo-500"
-        }
-        const nextMySummaries = [newItem, ...mySummaries]
+        const nextMySummaries = [item, ...mySummaries]
         setMySummaries(nextMySummaries)
         localStorage.setItem("my_summaries", JSON.stringify(nextMySummaries))
         alert(`เย้! เพิ่มสรุป "${item.title}" เข้าคลังแล้วครับ 🌷`)
@@ -225,10 +257,10 @@ const Summaries = () => {
                 <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-16">
                     <div className="space-y-2 text-center md:text-left transition-all">
                         <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">
-                            {currentView === 'market' ? 'Community Store 🍦' : 'Private Collection ✨'}
+                            {currentView === 'market' ? 'Community Store 🍦' : currentView === 'my-sheets' ? 'Private Collection ✨' : 'Purchased 🛍️'}
                         </span>
                         <h2 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                            {currentView === 'market' ? 'คลังสรุป 🌷' : 'ชีทของฉัน ✨'}
+                            {currentView === 'market' ? 'คลังสรุป 🌷' : currentView === 'my-sheets' ? 'ชีทของฉัน ✨' : 'ที่ซื้อมา 🛍️'}
                         </h2>
                     </div>
 
@@ -244,6 +276,12 @@ const Summaries = () => {
                             className={`px-8 py-3 rounded-[20px] font-black text-sm transition-all duration-300 ${currentView === 'my-sheets' ? 'bg-white dark:bg-primary text-gray-900 dark:text-white shadow-xl scale-[1.02]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
                         >
                             ชีทของฉัน
+                        </button>
+                        <button
+                            onClick={() => setCurrentView("purchased")}
+                            className={`px-8 py-3 rounded-[20px] font-black text-sm transition-all duration-300 ${currentView === 'purchased' ? 'bg-white dark:bg-primary text-gray-900 dark:text-white shadow-xl scale-[1.02]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                        >
+                            ที่ซื้อมา
                         </button>
                     </div>
                 </div>
@@ -281,6 +319,12 @@ const Summaries = () => {
                         </div>
 
                         {/* Marketplace Grid */}
+                        {isLoadingSheets && (
+                            <div className="text-center py-8 text-gray-400 font-bold">กำลังโหลดชีทจากตลาด...</div>
+                        )}
+                        {marketSheets.length > 0 && (
+                            <div className="mb-4 px-2 text-sm font-black text-primary">📦 ชีทจาก Community ({marketSheets.length} รายการ)</div>
+                        )}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                             {filteredSummaries.map((item) => (
                                 <div key={item.id} className="group relative bg-white dark:bg-black/20 border border-gray-100 dark:border-white/10 rounded-[40px] overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col h-[480px]">
@@ -399,14 +443,101 @@ const Summaries = () => {
                                             </button>
                                         </div>
                                         <h3 className="text-xl font-black text-gray-900 dark:text-white line-clamp-2 leading-tight mb-4 group-hover:text-primary transition-colors">{item.title}</h3>
-                                        <div className="mt-auto flex items-center justify-between border-t border-gray-100 dark:border-white/5 pt-5">
-                                            <div>
-                                                <span className="block text-[9px] font-black text-gray-400 uppercase mb-0.5">Price</span>
-                                                <span className="text-lg font-black text-emerald-500">{item.price}</span>
+                                        <div className="mt-auto border-t border-gray-100 dark:border-white/5 pt-5 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <span className="block text-[9px] font-black text-gray-400 uppercase mb-0.5">Price</span>
+                                                    {editingPriceId === item.id ? (
+                                                        <div className="flex items-center gap-1">
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={editingPriceValue}
+                                                                onChange={(e) => setEditingPriceValue(Number(e.target.value))}
+                                                                className="w-16 px-2 py-1 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-black outline-none border border-primary/30"
+                                                            />
+                                                            <button
+                                                                onClick={() => handleUpdatePrice(item.id)}
+                                                                className="px-2 py-1 rounded-lg bg-primary text-white font-black text-[10px]"
+                                                            >
+                                                                ✓
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setEditingPriceId(null)}
+                                                                className="px-2 py-1 rounded-lg bg-gray-200 dark:bg-white/10 font-black text-[10px]"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => { setEditingPriceId(item.id); setEditingPriceValue(item.price ?? 0); }}
+                                                            className="text-lg font-black text-emerald-500 hover:underline"
+                                                        >
+                                                            {item.price ?? 0} 🪙
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    onClick={() => { setSelectedItem(item); setIsPdfModalOpen(true); }}
+                                                    className="px-4 py-2 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black text-xs hover:shadow-xl hover:scale-105 active:scale-95 transition-all"
+                                                >
+                                                    เปิดอ่าน
+                                                </button>
                                             </div>
                                             <button
-                                                onClick={() => { setSelectedItem(item); setIsPdfModalOpen(true); }}
-                                                className="px-6 py-3 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black text-xs hover:shadow-xl hover:scale-105 active:scale-95 transition-all"
+                                                onClick={() => handleTogglePublish(item.id)}
+                                                className={`w-full py-2 rounded-xl font-black text-xs transition-all ${item.is_public ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-red-100 dark:hover:bg-red-500/20 hover:text-red-500' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:text-emerald-600'}`}
+                                            >
+                                                {item.is_public ? '🟢 ขายอยู่ — กดเพื่อหยุดขาย' : '⚪ ไม่ได้ขาย — กดเพื่อวางขาย'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    /* --- Purchased Sheets Section --- */
+                    <div className="space-y-12 animate-in fade-in duration-700">
+                        <div className="mb-4 px-2 text-sm font-black text-primary">🛍️ ชีทที่ซื้อมา ({purchasedSheets.length} รายการ)</div>
+                        {isLoadingSheets && (
+                            <div className="text-center py-8 text-gray-400 font-bold">กำลังโหลด...</div>
+                        )}
+                        {!isLoadingSheets && purchasedSheets.length === 0 && (
+                            <div className="py-24 text-center">
+                                <div className="size-24 bg-gray-100 dark:bg-white/5 rounded-[40px] flex items-center justify-center mx-auto mb-6 text-gray-400 border border-white/10 shadow-inner">
+                                    <BookText size={40} />
+                                </div>
+                                <h3 className="text-2xl font-black text-gray-400">ยังไม่มีชีทที่ซื้อมาเลยเพื่อน 🌷</h3>
+                                <p className="font-bold text-gray-400/60 mt-2">ลองไปเลือกชีทใน Marketplace ดูนะ ✨</p>
+                                <button
+                                    onClick={() => setCurrentView("market")}
+                                    className="mt-8 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-primary text-white font-black shadow-lg hover:scale-105 transition-all"
+                                >
+                                    ไปที่ Marketplace
+                                </button>
+                            </div>
+                        )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {purchasedSheets.map((item) => (
+                                <div key={item.id} className="group h-[280px] bg-white dark:bg-gray-800/40 border border-gray-100 dark:border-white/10 rounded-[48px] overflow-hidden flex shadow-xl hover:-translate-y-2 transition-all duration-500">
+                                    <div className={`w-1/3 bg-gradient-to-br ${item.gradient || 'from-indigo-500 to-purple-600'} flex items-center justify-center relative overflow-hidden`}>
+                                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <div className="p-4 rounded-2xl bg-white/20 border border-white/40 backdrop-blur-xl text-white shadow-2xl group-hover:rotate-12 transition-transform">
+                                            <FileText size={32} />
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 p-8 flex flex-col justify-between">
+                                        <div>
+                                            <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 uppercase tracking-widest border border-purple-200 dark:border-purple-500/20">ซื้อแล้ว ✓</span>
+                                            <h3 className="text-xl font-black text-gray-900 dark:text-white line-clamp-2 leading-tight mt-3 group-hover:text-primary transition-colors">{item.title}</h3>
+                                        </div>
+                                        <div className="flex items-center justify-between border-t border-gray-100 dark:border-white/5 pt-4">
+                                            <span className="text-sm font-black text-gray-400">{item.price ?? 0} 🪙</span>
+                                            <button
+                                                onClick={() => { setSelectedItem({ ...item, pdfUrl: item.file_path || "" }); setIsPdfModalOpen(true); }}
+                                                className="px-5 py-2.5 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black text-xs hover:shadow-xl hover:scale-105 active:scale-95 transition-all"
                                             >
                                                 เปิดอ่านชีท
                                             </button>

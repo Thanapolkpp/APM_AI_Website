@@ -6,6 +6,12 @@ import { OrbitControls, useGLTF, Html, useProgress } from "@react-three/drei";
 import { ShoppingCart, CheckCircle2, Lock, Coins, ArrowLeft, Sparkles, Image as ImageIcon, User, Trash2 } from "lucide-react";
 import { useCoins } from "../../hooks/useCoins";
 import CoinBadge from "../UI/CoinBadge";
+import {
+    fetchOwnedAvatars, fetchOwnedRooms,
+    fetchAvatarCatalog, fetchRoomCatalog,
+    buyAvatarApi, buyRoomApi,
+    equipAvatarApi, equipRoomApi,
+} from "../../services/aiService";
 
 import broImg from "../../assets/Bro.png";
 import girlImg from "../../assets/Girl.png";
@@ -142,6 +148,9 @@ const EditAvatar = () => {
         return saved ? JSON.parse(saved) : ["classic"];
     });
 
+    const [avatarCatalog, setAvatarCatalog] = useState([]);
+    const [roomCatalog, setRoomCatalog] = useState([]);
+
     // Custom Alert State
     const [customAlert, setCustomAlert] = useState({ isOpen: false, message: "", type: "info" });
     const showCustomAlert = (message, type = "info") => {
@@ -155,33 +164,130 @@ const EditAvatar = () => {
         setSelectedSceneId(currentScene);
     }, []);
 
+    // Sync owned items from DB
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const MODEL_TO_AVATAR_ID = {
+            "/models/bro.glb": "bro",
+            "/models/girl.glb": "girl",
+            "/models/nerd.glb": "nerd",
+        };
+        // Bug 1 fix: rooms API returns image_path, not model_path
+        const IMAGE_TO_SCENE_ID = {
+            "/models/NERD_ROOM.png": "nerdroom",
+        };
+
+        const syncInventory = async () => {
+            try {
+                const [avatarsData, roomsData, allAvatarsData, allRoomsData] = await Promise.all([
+                    fetchOwnedAvatars(),
+                    fetchOwnedRooms(),
+                    fetchAvatarCatalog(),
+                    fetchRoomCatalog(),
+                ]);
+
+                setAvatarCatalog(allAvatarsData);
+                setRoomCatalog(allRoomsData);
+
+                const dbAvatarIds = avatarsData
+                    .map(a => MODEL_TO_AVATAR_ID[a.model_path])
+                    .filter(Boolean);
+
+                // Bug 1 fix: use image_path field for room mapping
+                const dbSceneIds = roomsData
+                    .map(r => IMAGE_TO_SCENE_ID[r.image_path])
+                    .filter(Boolean);
+
+                // Merge DB data with always-free defaults
+                const allAvatars = [...new Set(["nerd", ...dbAvatarIds])];
+                // Color-only scenes stay in localStorage; merge 3D rooms from DB
+                const savedScenes = JSON.parse(localStorage.getItem("owned_scenes") || '["classic"]');
+                const allScenes = [...new Set([...savedScenes, ...dbSceneIds])];
+
+                setOwnedIds(allAvatars);
+                setOwnedSceneIds(allScenes);
+                localStorage.setItem("owned_avatars", JSON.stringify(allAvatars));
+                localStorage.setItem("owned_scenes", JSON.stringify(allScenes));
+            } catch {
+                // silently fail — localStorage fallback already applied
+            }
+        };
+
+        syncInventory();
+    }, []);
+
     const isOwned = (id) => currentTab === "avatar" ? ownedIds.includes(id) : ownedSceneIds.includes(id);
 
-    const handleBuy = (item) => {
-        if (coins >= item.price) {
-            if (spendCoins(item.price)) {
-                if (currentTab === "avatar") {
-                    const nextOwned = [...ownedIds, item.id];
-                    setOwnedIds(nextOwned);
-                    localStorage.setItem("owned_avatars", JSON.stringify(nextOwned));
-                } else {
-                    const nextOwned = [...ownedSceneIds, item.id];
-                    setOwnedSceneIds(nextOwned);
-                    localStorage.setItem("owned_scenes", JSON.stringify(nextOwned));
-                }
-                showCustomAlert(`ยินดีด้วย! ปลดล็อก ${item.name} สำเร็จแล้ว ✨`, "success");
-            }
-        } else {
+    const handleBuy = async (item) => {
+        if (coins < item.price) {
             showCustomAlert(`เหรียญไม่พอจ้า! ขาดอีก ${item.price - coins} เหรียญนะเพื่อน ✨`, "error");
+            return;
+        }
+        try {
+            if (currentTab === "avatar") {
+                // Bug 2 fix: call buy-avatar API (handles coin deduction server-side)
+                const catalogItem = avatarCatalog.find(a => a.model_path === item.model);
+                if (!catalogItem) {
+                    showCustomAlert("ไม่พบ Avatar นี้ในระบบ กรุณาลองใหม่", "error");
+                    return;
+                }
+                const result = await buyAvatarApi(catalogItem.id);
+                localStorage.setItem("user_coins", String(result.coins_remaining));
+                window.dispatchEvent(new Event("coinsUpdated"));
+                const nextOwned = [...ownedIds, item.id];
+                setOwnedIds(nextOwned);
+                localStorage.setItem("owned_avatars", JSON.stringify(nextOwned));
+            } else if (item.model) {
+                // Bug 2 fix: 3D room — call buy-room API
+                const catalogItem = roomCatalog.find(r => r.image_path === item.image);
+                if (!catalogItem) {
+                    showCustomAlert("ไม่พบ Room นี้ในระบบ กรุณาลองใหม่", "error");
+                    return;
+                }
+                const result = await buyRoomApi(catalogItem.id);
+                localStorage.setItem("user_coins", String(result.coins_remaining));
+                window.dispatchEvent(new Event("coinsUpdated"));
+                const nextOwned = [...ownedSceneIds, item.id];
+                setOwnedSceneIds(nextOwned);
+                localStorage.setItem("owned_scenes", JSON.stringify(nextOwned));
+            } else {
+                // Color-only scene (no DB entry) — use spendCoins as before
+                const success = await spendCoins(item.price);
+                if (!success) {
+                    showCustomAlert(`เหรียญไม่พอจ้า! ขาดอีก ${item.price - coins} เหรียญนะเพื่อน ✨`, "error");
+                    return;
+                }
+                const nextOwned = [...ownedSceneIds, item.id];
+                setOwnedSceneIds(nextOwned);
+                localStorage.setItem("owned_scenes", JSON.stringify(nextOwned));
+            }
+            showCustomAlert(`ยินดีด้วย! ปลดล็อก ${item.name} สำเร็จแล้ว ✨`, "success");
+        } catch (err) {
+            const detail = err.response?.data?.detail || "เกิดข้อผิดพลาด กรุณาลองใหม่";
+            showCustomAlert(detail, "error");
         }
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (currentTab === "avatar") {
             localStorage.setItem("avatar", selectedId);
+            // Bug 3 fix: call equip-avatar API to persist equipped state in DB
+            const catalogItem = avatarCatalog.find(a => a.model_path === activeAvatar.model);
+            if (catalogItem) {
+                try { await equipAvatarApi(catalogItem.id); } catch { /* silently fail */ }
+            }
             showCustomAlert("บันทึกการเลือกตัวละครแล้วจ้า! 🌷", "success");
         } else {
             localStorage.setItem("current_scene", selectedSceneId);
+            // Bug 3 fix: call equip-room API for 3D rooms
+            if (activeScene.model) {
+                const catalogItem = roomCatalog.find(r => r.image_path === activeScene.image);
+                if (catalogItem) {
+                    try { await equipRoomApi(catalogItem.id); } catch { /* silently fail */ }
+                }
+            }
             showCustomAlert("เปลี่ยนฉากหลังให้แล้วนะเพื่อน! 🌸", "success");
         }
     };

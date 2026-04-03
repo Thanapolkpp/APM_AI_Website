@@ -6,6 +6,7 @@ import Navbar from "../components/Layout/Navbar"
 import Footer from "../components/Layout/footer"
 import CoinBadge from "../components/UI/CoinBadge"
 import { useCoins } from "../hooks/useCoins"
+import { updateExp } from "../services/aiService"
 import Logo from "../assets/logo.png"
 import BroIcon from "../assets/Bro.png"
 import NerdIcon from "../assets/Nerd.1.2.png"
@@ -63,6 +64,7 @@ const ReadingSystem = () => {
             setIsActive(false)
             if (currentMode === "Focus") {
                 addCoins(5) // แลกเป็นเหรียญเมื่อจดจ่อสำเร็จ
+                updateExp(10).catch(() => {}) // เพิ่ม EXP ความสนิท
                 showCustomAlert("ดีมากเลยเพื่อน! รับไปเลย 5 เหรียญ! 🪙 พักสักนิดมั้ยจ๊ะ? 🌷", "success")
             } else {
                 showCustomAlert("พร้อมกลับไปลุยต่อรึยัง?! ✨", "success")
