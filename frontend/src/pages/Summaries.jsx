@@ -381,7 +381,7 @@ const Summaries = () => {
                             </div>
                         )}
                     </div>
-                ) : (
+                ) : currentView === "my-sheets" ? (
                     /* --- My Collection Section --- */
                     <div className="space-y-12 animate-in fade-in duration-700">
                         {/* User Performance Stats */}

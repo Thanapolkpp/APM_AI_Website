@@ -31,22 +31,6 @@ const ChatSidebar = () => {
     ]
 
     const [history, setHistory] = React.useState([])
-<<<<<<< HEAD
-
-    React.useEffect(() => {
-        const fetchHistory = async () => {
-            try {
-                const token = localStorage.getItem("token")
-                const response = await fetch("http://localhost:8000/api/v1/chat/history", {
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
-                })
-                if (response.ok) {
-                    const data = await response.json()
-                    setHistory(data.slice(0, 3)) // แสดงแค่ 3 อันล่าสุด
-                }
-=======
     const [exp, setExp] = React.useState(0)
 
     React.useEffect(() => {
@@ -56,16 +40,10 @@ const ChatSidebar = () => {
             try {
                 const data = await fetchChatHistory()
                 setHistory(data.slice(0, 3))
->>>>>>> feature/backend
             } catch (err) {
                 console.error("Failed to fetch history", err)
             }
         }
-<<<<<<< HEAD
-        if (localStorage.getItem("token")) {
-            fetchHistory()
-        }
-=======
 
         const fetchExp = async () => {
             try {
@@ -78,7 +56,6 @@ const ChatSidebar = () => {
 
         fetchHistory()
         fetchExp()
->>>>>>> feature/backend
     }, [])
 
     return (
@@ -159,12 +136,6 @@ const ChatSidebar = () => {
                     <div className="bg-white/40 p-4 rounded-[28px] border border-white/60 shadow-sm transition-all hover:shadow-md">
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-[10px] font-black text-purple-600 uppercase tracking-wider">พลังความสนิท</span>
-<<<<<<< HEAD
-                            <span className="text-[10px] font-bold text-gray-400">65%</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-gray-200/50 rounded-full overflow-hidden">
-                            <div className="h-full w-[65%] bg-gradient-to-r from-pink-400 to-purple-400 rounded-full shadow-sm"></div>
-=======
                             <span className="text-[10px] font-bold text-gray-400">{exp} XP</span>
                         </div>
                         <div className="h-1.5 w-full bg-gray-200/50 rounded-full overflow-hidden">
@@ -172,7 +143,6 @@ const ChatSidebar = () => {
                                 className="h-full bg-gradient-to-r from-pink-400 to-purple-400 rounded-full shadow-sm transition-all duration-700"
                                 style={{ width: `${Math.min(exp, 100)}%` }}
                             />
->>>>>>> feature/backend
                         </div>
                     </div>
                 </div>

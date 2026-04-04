@@ -1,15 +1,5 @@
 import axios from "axios";
 
-<<<<<<< HEAD
-const API_TEXT_URL = "http://127.0.0.1:8000/api/v1/chat/";
-const API_IMAGE_URL = "http://127.0.0.1:8000/api/v1/ai/chat-with-image";
-
-export const sendMessageToAI = async (message, mode) => {
-    const token = localStorage.getItem("token");
-    const response = await axios.post(API_TEXT_URL, 
-        { message, mode },
-        { headers: { "Authorization": `Bearer ${token}` } }
-=======
 const BASE_URL = "http://127.0.0.1:8000";
 const API_TEXT_URL = `${BASE_URL}/api/v1/chat/`;
 const API_IMAGE_URL = `${BASE_URL}/api/v1/ai/chat-with-image`;
@@ -18,6 +8,7 @@ const API_TODOS_URL = `${BASE_URL}/api/v1/todos`;
 const API_SHEETS_URL = `${BASE_URL}/api/v1/study-sheets`;
 const API_INVENTORY_URL = `${BASE_URL}/api/v1/inventory`;
 
+// Helper สำหรับดึง Token และจัดการ Header
 const authHeader = () => ({
     Authorization: `Bearer ${localStorage.getItem("token")}`,
 });
@@ -55,27 +46,21 @@ export const sendMessageToAI = async (message, mode, sheet_ids = []) => {
         API_TEXT_URL,
         { message, mode, sheet_ids },
         { headers: authHeader() }
->>>>>>> feature/backend
     );
     return String(response.data?.reply ?? "");
 };
 
 export const sendMessageToAIWithImage = async (prompt, mode, imageFile) => {
-    const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("prompt", prompt || "");
     formData.append("mode", mode || "bro");
     formData.append("file", imageFile);
 
     const response = await axios.post(API_IMAGE_URL, formData, {
-<<<<<<< HEAD
-        headers: { 
+        headers: {
             "Content-Type": "multipart/form-data",
-            "Authorization": `Bearer ${token}` 
+            ...authHeader()
         },
-=======
-        headers: { "Content-Type": "multipart/form-data", ...authHeader() },
->>>>>>> feature/backend
     });
     return String(response.data?.reply ?? response.data?.response ?? "");
 };
@@ -92,7 +77,7 @@ export const updateCoins = async (amount) => {
         { amount },
         { headers: authHeader() }
     );
-    return response.data; // { coins: number }
+    return response.data;
 };
 
 // ---------- Inventory ----------
