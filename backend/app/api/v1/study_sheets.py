@@ -111,6 +111,9 @@ def upload_study_sheet(
     db.commit()
     db.refresh(new_sheet)
 
+    current_user.coins += 3
+    db.commit()
+
     return {
         "message": "อัปโหลดสำเร็จ",
         "id": new_sheet.id,
@@ -119,6 +122,8 @@ def upload_study_sheet(
         "price": new_sheet.price,
         "is_public": new_sheet.is_public,
         "text_extracted": len(extracted_text) > 0,
+        "bonus_coins": 3,
+        "coins_total": current_user.coins,
     }
 
 

@@ -71,6 +71,16 @@ const ChatSidebar = () => {
         fetchData()
     }, [])
 
+    const LEVEL_THRESHOLDS = [0, 50, 150, 300, 500, 800, 1200]
+    const getLevel = (exp) => LEVEL_THRESHOLDS.filter(t => exp >= t).length
+    const getLevelProgress = (exp) => {
+        const lvl = getLevel(exp)
+        if (lvl >= LEVEL_THRESHOLDS.length) return 100
+        const from = LEVEL_THRESHOLDS[lvl - 1]
+        const to = LEVEL_THRESHOLDS[lvl]
+        return Math.round(((exp - from) / (to - from)) * 100)
+    }
+
     const handleAvatarClick = (id) => {
         if (ownedIds.includes(id)) {
             navigate(`/chat/${id}`)
@@ -168,12 +178,12 @@ const ChatSidebar = () => {
                     <div className="bg-white/40 p-4 rounded-[28px] border border-white/60 shadow-sm transition-all hover:shadow-md">
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-[10px] font-black text-purple-600 uppercase tracking-wider">พลังความสนิท</span>
-                            <span className="text-[10px] font-bold text-gray-400">{exp} XP</span>
+                            <span className="text-[10px] font-bold text-gray-400">Lv.{getLevel(exp)} — {exp} XP</span>
                         </div>
                         <div className="h-1.5 w-full bg-gray-200/50 rounded-full overflow-hidden">
                             <div
                                 className="h-full bg-gradient-to-r from-pink-400 to-purple-400 rounded-full shadow-sm transition-all duration-700"
-                                style={{ width: `${Math.min(exp, 100)}%` }}
+                                style={{ width: `${getLevelProgress(exp)}%` }}
                             />
                         </div>
                     </div>

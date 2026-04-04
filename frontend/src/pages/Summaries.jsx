@@ -11,7 +11,7 @@ import BroIcon from "../assets/Bro.png"
 import NerdIcon from "../assets/Nerd.1.2.png"
 import CuteGirlIcon from "../assets/Girl.png"
 import { jsPDF } from "jspdf"
-import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice, deleteSheet } from "../services/aiService"
+import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice, deleteSheet, updateExp } from "../services/aiService"
 
 // แมพชื่อ string เข้ากับ Component จริงๆ เพื่อป้องกัน Error: Element type is invalid
 const ICON_MAP = {
@@ -200,12 +200,15 @@ const Summaries = () => {
 
         setIsLoadingSheets(true)
         try {
-            await uploadSheet(
+            const result = await uploadSheet(
                 uploadForm.title,
                 uploadForm.price,
                 uploadForm.is_public,
                 selectedFile
             )
+            localStorage.setItem("user_coins", String(result.coins_total))
+            window.dispatchEvent(new Event("coinsUpdated"))
+            updateExp(15).catch(() => {})
             await loadSheets()
             setIsUploadModalOpen(false)
             setUploadForm({ title: "", price: 0, is_public: false })
@@ -222,7 +225,10 @@ const Summaries = () => {
     const handleCollectSheet = async (item) => {
         if (!checkAuth()) return
         try {
-            await buySheet(item.id)
+            const result = await buySheet(item.id)
+            localStorage.setItem("user_coins", String(result.coins_remaining))
+            window.dispatchEvent(new Event("coinsUpdated"))
+            updateExp(5).catch(() => {})
             await loadSheets()
             alert(`เย้! ซื้อสรุป "${item.title}" สำเร็จแล้วครับ 🌷`)
         } catch (err) {
