@@ -174,9 +174,9 @@ const EditAvatar = () => {
             "/models/girl.glb": "girl",
             "/models/nerd.glb": "nerd",
         };
-        // Bug 1 fix: rooms API returns image_path, not model_path
-        const IMAGE_TO_SCENE_ID = {
-            "/models/NERD_ROOM.png": "nerdroom",
+        // ใช้ model_path จาก DB โดยตรง (ตอนนี้ Room table มี model_path แล้ว)
+        const MODEL_TO_SCENE_ID = {
+            "/models/Nerdroom.glb": "nerdroom",
         };
 
         const syncInventory = async () => {
@@ -195,9 +195,9 @@ const EditAvatar = () => {
                     .map(a => MODEL_TO_AVATAR_ID[a.model_path])
                     .filter(Boolean);
 
-                // Bug 1 fix: use image_path field for room mapping
+                // ใช้ model_path จาก DB (Room table มี column นี้แล้ว)
                 const dbSceneIds = roomsData
-                    .map(r => IMAGE_TO_SCENE_ID[r.image_path])
+                    .map(r => MODEL_TO_SCENE_ID[r.model_path])
                     .filter(Boolean);
 
                 // Merge DB data with always-free defaults
