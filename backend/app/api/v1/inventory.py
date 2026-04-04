@@ -49,20 +49,24 @@ def buy_avatar(
     if already_owned:
         raise HTTPException(status_code=400, detail="คุณมี Avatar นี้อยู่แล้ว")
 
-    # เช็คเหรียญพอไหม
-    if current_user.coins < avatar.price:
-        raise HTTPException(status_code=400, detail=f"เหรียญไม่พอ (มี {current_user.coins}, ต้องการ {avatar.price})")
+    # เช็คเหรียญพอไหม (ฟรีสำหรับการเลือกครั้งแรก)
+    owned_count = db.query(UserAvatar).filter(UserAvatar.user_id == current_user.id).count()
+    actual_price = avatar.price if owned_count > 0 else 0
+
+    if current_user.coins < actual_price:
+        raise HTTPException(status_code=400, detail=f"เหรียญไม่พอ (ต้องการ {actual_price} เหรียญ)")
 
     # หักเหรียญ
-    current_user.coins -= avatar.price
+    current_user.coins -= actual_price
 
-    # เพิ่มเข้า inventory
-    new_entry = UserAvatar(user_id=current_user.id, avatar_id=request.avatar_id, is_equipped=False)
+    # เพิ่มเข้า inventory และใส่ให้เลย (Equip ทันทีถ้าเป็นตัวแรก)
+    new_entry = UserAvatar(user_id=current_user.id, avatar_id=request.avatar_id, is_equipped=(owned_count == 0))
     db.add(new_entry)
     db.commit()
 
+    message = f"เลือก {avatar.name} เป็นเพื่อนเริ่มต้นสำเร็จ! (ฟรีสำหรับการเลือกครั้งแรก)" if actual_price == 0 else f"ซื้อ {avatar.name} สำเร็จ"
     return {
-        "message": f"ซื้อ Avatar '{avatar.name}' สำเร็จ",
+        "message": message,
         "coins_remaining": current_user.coins,
     }
 
@@ -86,20 +90,24 @@ def buy_room(
     if already_owned:
         raise HTTPException(status_code=400, detail="คุณมี Room นี้อยู่แล้ว")
 
-    # เช็คเหรียญพอไหม
-    if current_user.coins < room.price:
-        raise HTTPException(status_code=400, detail=f"เหรียญไม่พอ (มี {current_user.coins}, ต้องการ {room.price})")
+    # เช็คเหรียญพอไหม (ฟรีสำหรับการเลือกครั้งแรก)
+    owned_count = db.query(UserRoom).filter(UserRoom.user_id == current_user.id).count()
+    actual_price = room.price if owned_count > 0 else 0
+
+    if current_user.coins < actual_price:
+        raise HTTPException(status_code=400, detail=f"เหรียญไม่พอ (ต้องการ {actual_price} เหรียญ)")
 
     # หักเหรียญ
-    current_user.coins -= room.price
+    current_user.coins -= actual_price
 
-    # เพิ่มเข้า inventory
-    new_entry = UserRoom(user_id=current_user.id, room_id=request.room_id, is_equipped=False)
+    # เพิ่มเข้า inventory และใช้ทันทีถ้าเป็นห้องแรก
+    new_entry = UserRoom(user_id=current_user.id, room_id=request.room_id, is_equipped=(owned_count == 0))
     db.add(new_entry)
     db.commit()
 
+    message = f"เปลี่ยนมาใช้ {room.name} สำเร็จ! (ฟรีสำหรับการเลือกครั้งแรก)" if actual_price == 0 else f"ซื้อ {room.name} สำเร็จ"
     return {
-        "message": f"ซื้อ Room '{room.name}' สำเร็จ",
+        "message": message,
         "coins_remaining": current_user.coins,
     }
 

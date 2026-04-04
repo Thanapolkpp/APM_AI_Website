@@ -11,6 +11,8 @@ import Logo from "../assets/logo.png"
 import BroIcon from "../assets/Bro.png"
 import NerdIcon from "../assets/Nerd.1.2.png"
 import CuteGirlIcon from "../assets/Girl.png"
+import MotionReading from "../assets/Motion_Readding.gif"
+
 
 const ReadingSystem = () => {
     const navigate = useNavigate()
@@ -21,7 +23,7 @@ const ReadingSystem = () => {
     const [selectedAmbience, setSelectedAmbience] = useState("None")
     const [youtubeUrl, setYoutubeUrl] = useState("")
     const [youtubeId, setYoutubeId] = useState("")
-    
+
     // Custom Alert State
     const [customAlert, setCustomAlert] = useState({ isOpen: false, message: "", type: "info" })
     const showCustomAlert = (message, type = "info") => {
@@ -31,10 +33,10 @@ const ReadingSystem = () => {
     const timerRef = useRef(null)
 
     const ambiences = [
-        { id: "Rain", icon: CloudRain, color: "bg-blue-400", title: "Rainy Day" },
-        { id: "Cafe", icon: Coffee, color: "bg-orange-400", title: "Cozy Cafe" },
-        { id: "Library", icon: Library, color: "bg-emerald-400", title: "Silent Library" },
-        { id: "Forest", icon: Trees, color: "bg-green-400", title: "Forest Walk" },
+        { id: "Rain", icon: CloudRain, color: "bg-blue-400", title: "Rainy Day", youtubeId: "35AdtzquJYg" },
+        { id: "Cafe", icon: Coffee, color: "bg-orange-400", title: "Cozy Cafe", youtubeId: "MYPVQccHhAQ" },
+        { id: "Library", icon: Library, color: "bg-emerald-400", title: "Silent Library", youtubeId: "phRZKH1tQsQ" },
+        { id: "Forest", icon: Trees, color: "bg-green-400", title: "Forest Walk", youtubeId: "gZknpSi4CP8" },
         { id: "YouTube", icon: Youtube, color: "bg-red-500", title: "YouTube Music" }
     ]
 
@@ -64,7 +66,7 @@ const ReadingSystem = () => {
             setIsActive(false)
             if (currentMode === "Focus") {
                 addCoins(5) // แลกเป็นเหรียญเมื่อจดจ่อสำเร็จ
-                updateExp(10).catch(() => {}) // เพิ่ม EXP ความสนิท
+                updateExp(10).catch(() => { }) // เพิ่ม EXP ความสนิท
                 showCustomAlert("ดีมากเลยเพื่อน! รับไปเลย 5 เหรียญ! 🪙 พักสักนิดมั้ยจ๊ะ? 🌷", "success")
             } else {
                 showCustomAlert("พร้อมกลับไปลุยต่อรึยัง?! ✨", "success")
@@ -151,9 +153,11 @@ const ReadingSystem = () => {
                 </div>
             </header>
 
-            <main className="flex-1 w-full max-w-6xl mx-auto py-12 px-6 flex flex-col items-center">
-                {/* Timer Display */}
+            <main className="flex-1 w-full max-w-6xl mx-auto py-12 px-6 flex flex-col items-center text-center">
+                {/* Timer Display Card */}
                 <div className="w-full max-w-2xl bg-white/40 dark:bg-white/5 backdrop-blur-3xl border border-white/60 dark:border-white/10 rounded-[64px] p-12 shadow-2xl flex flex-col items-center mb-12">
+                    
+                    {/* 1. Mode Switcher at Top */}
                     <div className="flex gap-4 mb-10 bg-white/40 dark:bg-white/10 p-2 rounded-3xl border border-white/60 dark:border-white/10">
                         <button
                             onClick={() => switchMode("Focus")}
@@ -169,12 +173,28 @@ const ReadingSystem = () => {
                         </button>
                     </div>
 
-                    <div className="relative mb-12">
-                        <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full animate-pulse"></div>
-                        <div className="text-[120px] font-black tracking-tighter text-gray-900 dark:text-white relative z-10 font-mono leading-none">
+                    {/* 2. Integrated Motion Visual Section */}
+                    <div className="mb-8 w-full max-w-md flex justify-center perspective-1000">
+                        <div className={`relative transition-all duration-700 transform ${isActive ? 'scale-110' : 'scale-100'}`}>
+                            <div className={`absolute -inset-6 bg-gradient-to-tr from-primary/30 via-transparent to-pink-300/30 blur-[60px] rounded-full transition-opacity duration-1000 ${isActive ? 'opacity-100 animate-pulse' : 'opacity-0'}`}></div>
+                            <img 
+                                src={MotionReading} 
+                                alt="Reading Motion" 
+                                className="w-72 h-72 object-contain relative z-10 drop-shadow-[0_20px_60px_rgba(0,0,0,0.15)]"
+                            />
+                        </div>
+                    </div>
+
+                    {/* 3. Timer Display (Text) */}
+                    <div className="relative mb-10">
+                        <div className="absolute inset-x-0 inset-y-4 bg-primary/20 blur-[80px] rounded-full animate-pulse"></div>
+                        <div className="text-[96px] font-black tracking-tighter text-gray-900 dark:text-white relative z-10 font-mono leading-none">
                             {formatTime(timeLeft)}
                         </div>
                     </div>
+
+
+
 
                     <div className="flex gap-6 relative z-10 w-full max-w-sm">
                         <button
@@ -228,7 +248,18 @@ const ReadingSystem = () => {
                             {ambiences.map(amb => (
                                 <button
                                     key={amb.id}
-                                    onClick={() => setSelectedAmbience(amb.id)}
+                                    onClick={() => {
+                                        setSelectedAmbience(amb.id)
+                                        if (amb.youtubeId) {
+                                            setYoutubeId(amb.youtubeId)
+                                            setYoutubeUrl(`https://www.youtube.com/watch?v=${amb.youtubeId}`)
+                                        }
+                                        if (amb.id === "YouTube") {
+                                            setYoutubeId("")
+                                            setYoutubeUrl("")
+
+                                        }
+                                    }}
                                     className={`flex flex-col items-center gap-3 p-5 rounded-[32px] border transition-all duration-300 ${selectedAmbience === amb.id ? 'bg-primary/10 border-primary text-primary shadow-lg scale-105' : 'bg-white/40 dark:bg-white/10 border-transparent hover:bg-white active:scale-95'}`}
                                 >
                                     <div className={`p-4 rounded-2xl ${amb.color} text-white shadow-xl`}><amb.icon size={24} /></div>
@@ -263,7 +294,7 @@ const ReadingSystem = () => {
                         </div>
 
                         {/* YouTube Player Embed */}
-                        {selectedAmbience === "YouTube" && youtubeId && (
+                        {(selectedAmbience === "YouTube" || ambiences.find(a => a.id === selectedAmbience)?.youtubeId) && youtubeId && (
                             <div className="mt-6 rounded-2xl overflow-hidden aspect-video shadow-2xl border border-white/20">
                                 <iframe
                                     width="100%"
@@ -294,7 +325,7 @@ const ReadingSystem = () => {
                             <p className="text-gray-500 dark:text-gray-400 font-bold leading-relaxed mb-8">
                                 {customAlert.message}
                             </p>
-                            <button 
+                            <button
                                 onClick={() => setCustomAlert({ ...customAlert, isOpen: false })}
                                 className="w-full py-4 rounded-2xl bg-primary text-white font-black text-lg shadow-xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95"
                             >

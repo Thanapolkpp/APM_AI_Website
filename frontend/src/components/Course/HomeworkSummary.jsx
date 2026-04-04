@@ -1,8 +1,21 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { HiOutlineBookOpen, HiOutlineDownload, HiOutlineEye, HiOutlineSparkles, HiOutlineX, HiOutlinePlus } from "react-icons/hi"
 import { BookText, FileText, Code2, Calculator, Atom, Palette, PlusCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import jsPDF from "jspdf"
+import { fetchMarketSheets } from "../../services/aiService"
+
+const API_BASE_URL = "http://localhost:8000"
+
+const ICON_MAP = {
+    BookText,
+    FileText,
+    Code2,
+    Calculator,
+    Atom,
+    Palette,
+    PlusCircle
+}
 
 const HomeworkSummary = () => {
     const navigate = useNavigate()
@@ -22,64 +35,20 @@ const HomeworkSummary = () => {
         return true
     }
 
-    const [summaries, setSummaries] = useState([
-        {
-            id: 1,
-            title: "สรุป Computer Architecture (Midterm)",
-            subject: "Computer Engineering",
-            price: "Free",
-            rating: 4.9,
-            views: "1.2k",
-            Icon: Code2,
-            gradient: "from-blue-400 to-indigo-500",
-            bgLight: "bg-blue-50/50",
-            textAccent: "text-blue-600",
-            fullContent: "หน่วยประมวลผลกลาง (CPU) ประกอบด้วย Register, ALU และ Control Unit... สถาปัตยกรรมแบบ Von Neumann แยกส่วนความจำและหน่วยประมวลผล... การจัดลำดับคำสั่งแบบ Pipelining ช่วยเพิ่มความเร็วในการทำงาน...",
-            pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-        },
-        {
-            id: 2,
-            title: "สรุปสูตรฟิสิกส์ 1 ครบทุกบท",
-            subject: "Science",
-            price: "Free",
-            rating: 4.7,
-            views: "850",
-            Icon: Atom,
-            gradient: "from-rose-400 to-pink-500",
-            bgLight: "bg-pink-50/50",
-            textAccent: "text-pink-600",
-            fullContent: "กฎของนิวตัน: F=ma... การเคลื่อนที่แนวตรง: v=u+at, s=ut+1/2at^2... งานและพลังงาน: W=Fscosθ, Ek=1/2mv^2, Ep=mgh...",
-            pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-        },
-        {
-            id: 3,
-            title: "สรุป Database Design (ER Diagram)",
-            subject: "Information Technology",
-            price: "Free",
-            rating: 4.8,
-            views: "2.1k",
-            Icon: Calculator,
-            gradient: "from-purple-400 to-violet-500",
-            bgLight: "bg-purple-50/50",
-            textAccent: "text-purple-600",
-            fullContent: "Entity คือ สิ่งที่เราสนใจเก็บข้อมูล... Relationship คือ ความสัมพันธ์ระหว่าง Entity (1:1, 1:N, M:N)... Attribute คือ คุณลักษณะของ Entity...",
-            pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-        },
-        {
-            id: 4,
-            title: "ชีทสรุปภาษาอังกฤษพื้นฐาน",
-            subject: "General Education",
-            price: "Free",
-            rating: 4.5,
-            views: "540",
-            Icon: BookText,
-            gradient: "from-emerald-400 to-teal-500",
-            bgLight: "bg-emerald-50/50",
-            textAccent: "text-emerald-600",
-            fullContent: "Present Simple: S + V.1 (s/es)... Past Simple: S + V.2... Present Continuous: S + is/am/are + V.ing...",
-            pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-        },
-    ])
+    const [summaries, setSummaries] = useState([])
+
+    useEffect(() => {
+        const loadSheets = async () => {
+            try {
+                const data = await fetchMarketSheets()
+                // เอาแค่ 4 อันแรกมาโชว์ที่หน้า Home
+                setSummaries((data || []).slice(0, 4))
+            } catch (err) {
+                console.error("Failed to fetch market sheets", err)
+            }
+        }
+        loadSheets()
+    }, [])
 
     const handleAIGenerate = (item) => {
         if (!checkAuth()) return
@@ -94,6 +63,33 @@ const HomeworkSummary = () => {
             setIsGenerating(false)
         }, 1500)
     }
+
+    // --- SECURITY PROTOCOL (Anti-Screenshot) ---
+    useEffect(() => {
+        const handleSecurity = (e) => {
+            const isProtected = selectedItem && 
+                               selectedItem.price > 0 && 
+                               !selectedItem.is_mine && 
+                               !selectedItem.already_purchased;
+
+            if (isProtected) {
+                if (e.key === 'PrintScreen' || (e.metaKey && e.shiftKey && e.key === 's') || (e.ctrlKey && e.key === 'p')) {
+                    if (isPdfModalOpen) {
+                        e.preventDefault();
+                        alert("⚠️ ตรวจพบความพยายามบันทึกหน้าจอ! ห้ามบันทึกภาพหน้าจอสรุปนี้นะครับเพื่อน เพื่อเป็นการให้เกียรติผู้สร้างสรรค์ผลงาน 🌷");
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleSecurity);
+        window.addEventListener('keyup', handleSecurity);
+
+        return () => {
+            window.removeEventListener('keydown', handleSecurity);
+            window.removeEventListener('keyup', handleSecurity);
+        };
+    }, [isPdfModalOpen, selectedItem]);
 
     const downloadPDF = () => {
         const doc = new jsPDF()
@@ -123,7 +119,7 @@ const HomeworkSummary = () => {
                         ไม่ใช่แค่สรุปไฟล์เดิมไปวันๆ แต่ให้ AI ช่วยติวให้เข้าใจง่ายขึ้น 💗
                     </p>
                 </div>
-                <button 
+                <button
                     onClick={() => navigate("/summaries")}
                     className="h-fit px-8 py-3 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 font-black text-gray-700 dark:text-gray-200 hover:bg-white transition-all shadow-sm hover:shadow-lg active:scale-95"
                 >
@@ -142,7 +138,8 @@ const HomeworkSummary = () => {
                             className={`h-40 w-full bg-gradient-to-br ${item.gradient} relative flex items-center justify-center overflow-hidden cursor-pointer`}
                             onClick={() => {
                                 if (!checkAuth()) return;
-                                setSelectedItem(item);
+                                const pdfUrl = item.file_path ? `${API_BASE_URL}${item.file_path}` : "";
+                                setSelectedItem({ ...item, pdfUrl });
                                 setIsPdfModalOpen(true);
                             }}
                         >
@@ -152,7 +149,10 @@ const HomeworkSummary = () => {
                             </div>
 
                             <div className="relative z-10 w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-2xl group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">
-                                <item.Icon size={40} className="text-white drop-shadow-md" />
+                                {(() => {
+                                    const IconComp = ICON_MAP[item.iconName] || FileText;
+                                    return <IconComp size={40} className="text-white drop-shadow-md" />;
+                                })()}
                             </div>
 
                             {/* Hover info badge */}
@@ -164,11 +164,11 @@ const HomeworkSummary = () => {
                         {/* CONTENT SECTION */}
                         <div className="flex-1 p-6 flex flex-col">
                             <div className="flex items-center gap-2 mb-3">
-                                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${item.textAccent} ${item.bgLight} dark:bg-white/5 uppercase tracking-wide`}>
+                                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${item.textAccent || 'text-primary border-primary/20'} ${item.bgLight || 'bg-primary/5'} dark:bg-white/5 uppercase tracking-wide`}>
                                     {item.subject}
                                 </span>
                                 <div className="flex items-center gap-1 text-[10px] font-bold text-amber-500 ml-auto">
-                                    ⭐ {item.rating}
+                                    ⭐ {item.rating || '5.0'}
                                 </div>
                             </div>
 
@@ -187,10 +187,10 @@ const HomeworkSummary = () => {
                                 <div className="flex items-center justify-between px-1">
                                     <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500 text-[11px] font-bold uppercase tracking-wider">
                                         <HiOutlineEye size={14} />
-                                        {item.views} Views
+                                        {item.views || '0'} Views
                                     </div>
                                     <span className="text-[11px] font-black text-emerald-500 tracking-widest uppercase">
-                                        {item.price}
+                                        {item.price === 0 || item.price === "Free" ? "Free" : `${item.price} 🪙`}
                                     </span>
                                 </div>
                             </div>
@@ -266,7 +266,10 @@ const HomeworkSummary = () => {
                         <div className="p-8 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
                             <div className="flex items-center gap-5">
                                 <div className={`w-14 h-14 rounded-3xl bg-gradient-to-br ${selectedItem.gradient} text-white flex items-center justify-center shadow-xl`}>
-                                    <selectedItem.Icon size={30} />
+                                    {(() => {
+                                        const IconComp = ICON_MAP[selectedItem.iconName] || FileText;
+                                        return <IconComp size={30} />;
+                                    })()}
                                 </div>
                                 <div className="min-w-0">
                                     <h3 className="text-2xl font-black text-gray-900 dark:text-white truncate max-w-lg">{selectedItem.title}</h3>
@@ -274,40 +277,66 @@ const HomeworkSummary = () => {
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
-                                <a
-                                    href={selectedItem.pdfUrl}
-                                    download={`${selectedItem.title}.pdf`}
-                                    className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white flex items-center justify-center hover:bg-white dark:hover:bg-primary transition-all shadow-sm hover:shadow-lg"
-                                >
-                                    <HiOutlineDownload size={24} />
-                                </a>
+                                {(selectedItem.already_purchased || selectedItem.is_mine || selectedItem.price === 0 || selectedItem.price === "Free") ? (
+                                    <a
+                                        href={selectedItem.pdfUrl}
+                                        download={`${selectedItem.title}.pdf`}
+                                        className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white flex items-center justify-center hover:bg-white dark:hover:bg-primary transition-all shadow-sm hover:shadow-lg"
+                                    >
+                                        <HiOutlineDownload size={24} />
+                                    </a>
+                                ) : (
+                                    <div className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/5 text-[10px] font-black text-gray-400 uppercase tracking-widest border border-dashed border-gray-200">
+                                        ซื้อเพื่อโหลด
+                                    </div>
+                                )}
                                 <button onClick={() => setIsPdfModalOpen(false)} className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all hover:rotate-90">
                                     <HiOutlineX size={24} />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="flex-1 bg-gray-100 dark:bg-black relative">
+                        <div className="flex-1 bg-gray-100 dark:bg-black relative select-none print:hidden group/pdf-container"
+                             onMouseLeave={(e) => {
+                                 const isProtected = selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased;
+                                 if (isProtected) {
+                                     const overlay = e.currentTarget.querySelector('.security-overlay');
+                                     if(overlay) overlay.classList.remove('hidden');
+                                 }
+                             }}
+                             onMouseEnter={(e) => {
+                                 const overlay = e.currentTarget.querySelector('.security-overlay');
+                                 if(overlay) overlay.classList.add('hidden');
+                             }}>
+                            
+                            {/* Watermark Overlay - Only Paid & Unpurchased */}
+                            {selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased && (
+                                <div className="absolute inset-0 z-20 pointer-events-none grid grid-cols-3 grid-rows-3 opacity-[0.08] select-none uppercase font-black text-gray-500 text-4xl overflow-hidden rotate-[-15deg] scale-125">
+                                    {[...Array(9)].map((_, i) => (
+                                        <div key={i} className="flex items-center justify-center whitespace-nowrap">APM AI SECURITY</div>
+                                    ))}
+                                </div>
+                            )}
+                            
+                            {/* Blackout Overlay on switch - Only Paid & Unpurchased */}
+                            {selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased && (
+                                <div className="security-overlay hidden absolute inset-0 z-30 bg-black flex flex-col items-center justify-center text-white text-center gap-4 transition-all">
+                                    <div className="p-5 rounded-full bg-red-500/20 text-red-500"><HiOutlineEye size={48} /></div>
+                                    <h4 className="text-xl font-black">Content Hidden for Security</h4>
+                                    <p className="text-xs text-gray-400">ขยับเมาส์กลับเข้ามาดูสรุปต่อนะครับเพื่อน 🌷</p>
+                                </div>
+                            )}
+
                             {/* PDF Viewer with fallback loading state */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center pointer-events-none">
                                 <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-6"></div>
                                 <h4 className="text-2xl font-black text-gray-900 dark:text-white mb-3">กำลังเปิดไฟล์สรุป...</h4>
                                 <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8 font-medium">รอแป๊บนึงนะเพื่อน กำลังโหลดสถาปัตยกรรมสุดเจ๋งมาให้ดูอยู่ 🚀</p>
-                                <a
-                                    href={selectedItem.pdfUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="px-10 py-4 rounded-[28px] bg-primary text-white font-black text-lg shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all"
-                                >
-                                    เปิดในหน้าต่างใหม่
-                                </a>
                             </div>
 
                             <iframe
-                                src={selectedItem.pdfUrl.startsWith("http")
-                                    ? `https://docs.google.com/viewer?url=${encodeURIComponent(selectedItem.pdfUrl)}&embedded=true`
-                                    : selectedItem.pdfUrl}
-                                className="w-full h-full border-none relative z-10"
+                                src={`${selectedItem.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                                className={`w-full h-full border-none relative z-10 ${ (selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased) ? 'pointer-events-none' : ''}`}
                                 title="PDF Viewer"
                             ></iframe>
                         </div>

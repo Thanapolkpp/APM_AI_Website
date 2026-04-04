@@ -21,7 +21,7 @@ except ImportError:
 router = APIRouter()
 
 UPLOAD_BASE_DIR = "uploads/sheets"
-MAX_SHEETS_PER_USER = 4
+MAX_SHEETS_PER_USER = 10
 
 
 # ---------- Helpers ----------
@@ -72,7 +72,7 @@ def upload_study_sheet(
 
     file_bytes = file.file.read()
 
-    # FIFO: ถ้ามีครบ 4 ลบเก่าสุดก่อน
+    # FIFO: ถ้ามีครบ 10 ลบเก่าสุดก่อน
     sheet_count = db.query(StudySheet).filter(StudySheet.user_id == current_user.id).count()
     if sheet_count >= MAX_SHEETS_PER_USER:
         oldest = (
@@ -85,7 +85,6 @@ def upload_study_sheet(
             physical_path = oldest.file_path.lstrip("/")
             if os.path.exists(physical_path):
                 os.remove(physical_path)
-            # ลบ user_sheets records ที่อ้างถึง sheet นี้ด้วย
             db.query(UserSheet).filter(UserSheet.sheet_id == oldest.id).delete()
             db.delete(oldest)
             db.commit()
@@ -141,6 +140,10 @@ def get_my_sheets(
             "file_path": s.file_path,
             "price": s.price,
             "is_public": s.is_public,
+            "category": "สรุปสอบ",
+            "subject": "General Education",
+            "is_mine": True,
+            "already_purchased": False,
             "created_at": s.created_at,
         }
         for s in sheets
@@ -152,18 +155,14 @@ def get_market(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # ดู sheet ที่วางขายทั้งหมด ยกเว้นของตัวเอง
+    # ดู sheet ที่วางขายทั้งหมด (รวมของตัวเองเพื่อเช็ค)
     sheets = (
         db.query(StudySheet)
-        .filter(
-            StudySheet.is_public == True,
-            StudySheet.user_id != current_user.id,
-        )
+        .filter(StudySheet.is_public == True)
         .order_by(StudySheet.created_at.desc())
         .all()
     )
 
-    # เช็คว่า user ซื้อ sheet ไหนไปแล้วบ้าง
     purchased_ids = {
         row.sheet_id
         for row in db.query(UserSheet).filter(UserSheet.buyer_id == current_user.id).all()
@@ -174,7 +173,13 @@ def get_market(
             "id": s.id,
             "title": s.title,
             "price": s.price,
-            "already_purchased": s.id in purchased_ids,
+            "category": "บทเรียน",
+            "subject": "General Education",
+            "file_path": s.file_path,
+            "gradient": "from-blue-500 to-indigo-600",
+            "iconName": "BookText",
+            "already_purchased": s.id in purchased_ids or s.user_id == current_user.id,
+            "is_mine": s.user_id == current_user.id,
             "created_at": s.created_at,
         }
         for s in sheets
@@ -199,6 +204,11 @@ def get_purchased_sheets(
             "title": sheet.title,
             "file_path": sheet.file_path,
             "price": sheet.price,
+            "category": "งานวิจัย",
+            "subject": "General Education",
+            "gradient": "from-purple-500 to-pink-500",
+            "is_mine": False,
+            "already_purchased": True,
             "bought_at": us.bought_at,
         }
         for us, sheet in rows
@@ -300,3 +310,31 @@ def update_price(
         "id": sheet.id,
         "price": sheet.price,
     }
+
+
+@router.delete("/{sheet_id}")
+def delete_study_sheet(
+    sheet_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    sheet = db.query(StudySheet).filter(StudySheet.id == sheet_id).first()
+    if not sheet:
+        raise HTTPException(status_code=404, detail="ไม่พบ Sheet นี้")
+
+    if sheet.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="คุณไม่มีสิทธิ์ลบ Sheet นี้")
+
+    # ลบไฟล์ทางกายภาพ
+    if sheet.file_path:
+        # ลบ / นำหน้าออกถ้ามี
+        physical_path = sheet.file_path.lstrip("/")
+        if os.path.exists(physical_path):
+            os.remove(physical_path)
+
+    # ลบ records ในฐานข้อมูล
+    db.query(UserSheet).filter(UserSheet.sheet_id == sheet_id).delete()
+    db.delete(sheet)
+    db.commit()
+
+    return {"message": "ลบชีทสรุปสำเร็จแล้วครับเพื่อน 🌷"}

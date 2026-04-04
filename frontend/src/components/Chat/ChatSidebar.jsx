@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom"
 import broImg from "../../assets/Bro.png"
 import girlImg from "../../assets/Girl.png"
 import nerdImg from "../../assets/Nerd.1.2.png"
-import { getUserProfile, fetchChatHistory } from "../../services/aiService"
+import { Lock, Sparkles, History as HistoryIcon, Heart } from "lucide-react"
+import { getUserProfile, fetchChatHistory, fetchOwnedAvatars } from "../../services/aiService"
 
 const ChatSidebar = () => {
     const navigate = useNavigate()
@@ -32,31 +33,51 @@ const ChatSidebar = () => {
 
     const [history, setHistory] = React.useState([])
     const [exp, setExp] = React.useState(0)
+    const [ownedIds, setOwnedIds] = React.useState(() => {
+        const saved = localStorage.getItem("owned_avatars")
+        return saved ? JSON.parse(saved) : ["nerd"] // Local fallback still helps UI
+    })
 
     React.useEffect(() => {
-        if (!localStorage.getItem("token")) return
+        const token = localStorage.getItem("token")
+        if (!token) return
 
-        const fetchHistory = async () => {
+        const fetchData = async () => {
             try {
-                const data = await fetchChatHistory()
-                setHistory(data.slice(0, 3))
+                const [historyData, profileData, ownedData] = await Promise.all([
+                    fetchChatHistory(),
+                    getUserProfile(),
+                    fetchOwnedAvatars()
+                ])
+                setHistory(historyData.slice(0, 3))
+                setExp(profileData.exp ?? 0)
+                
+                // Map model_path to local IDs
+                const normalize = (p) => p?.replace(/^\/|^\.\//, "")
+                const idMap = {
+                    "models/bro.glb": "bro",
+                    "models/girl.glb": "girl",
+                    "models/nerd.glb": "nerd"
+                }
+                const dbIds = ownedData.map(a => idMap[normalize(a.model_path)]).filter(Boolean)
+                const finalOwned = [...new Set(dbIds)]
+                setOwnedIds(finalOwned)
+                localStorage.setItem("owned_avatars", JSON.stringify(finalOwned))
             } catch (err) {
-                console.error("Failed to fetch history", err)
+                console.error("Failed to fetch sidebar data", err)
             }
         }
 
-        const fetchExp = async () => {
-            try {
-                const profile = await getUserProfile()
-                setExp(profile.exp ?? 0)
-            } catch {
-                // silently fail
-            }
-        }
-
-        fetchHistory()
-        fetchExp()
+        fetchData()
     }, [])
+
+    const handleAvatarClick = (id) => {
+        if (ownedIds.includes(id)) {
+            navigate(`/chat/${id}`)
+        } else {
+            navigate("/avatar")
+        }
+    }
 
     return (
         <aside className="flex flex-col w-full lg:w-80 h-auto lg:h-full p-3 lg:p-4 bg-white/30 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-white/40 overflow-x-auto lg:overflow-y-auto z-40">
@@ -73,34 +94,45 @@ const ChatSidebar = () => {
 
                 {/* Avatar Selection List */}
                 <div className="flex flex-row lg:flex-col gap-3 justify-center lg:justify-start overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 scrollbar-hide">
-                    {avatars.map(a => (
-                        <button
-                            key={a.id}
-                            onClick={() => navigate(`/chat/${a.id}`)}
-                            className={`group flex items-center gap-3 lg:gap-4 p-2 lg:p-3 rounded-[20px] lg:rounded-[22px] border-2 transition-all duration-300 shrink-0
-                            ${selectedAvatar === a.id
-                                    ? `${a.glow} bg-white border-white scale-102`
-                                    : "border-transparent bg-white/20 hover:bg-white/50 hover:scale-101"}
-                            `}
-                        >
-                            <div className="relative">
-                                <img
-                                    src={a.image}
-                                    className={`w-9 h-9 lg:w-10 lg:h-10 rounded-full shadow-md transition-transform duration-500 group-hover:rotate-6
-                                    ${selectedAvatar === a.id ? "ring-2 ring-primary/20 p-0.5" : ""}
-                                    `}
-                                    alt={a.name}
-                                />
-                            </div>
-                            <div className="flex flex-col items-start leading-tight">
-                                <span className={`font-black text-xs lg:text-sm transition-colors
-                                ${selectedAvatar === a.id ? "text-gray-900" : "text-gray-600 group-hover:text-gray-900"}
-                                `}>
-                                    {a.name}
-                                </span>
-                            </div>
-                        </button>
-                    ))}
+                    {avatars.map(a => {
+                        const isOwned = ownedIds.includes(a.id)
+                        return (
+                            <button
+                                key={a.id}
+                                onClick={() => handleAvatarClick(a.id)}
+                                className={`group flex items-center gap-3 lg:gap-4 p-2 lg:p-3 rounded-[20px] lg:rounded-[22px] border-2 transition-all duration-300 shrink-0 relative overflow-hidden
+                                ${selectedAvatar === a.id
+                                        ? `${a.glow} bg-white border-white scale-102`
+                                        : "border-transparent bg-white/20 hover:bg-white/50 hover:scale-101"}
+                                ${!isOwned ? 'opacity-70 grayscale-[0.5]' : ''}
+                                `}
+                            >
+                                <div className="relative">
+                                    <img
+                                        src={a.image}
+                                        className={`w-9 h-9 lg:w-10 lg:h-10 rounded-full shadow-md transition-transform duration-500 group-hover:rotate-6
+                                        ${selectedAvatar === a.id ? "ring-2 ring-primary/20 p-0.5" : ""}
+                                        `}
+                                        alt={a.name}
+                                    />
+                                    {!isOwned && (
+                                        <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
+                                            <Lock size={14} className="text-white" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex flex-col items-start leading-tight">
+                                    <span className={`font-black text-xs lg:text-sm transition-colors flex items-center gap-1.5
+                                    ${selectedAvatar === a.id ? "text-gray-900" : "text-gray-600 group-hover:text-gray-900"}
+                                    `}>
+                                        {a.name}
+                                        {isOwned && a.id !== "nerd" && <Heart size={10} className="text-pink-400 fill-pink-400" />}
+                                    </span>
+                                    {!isOwned && <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Locked</span>}
+                                </div>
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* --- ส่วนใหม่: ประวัติการคุย 3 อันล่าสุด --- */}

@@ -215,3 +215,11 @@ export const updateSheetPrice = async (sheet_id, price) => {
     );
     return response.data;
 };
+
+export const deleteSheet = async (sheet_id) => {
+    const response = await axios.delete(
+        `${API_SHEETS_URL}/${sheet_id}`,
+        { headers: authHeader() }
+    );
+    return response.data;
+};

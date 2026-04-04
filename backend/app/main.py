@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 
 # นำเข้า Router และระบบฐานข้อมูล
 from app.api.v1.chatbot import router as chatbot_router
@@ -31,6 +33,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ตั้งค่าให้เข้าถึงโฟลเดอร์ uploads ได้โดยตรงผ่าน URL
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.include_router(auth_router, prefix="/api")
 app.include_router(chatbot_router, prefix="/api/v1/ai", tags=["AI Chatbot"])

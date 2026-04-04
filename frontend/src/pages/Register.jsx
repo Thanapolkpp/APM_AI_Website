@@ -56,32 +56,10 @@ const Register = () => {
             return;
         }
         try {
-<<<<<<< HEAD
-            const response = await fetch("http://localhost:8000/api/v1/user/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    username: formData.username,
-                    email: formData.email,
-                    password: formData.password,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                navigate("/login");
-            } else {
-                setError(data.detail || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
-            }
-        } catch {
-            setError("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
-=======
             await register(formData.username, formData.email, formData.password);
             navigate("/login");
         } catch (err) {
             setError(err.response?.data?.detail || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
->>>>>>> feature/backend
         } finally {
             setIsLoading(false);
         }

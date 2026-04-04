@@ -57,7 +57,8 @@ const ChatWindow = ({ mode: propsMode }) => {
 
   // Init messages
   useEffect(() => {
-    setMessages([{ text: getSystemMessage(mode), sender: "ai" }])
+    const username = localStorage.getItem("username");
+    setMessages([{ text: getSystemMessage(mode, username), sender: "ai" }])
   }, [mode])
 
   // Auto scroll
@@ -66,7 +67,8 @@ const ChatWindow = ({ mode: propsMode }) => {
   }, [messages])
 
   const handleClearChat = () => {
-    setMessages([{ text: getSystemMessage(mode), sender: "ai" }])
+    const username = localStorage.getItem("username");
+    setMessages([{ text: getSystemMessage(mode, username), sender: "ai" }])
   }
 
   const handlePickImage = () => {

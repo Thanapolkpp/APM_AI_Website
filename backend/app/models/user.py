@@ -8,5 +8,5 @@ class User(Base):
     username = Column(String(50), unique=True, index=True)
     email = Column(String(100), unique=True, index=True)
     hashed_password = Column(String(255))
-    coins = Column(Integer, default=0)
+    coins = Column(Integer, default=30)
     exp = Column(Integer, default=0)

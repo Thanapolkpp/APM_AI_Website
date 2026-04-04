@@ -33,35 +33,6 @@ const Login = () => {
 
         // ✅ ถ้าไม่ใช่ test → ยิง API จริง
         try {
-<<<<<<< HEAD
-            const loginData = {
-                username: identifier.includes("@") ? "" : identifier,
-                email: identifier.includes("@") ? identifier : "",
-                password: password,
-            };
-
-            const response = await fetch("http://localhost:8000/api/v1/user/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(loginData),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                // เก็บ Token เข้า LocalStorage
-                localStorage.setItem("token", data.access_token);
-                // เก็บข้อมูล User ลง LocalStorage ไปด้วย
-                localStorage.setItem("username", data.username);
-                localStorage.setItem("email", data.email);
-
-                navigate("/");
-            } else {
-                setError(data.detail || "Login failed. Please check your credentials.");
-            }
-        } catch {
-            setError("Unable to connect to the server. Please try again later.");
-=======
             const data = await login(identifier, password);
             localStorage.setItem("token", data.access_token);
             localStorage.setItem("username", data.username);
@@ -69,7 +40,6 @@ const Login = () => {
             navigate("/");
         } catch (err) {
             setError(err.response?.data?.detail || "Login failed. Please check your credentials.");
->>>>>>> feature/backend
         } finally {
             setIsLoading(false);
         }
