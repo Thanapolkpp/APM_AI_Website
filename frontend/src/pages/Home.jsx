@@ -7,7 +7,7 @@ import Footer from "../components/Layout/footer"
 import LessonTabs from "../components/Course/LessonTabs"
 import HomeworkSummary from "../components/Course/HomeworkSummary"
 import { useNavigate } from "react-router-dom"
-import Notification from "../components/UI/Notification"
+import NotificationBell from "../components/UI/NotificationBell"
 import CoinBadge from "../components/UI/CoinBadge"
 import Logo from "../assets/logo.png"
 import BroIcon from "../assets/Bro.png"
@@ -16,8 +16,6 @@ import CuteGirlIcon from "../assets/Girl.png"
 
 const Home = () => {
   const navigate = useNavigate()
-  const [showNoti, setShowNoti] = useState(false)
-
   const [profileImage] = useState(() => {
     if (!localStorage.getItem("token")) return Logo
     const savedImage = localStorage.getItem("avatarImage")
@@ -120,27 +118,7 @@ const Home = () => {
             <div className="flex justify-end items-center gap-2 sm:gap-4 shrink-0">
               <CoinBadge className="hidden sm:flex" />
 
-              <div className="relative">
-                <button
-                  onClick={() => setShowNoti(true)}
-                  className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95"
-                >
-                  <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
-                    notifications
-                  </span>
-                  <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
-                </button>
-
-                <Notification
-                  show={showNoti}
-                  type="info"
-                  title="APM AI แจ้งเตือน"
-                  message="สู้ๆน้า วันนี้เธอทำได้แน่นอน 💖✨"
-                  onClose={() => setShowNoti(false)}
-                  autoClose={true}
-                  duration={3000}
-                />
-              </div>
+              <NotificationBell />
 
               <button
                 type="button"

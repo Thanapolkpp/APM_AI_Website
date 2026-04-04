@@ -9,6 +9,7 @@ from app.models.user_room import UserRoom
 from app.models.avatar import Avatar
 from app.models.room import Room
 from app.models.user import User
+from app.services import notification_service
 
 router = APIRouter()
 
@@ -65,6 +66,15 @@ def buy_avatar(
     db.commit()
 
     message = f"เลือก {avatar.name} เป็นเพื่อนเริ่มต้นสำเร็จ! (ฟรีสำหรับการเลือกครั้งแรก)" if actual_price == 0 else f"ซื้อ {avatar.name} สำเร็จ"
+
+    notification_service.add_notification(
+        db=db,
+        user_id=current_user.id,
+        type="purchase",
+        title="ซื้อ Avatar สำเร็จ!",
+        message=message + (f" ใช้ไป {actual_price} coins" if actual_price > 0 else ""),
+    )
+
     return {
         "message": message,
         "coins_remaining": current_user.coins,
@@ -106,6 +116,15 @@ def buy_room(
     db.commit()
 
     message = f"เปลี่ยนมาใช้ {room.name} สำเร็จ! (ฟรีสำหรับการเลือกครั้งแรก)" if actual_price == 0 else f"ซื้อ {room.name} สำเร็จ"
+
+    notification_service.add_notification(
+        db=db,
+        user_id=current_user.id,
+        type="purchase",
+        title="ซื้อ Room สำเร็จ!",
+        message=message + (f" ใช้ไป {actual_price} coins" if actual_price > 0 else ""),
+    )
+
     return {
         "message": message,
         "coins_remaining": current_user.coins,

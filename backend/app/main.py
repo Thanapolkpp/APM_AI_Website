@@ -11,10 +11,12 @@ from app.api.v1.study_sheets import router as study_sheets_router
 from app.api.v1.todos import router as todos_router
 from app.api.v1.chat import router as chat_router
 from app.api.v1.user_profile import router as user_profile_router
+from app.api.v1.notifications import router as notifications_router
 from app.utils.db import engine, Base
 # นำเข้า models ทุกตัวเพื่อให้ SQLAlchemy มองเห็นตารางก่อนสร้าง
 from app.models import user, planner, avatar, room, user_avatar, user_room
 from app.models import study_sheet, todo, chat_history, user_sheet, password_reset_token
+from app.models import notification
 
 # สั่งสร้างตารางฐานข้อมูลทั้งหมด
 Base.metadata.create_all(bind=engine)
@@ -47,6 +49,7 @@ app.include_router(study_sheets_router, prefix="/api/v1/study-sheets", tags=["St
 app.include_router(todos_router, prefix="/api/v1/todos", tags=["Todos"])
 app.include_router(chat_router, prefix="/api/v1/chat", tags=["Chat"])
 app.include_router(user_profile_router, prefix="/api/v1/user", tags=["User Profile"])
+app.include_router(notifications_router, prefix="/api/v1/notifications", tags=["Notifications"])
 
 @app.get("/")
 def root():

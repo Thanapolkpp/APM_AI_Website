@@ -11,6 +11,7 @@ from app.utils.security import get_current_user
 from app.models.study_sheet import StudySheet
 from app.models.user_sheet import UserSheet
 from app.models.user import User
+from app.services import notification_service
 
 try:
     import PyPDF2
@@ -113,6 +114,14 @@ def upload_study_sheet(
 
     current_user.coins += 3
     db.commit()
+
+    notification_service.add_notification(
+        db=db,
+        user_id=current_user.id,
+        type="coin_earned",
+        title="ได้รับ Coin!",
+        message=f"อัปโหลดชีท '{title}' สำเร็จ ได้รับ +3 coins เป็นรางวัล!",
+    )
 
     return {
         "message": "อัปโหลดสำเร็จ",
@@ -259,6 +268,24 @@ def buy_sheet(
     new_purchase = UserSheet(buyer_id=current_user.id, sheet_id=sheet_id)
     db.add(new_purchase)
     db.commit()
+
+    # แจ้งเตือนผู้ซื้อ
+    notification_service.add_notification(
+        db=db,
+        user_id=current_user.id,
+        type="purchase",
+        title="ซื้อชีทสำเร็จ!",
+        message=f"คุณซื้อชีท '{sheet.title}' สำเร็จ ใช้ไป {sheet.price} coins",
+    )
+    # แจ้งเตือนผู้ขาย
+    if seller:
+        notification_service.add_notification(
+            db=db,
+            user_id=seller.id,
+            type="sale",
+            title="ชีทของคุณถูกซื้อแล้ว!",
+            message=f"ชีท '{sheet.title}' ถูกซื้อไปแล้ว คุณได้รับ +{sheet.price} coins",
+        )
 
     return {
         "message": f"ซื้อ Sheet '{sheet.title}' สำเร็จ",
