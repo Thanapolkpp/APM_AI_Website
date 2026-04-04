@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Logo from "../assets/logo.png";
 import CuteGirlIcon from "../assets/Girl.png"; // Decorative image for the side panel logic
 import BroIcon from "../assets/Bro.png";
+import { login } from "../services/aiService";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -32,6 +33,7 @@ const Login = () => {
 
         // ✅ ถ้าไม่ใช่ test → ยิง API จริง
         try {
+<<<<<<< HEAD
             const loginData = {
                 username: identifier.includes("@") ? "" : identifier,
                 email: identifier.includes("@") ? identifier : "",
@@ -59,6 +61,15 @@ const Login = () => {
             }
         } catch {
             setError("Unable to connect to the server. Please try again later.");
+=======
+            const data = await login(identifier, password);
+            localStorage.setItem("token", data.access_token);
+            localStorage.setItem("username", data.username);
+            localStorage.setItem("email", data.email);
+            navigate("/");
+        } catch (err) {
+            setError(err.response?.data?.detail || "Login failed. Please check your credentials.");
+>>>>>>> feature/backend
         } finally {
             setIsLoading(false);
         }

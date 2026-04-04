@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Logo from "../assets/logo.png";
 import BroIcon from "../assets/Bro.png";
 import NerdIcon from "../assets/Nerd.1.2.png";
+import { register } from "../services/aiService";
 
 const Register = () => {
     const navigate = useNavigate();
@@ -55,6 +56,7 @@ const Register = () => {
             return;
         }
         try {
+<<<<<<< HEAD
             const response = await fetch("http://localhost:8000/api/v1/user/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -74,6 +76,12 @@ const Register = () => {
             }
         } catch {
             setError("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
+=======
+            await register(formData.username, formData.email, formData.password);
+            navigate("/login");
+        } catch (err) {
+            setError(err.response?.data?.detail || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
+>>>>>>> feature/backend
         } finally {
             setIsLoading(false);
         }

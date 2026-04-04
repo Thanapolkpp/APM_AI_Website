@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../assets/logo.png";
+<<<<<<< HEAD
+=======
+import { forgotPassword } from "../services/aiService";
+>>>>>>> feature/backend
 
 const ForgotPassword = () => {
     const navigate = useNavigate();
@@ -15,6 +19,7 @@ const ForgotPassword = () => {
         setError("");
 
         try {
+<<<<<<< HEAD
             // ✅ ในฟีเจอร์นี้ต้องมีระบบ Backend ส่ง Email (เช่น SMTP)
             // สำหรับตัวอย่างนี้จะจำลองการรอผลชั่วคราว
             const response = await fetch("http://localhost:8000/api/v1/user/forgot-password", {
@@ -31,6 +36,12 @@ const ForgotPassword = () => {
             }
         } catch {
             setError("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ในขณะนี้");
+=======
+            await forgotPassword(email);
+            setIsSubmitted(true);
+        } catch (err) {
+            setError(err.response?.data?.detail || "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ในขณะนี้");
+>>>>>>> feature/backend
         } finally {
             setIsLoading(false);
         }

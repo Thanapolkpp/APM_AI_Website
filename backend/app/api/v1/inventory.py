@@ -104,6 +104,32 @@ def buy_room(
     }
 
 
+# ---------- Catalog (all items) ----------
+
+@router.get("/all-avatars")
+def get_all_avatars(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    avatars = db.query(Avatar).all()
+    return [
+        {"id": a.id, "name": a.name, "price": a.price, "model_path": a.model_path}
+        for a in avatars
+    ]
+
+
+@router.get("/all-rooms")
+def get_all_rooms(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    rooms = db.query(Room).all()
+    return [
+        {"id": r.id, "name": r.name, "price": r.price, "image_path": r.image_path}
+        for r in rooms
+    ]
+
+
 # ---------- Get Inventory ----------
 
 @router.get("/avatars")

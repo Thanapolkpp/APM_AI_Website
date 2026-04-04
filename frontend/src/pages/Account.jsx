@@ -8,6 +8,7 @@ import BroIcon from "../assets/Bro.png";
 import CuteGirlIcon from "../assets/Girl.png";
 import NerdIcon from "../assets/Nerd.1.2.png";
 import Notification from "../components/UI/Notification";
+import { getUserProfile } from "../services/aiService";
 
 
 const Account = () => {
@@ -16,11 +17,30 @@ const Account = () => {
     const [user, setUser] = useState({
         name: localStorage.getItem("username") || "Unknown User",
         email: localStorage.getItem("email") || "No email",
-        studentId: "66010xxx", // Dummy value
-        major: "Computer Science", // Dummy value
+        studentId: "66010xxx",
+        major: "Computer Science",
         joinedDate: "January 2024",
         preferredMode: localStorage.getItem("avatar") || "Cute Girl Mode",
+        coins: Number(localStorage.getItem("user_coins") || 0),
+        exp: 0,
     });
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        getUserProfile()
+            .then((data) => {
+                localStorage.setItem("user_coins", String(data.coins));
+                setUser((prev) => ({
+                    ...prev,
+                    name: data.username || prev.name,
+                    email: data.email || prev.email,
+                    coins: data.coins,
+                    exp: data.exp,
+                }));
+            })
+            .catch(() => {});
+    }, []);
 
     // รูปภาพสำรอง (Fallback) กรณีที่ยังไม่ได้เซฟรูป 3D
     const avatarMap = {
@@ -218,6 +238,26 @@ const Account = () => {
                                         <div>
                                             <p className="text-xs text-gray-500 font-medium">Email Address</p>
                                             <p className="font-bold text-gray-800 dark:text-gray-200">{user.email}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4 bg-white/70 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100/50 dark:border-gray-700/50">
+                                        <div className="w-10 h-10 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500 dark:text-yellow-400 flex items-center justify-center">
+                                            <span className="material-symbols-outlined">toll</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-medium">Coins</p>
+                                            <p className="font-bold text-gray-800 dark:text-gray-200">{user.coins} 🪙</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4 bg-white/70 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-100/50 dark:border-gray-700/50">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-500 dark:text-purple-400 flex items-center justify-center">
+                                            <span className="material-symbols-outlined">star</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-medium">EXP</p>
+                                            <p className="font-bold text-gray-800 dark:text-gray-200">{user.exp} XP</p>
                                         </div>
                                     </div>
 
