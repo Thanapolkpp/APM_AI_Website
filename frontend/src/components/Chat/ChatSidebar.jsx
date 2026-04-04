@@ -1,4 +1,5 @@
 import React from "react"
+import { createPortal } from "react-dom"
 import { useNavigate, useParams } from "react-router-dom"
 import broImg from "../../assets/Bro.png"
 import girlImg from "../../assets/Girl.png"
@@ -32,11 +33,8 @@ const ChatSidebar = () => {
     ]
 
     const [history, setHistory] = React.useState([])
+    const [selectedHistory, setSelectedHistory] = React.useState(null)
     const [exp, setExp] = React.useState(0)
-    const [ownedIds, setOwnedIds] = React.useState(() => {
-        const saved = localStorage.getItem("owned_avatars")
-        return saved ? JSON.parse(saved) : ["nerd"] // Local fallback still helps UI
-    })
 
     React.useEffect(() => {
         const token = localStorage.getItem("token")
@@ -44,25 +42,12 @@ const ChatSidebar = () => {
 
         const fetchData = async () => {
             try {
-                const [historyData, profileData, ownedData] = await Promise.all([
+                const [historyData, profileData] = await Promise.all([
                     fetchChatHistory(),
-                    getUserProfile(),
-                    fetchOwnedAvatars()
+                    getUserProfile()
                 ])
-                setHistory(historyData.slice(0, 3))
+                setHistory(historyData)
                 setExp(profileData.exp ?? 0)
-                
-                // Map model_path to local IDs
-                const normalize = (p) => p?.replace(/^\/|^\.\//, "")
-                const idMap = {
-                    "models/bro.glb": "bro",
-                    "models/girl.glb": "girl",
-                    "models/nerd.glb": "nerd"
-                }
-                const dbIds = ownedData.map(a => idMap[normalize(a.model_path)]).filter(Boolean)
-                const finalOwned = [...new Set(dbIds)]
-                setOwnedIds(finalOwned)
-                localStorage.setItem("owned_avatars", JSON.stringify(finalOwned))
             } catch (err) {
                 console.error("Failed to fetch sidebar data", err)
             }
@@ -82,11 +67,7 @@ const ChatSidebar = () => {
     }
 
     const handleAvatarClick = (id) => {
-        if (ownedIds.includes(id)) {
-            navigate(`/chat/${id}`)
-        } else {
-            navigate("/avatar")
-        }
+        navigate(`/chat/${id}`)
     }
 
     return (
@@ -105,7 +86,6 @@ const ChatSidebar = () => {
                 {/* Avatar Selection List */}
                 <div className="flex flex-row lg:flex-col gap-3 justify-center lg:justify-start overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 scrollbar-hide">
                     {avatars.map(a => {
-                        const isOwned = ownedIds.includes(a.id)
                         return (
                             <button
                                 key={a.id}
@@ -114,7 +94,6 @@ const ChatSidebar = () => {
                                 ${selectedAvatar === a.id
                                         ? `${a.glow} bg-white border-white scale-102`
                                         : "border-transparent bg-white/20 hover:bg-white/50 hover:scale-101"}
-                                ${!isOwned ? 'opacity-70 grayscale-[0.5]' : ''}
                                 `}
                             >
                                 <div className="relative">
@@ -125,20 +104,13 @@ const ChatSidebar = () => {
                                         `}
                                         alt={a.name}
                                     />
-                                    {!isOwned && (
-                                        <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
-                                            <Lock size={14} className="text-white" />
-                                        </div>
-                                    )}
                                 </div>
                                 <div className="flex flex-col items-start leading-tight">
                                     <span className={`font-black text-xs lg:text-sm transition-colors flex items-center gap-1.5
                                     ${selectedAvatar === a.id ? "text-gray-900" : "text-gray-600 group-hover:text-gray-900"}
                                     `}>
                                         {a.name}
-                                        {isOwned && a.id !== "nerd" && <Heart size={10} className="text-pink-400 fill-pink-400" />}
                                     </span>
-                                    {!isOwned && <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Locked</span>}
                                 </div>
                             </button>
                         );
@@ -154,10 +126,39 @@ const ChatSidebar = () => {
                     <div className="space-y-3">
                         {history.length > 0 ? (
                             history.map((item, idx) => (
-                                <div key={idx} className="bg-white/40 p-4 rounded-[24px] border border-white/60 shadow-sm transition-all hover:translate-x-1 hover:bg-white/60 cursor-default">
+                                <div 
+                                    key={idx} 
+                                    onClick={() => {
+                                        const targetMode = item.mode || "bro";
+                                        navigate(`/chat/${targetMode}`);
+                                        
+                                        // หน่วงเวลาเล็กน้อยเพื่อให้ ChatWindow อัปเดตโหมดตาม URL ก่อน
+                                        setTimeout(() => {
+                                            const event = new CustomEvent("loadSelectedHistory", { detail: item });
+                                            window.dispatchEvent(event);
+                                        }, 50);
+                                    }}
+                                    className={`bg-white/40 p-4 rounded-[24px] border border-white/60 shadow-sm transition-all hover:translate-x-1 cursor-pointer
+                                        ${item.mode === "bro" ? "hover:bg-blue-50 hover:border-blue-200" 
+                                        : item.mode === "nerd" ? "hover:bg-emerald-50 hover:border-emerald-200" 
+                                        : "hover:bg-pink-50 hover:border-pink-200"}`}
+                                >
                                     <div className="flex gap-2 items-center mb-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-pink-400"></div>
-                                        <span className="text-[10px] font-bold text-gray-400">ล่าสุด</span>
+                                        <div className={`w-1.5 h-1.5 rounded-full 
+                                            ${item.mode === "bro" ? "bg-blue-400" 
+                                            : item.mode === "nerd" ? "bg-emerald-400" 
+                                            : "bg-pink-400"}`}
+                                        ></div>
+                                        <span className={`text-[10px] font-bold uppercase tracking-wider
+                                            ${item.mode === "bro" ? "text-blue-400" 
+                                            : item.mode === "nerd" ? "text-emerald-500" 
+                                            : "text-pink-400"}`}
+                                        >
+                                            {item.mode || "GIRL"}
+                                        </span>
+                                        <span className="text-[10px] font-bold text-gray-400 ml-auto">
+                                            {item.created_at ? new Date(item.created_at).toLocaleDateString('th-TH') : "ล่าสุด"}
+                                        </span>
                                     </div>
                                     <p className="text-[12px] font-bold text-gray-700 line-clamp-2 leading-relaxed italic">
                                         "{item.user_message}"

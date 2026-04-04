@@ -1,15 +1,16 @@
 import base64
 import requests
 import os
-import json
+import tempfile
+from gradio_client import Client, handle_file
+from typing import Optional
 
-# ตั้งค่า URL และชื่อโมเดลที่คุณรันสำเร็จ (100% GPU)
-OLLAMA_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/chat")
-# เปลี่ยนชื่อโมเดลเป็นตัวที่คุณเพิ่งสร้าง (genz-ai)
+# ─── Config ──────────────────────────────────────────────────
+GRADIO_URL = os.getenv("GRADIO_URL", "https://3d53d19c1711b9997b.gradio.live/")
 MODEL_NAME = "apm-genz"
 
+# ─── Persona ─────────────────────────────────────────────────
 def _build_persona(mode: str) -> str:
-    # Core Mindset for APM Assistant AI
     core_mindset = (
         "คุณคือ APM Assistant AI ที่ปรึกษานักศึกษามหาวิทยาลัย\n"
         "หลักคิดที่ต้องใช้เมื่อเหมาะสม:\n"
@@ -19,9 +20,9 @@ def _build_persona(mode: str) -> str:
     )
 
     instructions = {
-        "bro": "โทน: เพื่อนผู้ชาย คุยตรง กระชับ มั่นใจ จริงใจ เป็นกันเองได้แต่ห้ามหยาบคาย ห้ามลากเสียง",
-        "girl": "โทน: เพื่อนสาว (Sis) คุยตรง กระชับ มั่นใจ จริงใจ ให้คำแนะนำแบบเพื่อนที่หวังดี ห้ามลากเสียง",
-        "nerd": "โทน: ที่ปรึกษาสายวิเคราะห์ ข้อมูลแม่นยำ เป็นระบบ และกระชับ ห้ามลากเสียง",
+        "bro": "โทน: เพื่อนผู้ชาย คุยตรง กระชับ มั่นใจ แทนตัวเองว่า 'เรา' หรือ 'ผม' บังคับลงท้ายด้วย 'ครับ' เสมอ (ห้ามใช้ 'ค่ะ' หรือ 'คะ')",
+        "girl": "โทน: เพื่อนสาว (Sis) ตัวแม่ คุยตรง กระชับ ให้คำแนะนำแบบหวังดี แทนตัวเองว่า 'เรา' หรือ 'ฉัน' **บังคับลงท้ายด้วย 'ค่ะ' หรือ 'คะ' เสมอ (ห้ามใช้ 'ครับ' เด็ดขาด)**",
+        "nerd": "โทน: ที่ปรึกษาสายวิเคราะห์ ข้อมูลแม่นยำ เป็นระบบ แทนตัวเองว่า 'ผม' **บังคับลงท้ายด้วย 'ครับ' เสมอ**",
     }
 
     persona_mode = instructions.get(
@@ -30,71 +31,141 @@ def _build_persona(mode: str) -> str:
     )
 
     format_rules = (
-        "\n\n**ข้อกำหนดสำคัญ:**\n"
+        "\n\n**ข้อกำหนดสำคัญที่ต้องทำตามอย่างเคร่งครัด:**\n"
         "- ห้ามลากเสียงหรือยืดคำเด็ดขาด (เช่น แกรรร, นะคะะะ, ครับบบบ)\n"
+        "- ตรวจสอบคำลงท้ายให้ถูกต้องตามเพศของโหมด ห้ามหลุดคำลงท้ายของเพศอื่นเด็ดขาด\n"
         "- น้ำเสียงต้อง มั่นใจ ตรงไปตรงมา กระชับ และจริงใจ\n"
         "- ใช้ Markdown: **ตัวหนา**, - Bullet points เพื่อให้อ่านง่าย\n"
     )
 
     return f"{core_mindset}\n{persona_mode}\n{format_rules}"
 
+
+# ─── Gradio Client ───────────────────────────────────────────
+gradio_client_instance = None
+
+def get_gradio_client():
+    global gradio_client_instance
+    if gradio_client_instance is None:
+        try:
+            gradio_client_instance = Client(GRADIO_URL)
+            print(f"✅ Connected to Gradio: {GRADIO_URL}")
+        except Exception as e:
+            print(f"❌ Error connecting to Gradio: {e}")
+            gradio_client_instance = None
+    return gradio_client_instance
+
+def reset_gradio_client(new_url: str = None):
+    """เรียกใช้เมื่อ Gradio URL เปลี่ยน"""
+    global gradio_client_instance, GRADIO_URL
+    if new_url:
+        GRADIO_URL = new_url
+        os.environ["GRADIO_URL"] = new_url
+    gradio_client_instance = None
+    print(f"🔄 Reset client — URL ใหม่: {GRADIO_URL}")
+
+
+# ─── ฟังก์ชันกลาง — ยิง Gradio ──────────────────────────────
+def _call_gradio(message: str, mode: str, file_path: Optional[str] = None) -> str:
+    """
+    ยิง Gradio API
+    - api_name : /chat
+    - params   : message, file, mode
+    """
+    client = get_gradio_client()
+    if client is None:
+        raise Exception("ไม่สามารถเชื่อมต่อกับ Gradio ได้")
+
+    # ประกอบ Persona เข้าไปใน prompt
+    persona_prompt = _build_persona(mode)
+    full_prompt = f"{persona_prompt}\n\n[ข้อความจากผู้ใช้/บริบท]:\n{message}"
+
+    result = client.predict(
+        message=full_prompt,
+        file=handle_file(file_path) if file_path else None,
+        mode=mode,
+        api_name="/chat"
+    )
+    return str(result).strip()
+
+
+# ─── ข้อความธรรมดา ───────────────────────────────────────────
 def get_ai_response(prompt: str, mode: str):
-    persona = _build_persona(mode)
-    final_prompt = f"{persona}\n\nคำถาม: {prompt}"
-
-    payload = {
-        "model": MODEL_NAME,
-        "messages": [{"role": "user", "content": final_prompt}],
-        "stream": False,  # ปรับเป็น False เพื่อให้ใช้ res.json() ได้โดยไม่พัง
-        "options": {
-            "temperature": 0.4,
-            "top_p": 0.9,
-            "repeat_penalty": 1.1, # ปรับลดลงเล็กน้อยเพื่อให้ภาษาเป็นธรรมชาติขึ้น
-            "num_predict": 1500,
-            "stop": ["</END>"]
-        },
-    }
-
-    res = requests.post(OLLAMA_URL, json=payload, timeout=90)
-    res.raise_for_status()
-    
-    # อ่านข้อมูลแบบปกติ
-    data = res.json()
-    reply = data.get("message", {}).get("content", "").strip()
-    return {"reply": reply}
+    try:
+        reply = _call_gradio(message=prompt, mode=mode)
+        return {"reply": reply}
+    except Exception as e:
+        print(f"❌ get_ai_response Error: {e}")
+        return {"reply": f"เกิดข้อผิดพลาด: {str(e)}"}
 
 
-from typing import Optional
-
+# ─── รูปภาพ ──────────────────────────────────────────────────
 async def get_ai_response_with_image(prompt: str, mode: str, image_data: Optional[bytes]):
-    persona = _build_persona(mode)
-    final_prompt = f"{persona}\n\nคำถาม: {prompt}"
+    tmp_path = None
+    try:
+        if image_data:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
+                tmp.write(image_data)
+                tmp_path = tmp.name
 
-    images_b64 = []
+        reply = _call_gradio(message=prompt, mode=mode, file_path=tmp_path)
+        return {"reply": reply}
+
+    except Exception as e:
+        print(f"❌ Image Error: {e}")
+        return {"reply": f"เกิดข้อผิดพลาด (รูปภาพ): {str(e)}"}
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+
+# ─── PDF ─────────────────────────────────────────────────────
+async def get_ai_response_with_pdf(prompt: str, mode: str, pdf_data: Optional[bytes]):
+    tmp_path = None
+    try:
+        import fitz  # pymupdf
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            tmp.write(pdf_data)
+            tmp_path = tmp.name
+
+        # แปลง PDF → ข้อความ
+        doc = fitz.open(tmp_path)
+        pdf_text = ""
+        for page in doc:
+            pdf_text += page.get_text()
+        pdf_text = pdf_text[:4000]
+
+        final_prompt = f"{prompt}\n\n[เนื้อหาจาก PDF]\n{pdf_text}"
+        reply = _call_gradio(message=final_prompt, mode=mode)
+        return {"reply": reply}
+
+    except ImportError:
+        return {"reply": "กรุณาติดตั้ง pymupdf ก่อน: pip install pymupdf"}
+    except Exception as e:
+        print(f"❌ PDF Error: {e}")
+        return {"reply": f"เกิดข้อผิดพลาด (PDF): {str(e)}"}
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+
+# ─── ฟังก์ชันหลัก — รับทุกอย่าง ─────────────────────────────
+async def get_ai_response_with_file(
+    prompt: str,
+    mode: str,
+    image_data: Optional[bytes] = None,
+    pdf_data: Optional[bytes] = None,
+):
+    """
+    ฟังก์ชันหลักสำหรับเรียกใช้จาก Backend
+    - image_data : bytes ของรูปภาพ (jpg, png, webp)
+    - pdf_data   : bytes ของไฟล์ PDF
+    - ถ้าไม่มีไฟล์ : ตอบจากข้อความอย่างเดียว
+    """
     if image_data:
-        images_b64 = [base64.b64encode(image_data).decode("utf-8")]
-
-    payload = {
-        "model": MODEL_NAME,
-        "messages": [
-            {
-                "role": "user",
-                "content": final_prompt,
-                "images": images_b64
-            }
-        ],
-        "stream": False, # ปรับเป็น False เพื่อความเสถียร
-        "options": {
-            "temperature": 0.3,
-            "repeat_penalty": 1.1,
-            "num_predict": 1500,
-            "stop": ["</END>"]
-        },
-    }
-
-    res = requests.post(OLLAMA_URL, json=payload, timeout=120)
-    res.raise_for_status()
-    
-    data = res.json()
-    reply = data.get("message", {}).get("content", "").strip()
-    return {"reply": reply}
+        return await get_ai_response_with_image(prompt, mode, image_data)
+    elif pdf_data:
+        return await get_ai_response_with_pdf(prompt, mode, pdf_data)
+    else:
+        return get_ai_response(prompt, mode)

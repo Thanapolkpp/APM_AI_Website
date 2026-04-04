@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean
 from app.utils.db import Base
 
 class User(Base):
@@ -10,3 +10,4 @@ class User(Base):
     hashed_password = Column(String(255))
     coins = Column(Integer, default=30)
     exp = Column(Integer, default=0)
+    has_claimed_test_reward = Column(Boolean, default=False)

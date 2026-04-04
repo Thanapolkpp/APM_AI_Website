@@ -5,7 +5,9 @@ const MessageList = ({ messages, isLoading, messagesEndRef, mode }) => {
     return (
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/50 backdrop-blur-sm custom-scrollbar">
             {messages.map((msg, i) => (
-                <MessageItem key={i} message={msg} mode={mode} />
+                <div key={i} id={msg.historyId ? `history-${msg.historyId}` : undefined}>
+                    <MessageItem message={msg} mode={mode} />
+                </div>
             ))}
 
             {isLoading && (

@@ -2,13 +2,17 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/footer";
+import CoinBadge from "../components/UI/CoinBadge";
 import Logo from "../assets/logo.png";
+
 import BroIcon from "../assets/Bro.png";
 import NerdIcon from "../assets/Nerd.1.2.png";
 import CuteGirlIcon from "../assets/Girl.png";
 
 const Event = () => {
     const navigate = useNavigate();
+    const [isClaimed, setIsClaimed] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(false);
 
     const [profileImage] = React.useState(() => {
         if (!localStorage.getItem("token")) return Logo;
@@ -18,6 +22,56 @@ const Event = () => {
         const map = { girl: CuteGirlIcon, nerd: NerdIcon, bro: BroIcon };
         return map[savedAvatar.toLowerCase()] || BroIcon;
     });
+
+    React.useEffect(() => {
+        const checkStatus = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            try {
+                const response = await fetch("http://localhost:8000/api/v1/user/me", {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setIsClaimed(data.has_claimed_test_reward);
+                }
+            } catch (error) {
+                console.error("Error fetching status:", error);
+            }
+        };
+        checkStatus();
+    }, []);
+
+    const handleClaim = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/login");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await fetch("http://localhost:8000/api/v1/user/claim-test-reward", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                setIsClaimed(true);
+                // สั่งเปิดลิ้งแบบประเมิน
+                window.open("https://docs.google.com/forms/d/e/1FAIpQLSegQ66d04YKhqMBLo6X946tg_cokeUwgbAwJZ2ngdocyvZ9_w/viewform?usp=publish-editor", "_blank");
+            } else {
+                const errorData = await response.json();
+                alert(errorData.detail || "เกิดข้อผิดพลาดในการรับรางวัล");
+            }
+        } catch (error) {
+            console.error("Error claiming reward:", error);
+            alert("ไม่สามารถติดต่อเซิร์ฟเวอร์ได้");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex flex-col">
@@ -52,8 +106,11 @@ const Event = () => {
 
                     {/* ✅ Right */}
                     <div className="flex justify-end items-center gap-3 shrink-0">
+                        <CoinBadge className="scale-90" />
+                        
                         {/* Notification */}
                         <button className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95">
+
                             <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
                                 notifications
                             </span>
@@ -81,26 +138,91 @@ const Event = () => {
                 </div>
             </header>
 
-            <main className="flex-1 flex items-center justify-center px-6 py-16">
-                <div className="text-center bg-white/70 dark:bg-gray-800/40 backdrop-blur-md border border-white/40 dark:border-gray-700 rounded-[2.5rem] shadow-xl px-10 py-12 max-w-xl w-full">
-                    <p className="text-sm font-bold text-pink-500 dark:text-pink-400 mb-3">
-                        Event Feature
+            <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
+                {/* Section Header */}
+                <div className="text-center mb-10 max-w-2xl px-6">
+                    <h2 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white mb-4 tracking-tight leading-tight">
+                        กิจกรรมพิเศษ 🎉
+                    </h2>
+                    <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg font-bold">
+                        ร่วมสนุกกับกิจกรรมในระบบ เพื่อรับรางวัลสุดพรีเมียม!
                     </p>
+                </div>
 
-                    <h1 className="text-4xl md:text-5xl font-black text-gray-800 dark:text-white mb-4">
-                        COMING SOON
-                    </h1>
+                {/* Event Card */}
+                <div className="w-full max-w-2xl bg-white/40 dark:bg-white/5 backdrop-blur-3xl border border-white/60 dark:border-white/10 rounded-[48px] p-8 sm:p-12 shadow-2xl transition-all hover:scale-[1.02] duration-500">
+                    <div className="flex flex-col sm:flex-row items-center gap-8">
+                        {/* Event Icon/Graphic */}
+                        <div className="relative shrink-0">
+                            <div className="size-32 sm:size-40 rounded-[40px] bg-gradient-to-br from-primary/30 to-pink-300/30 flex items-center justify-center p-8 backdrop-blur-sm shadow-inner group">
+                                <span className="material-symbols-outlined text-6xl sm:text-7xl text-primary animate-pulse">
+                                    rocket_launch
+                                </span>
+                            </div>
+                            {/* Floating Badges */}
+                            <div className="absolute -top-4 -right-4 bg-yellow-400 text-white text-[12px] font-black px-4 py-1.5 rounded-full shadow-lg border-2 border-white animate-bounce">
+                                NEW!
+                            </div>
+                        </div>
 
-                    <p className="text-gray-600 dark:text-gray-300 text-base md:text-lg leading-relaxed">
-                        ฟีเจอร์ Event กำลังอยู่ระหว่างพัฒนา <br />
-                        อีกไม่นานจะมาให้ใช้งานแน่นอนน้า
-                    </p>
+                        {/* Content */}
+                        <div className="flex-1 text-center sm:text-left">
+                            <h3 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mb-3">
+                                เข้าร่วมทดสอบเว็บไซต์ 🚀
+                            </h3>
+                            <p className="text-gray-500 dark:text-gray-300 font-bold mb-6 italic sm:text-lg">
+                                สำหรับผู้ใช้ใหม่ที่เข้าร่วมทดสอบระบบ Beta Test วันนี้!
+                            </p>
 
-                    <div className="mt-8 flex justify-center">
-                        <div className="h-[6px] w-28 rounded-full bg-gradient-to-r from-pink-400/60 to-sky-400/60 blur-[1px]" />
+                            {/* Rewards Box */}
+                            <div className="flex flex-wrap justify-center sm:justify-start gap-4 mb-8">
+                                <div className="bg-yellow-100/80 dark:bg-yellow-500/20 px-5 py-3 rounded-2xl flex items-center gap-3 border border-yellow-200/50">
+                                    <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 font-black">
+                                        database
+                                    </span>
+                                    <span className="text-yellow-700 dark:text-yellow-300 font-black text-lg">
+                                        50 Coins
+                                    </span>
+                                </div>
+                                <div className="bg-primary/10 px-5 py-3 rounded-2xl flex items-center gap-3 border border-primary/20">
+                                    <span className="material-symbols-outlined text-primary font-black">
+                                        temp_preferences_custom
+                                    </span>
+                                    <span className="text-primary font-black text-lg">
+                                        30 EXP
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Status Button */}
+                            <div className="w-full">
+                                <button
+                                    onClick={handleClaim}
+                                    disabled={isClaimed || isLoading}
+                                    className={`w-full sm:w-auto px-10 py-4 font-black text-lg rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95 ${isClaimed
+                                        ? 'bg-gray-400 text-white cursor-not-allowed shadow-none'
+                                        : 'bg-primary text-white shadow-primary/30 hover:bg-primary/90'
+                                        }`}
+                                >
+                                    <span className="material-symbols-outlined">
+                                        {isLoading ? 'autorenew' : (isClaimed ? 'check_circle' : 'redeem')}
+                                    </span>
+                                    {isLoading ? 'กำลังโหลด...' : (isClaimed ? 'รับรางวัลแล้ว' : 'รับของรางวัล')}
+                                </button>
+                                <p className="mt-3 text-xs font-bold text-gray-400 dark:text-gray-500 italic">
+                                    * รางวัลจะถูกเพิ่มเข้าบัญชีของคุณโดยอัตโนมัติ และจะเปิดแบบประเมินให้ทำจ้า
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <div className="mt-12 text-center text-gray-400 dark:text-gray-600 font-bold text-sm italic">
+                    ติดตามกิจกรรมใหม่ๆ ได้ที่นี่เร็วๆ นี้... 🌸
+                </div>
             </main>
+
+
 
             <Footer />
         </div>

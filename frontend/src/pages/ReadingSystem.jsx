@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { HiOutlineClock, HiOutlinePlay, HiOutlinePause, HiOutlineX } from "react-icons/hi"
-import { Timer, Music, CloudRain, Coffee, Library, Trees, Sparkles, Play, Pause, RotateCcw, Youtube, Maximize, Minimize, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Timer, Music, CloudRain, Coffee, Library, Trees, Sparkles, Play, Pause, RotateCcw, Youtube, Maximize, Minimize, AlertCircle, CheckCircle2, MinusCircle, PlusCircle, Coins, Heart, Sun, EyeOff, Bell, Star } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import Navbar from "../components/Layout/Navbar"
 import Footer from "../components/Layout/footer"
@@ -12,12 +12,20 @@ import BroIcon from "../assets/Bro.png"
 import NerdIcon from "../assets/Nerd.1.2.png"
 import CuteGirlIcon from "../assets/Girl.png"
 import MotionReading from "../assets/Motion_Readding.gif"
+import TableImg from "../assets/Table.png"
+import Glass from "../assets/GlassBear.gif"
+import Speech from "../assets/SpeakerAPM.gif"
 
 
 const ReadingSystem = () => {
     const navigate = useNavigate()
     const { addCoins } = useCoins()
-    const [timeLeft, setTimeLeft] = useState(25 * 60)
+
+    // Custom durations state
+    const [focusDuration, setFocusDuration] = useState(25 * 60)
+    const [breakDuration, setBreakDuration] = useState(5 * 60)
+
+    const [timeLeft, setTimeLeft] = useState(focusDuration)
     const [isActive, setIsActive] = useState(false)
     const [currentMode, setCurrentMode] = useState("Focus") // Focus, Break
     const [selectedAmbience, setSelectedAmbience] = useState("None")
@@ -26,9 +34,34 @@ const ReadingSystem = () => {
 
     // Custom Alert State
     const [customAlert, setCustomAlert] = useState({ isOpen: false, message: "", type: "info" })
+    const [staticMotionImg, setStaticMotionImg] = useState(null)
+    const [staticGlass, setStaticGlass] = useState(null)
+    const [staticSpeech, setStaticSpeech] = useState(null)
+
     const showCustomAlert = (message, type = "info") => {
         setCustomAlert({ isOpen: true, message, type })
     }
+
+    // Capture first frame of the GIFs to use them when paused
+    useEffect(() => {
+        const captureFrame = (src, setState) => {
+            const img = new Image()
+            img.src = src
+            img.onload = () => {
+                const canvas = document.createElement("canvas")
+                canvas.width = img.width || 500
+                canvas.height = img.height || 500
+                const ctx = canvas.getContext("2d")
+                ctx.drawImage(img, 0, 0)
+                setState(canvas.toDataURL("image/png"))
+            }
+        }
+
+        captureFrame(MotionReading, setStaticMotionImg)
+        captureFrame(Glass, setStaticGlass)
+        captureFrame(Speech, setStaticSpeech)
+    }, [])
+
 
     const timerRef = useRef(null)
 
@@ -52,7 +85,7 @@ const ReadingSystem = () => {
             setYoutubeId(id)
             setSelectedAmbience("YouTube")
         } else {
-            showCustomAlert("ใส่ลิ้ง YouTube ให้ถูกต้องหน่อยนะเพื่อน! 🌸", "error")
+            showCustomAlert(<span className="flex items-center justify-center gap-2">ใส่ลิ้ง YouTube ให้ถูกต้องหน่อยนะเพื่อน! <AlertCircle size={18} className="text-red-500" /></span>, "error")
         }
     }
 
@@ -67,9 +100,9 @@ const ReadingSystem = () => {
             if (currentMode === "Focus") {
                 addCoins(5) // แลกเป็นเหรียญเมื่อจดจ่อสำเร็จ
                 updateExp(10).catch(() => { }) // เพิ่ม EXP ความสนิท
-                showCustomAlert("ดีมากเลยเพื่อน! รับไปเลย 5 เหรียญ! 🪙 พักสักนิดมั้ยจ๊ะ? 🌷", "success")
+                showCustomAlert(<span className="flex items-center justify-center gap-2 flex-wrap">ดีมากเลยเพื่อน! รับไปเลย 5 เหรียญ! <Coins size={18} className="text-yellow-500" /> พักสักนิดมั้ยจ๊ะ? <Heart size={18} className="text-pink-500" /></span>, "success")
             } else {
-                showCustomAlert("พร้อมกลับไปลุยต่อรึยัง?! ✨", "success")
+                showCustomAlert(<span className="flex items-center justify-center gap-2">พร้อมกลับไปลุยต่อรึยัง?! <Sparkles size={18} className="text-yellow-500" /></span>, "success")
             }
         } else {
             clearInterval(timerRef.current)
@@ -82,7 +115,7 @@ const ReadingSystem = () => {
         const handleVisibilityChange = () => {
             if (document.hidden && isActive && currentMode === "Focus") {
                 setIsActive(false)
-                showCustomAlert("แอบหนีไปเล่นอย่างอื่นเหรอ?! 🫣 เราหยุดเวลาไว้ให้แล้วนะ กลับมาตั้งใจต่อเร็ว! ✨", "info")
+                showCustomAlert(<span className="flex flex-col items-center gap-2 text-center"><span>แอบหนีไปเล่นอย่างอื่นเหรอ?! <EyeOff size={18} className="text-gray-500 inline" /></span> <span>เราหยุดเวลาไว้ให้แล้วนะ กลับมาตั้งใจต่อเร็ว! <Sparkles size={18} className="text-yellow-500 inline" /></span></span>, "info")
             }
         }
 
@@ -109,14 +142,23 @@ const ReadingSystem = () => {
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
     }
 
+    const adjustTime = (minutes) => {
+        const newSeconds = timeLeft + (minutes * 60);
+        if (newSeconds < 60) return; // Minimum 1 minute
+
+        setTimeLeft(newSeconds);
+        if (currentMode === "Focus") setFocusDuration(newSeconds);
+        else setBreakDuration(newSeconds);
+    }
+
     const resetTimer = () => {
         setIsActive(false)
-        setTimeLeft(currentMode === "Focus" ? 25 * 60 : 5 * 60)
+        setTimeLeft(currentMode === "Focus" ? focusDuration : breakDuration)
     }
 
     const switchMode = (mode) => {
         setCurrentMode(mode)
-        setTimeLeft(mode === "Focus" ? 25 * 60 : 5 * 60)
+        setTimeLeft(mode === "Focus" ? focusDuration : breakDuration)
         setIsActive(false)
     }
 
@@ -147,50 +189,120 @@ const ReadingSystem = () => {
 
                     {/* Right: Coins & Profile */}
                     <div className="flex justify-end items-center gap-4 shrink-0">
-                        <CoinBadge className="hidden sm:flex" />
+                        <CoinBadge className="scale-90" />
                         <img src={profileImage} className="size-10 rounded-full border-2 border-primary shadow-sm" />
                     </div>
+
                 </div>
             </header>
 
             <main className="flex-1 w-full max-w-6xl mx-auto py-12 px-6 flex flex-col items-center text-center">
                 {/* Timer Display Card */}
                 <div className="w-full max-w-2xl bg-white/40 dark:bg-white/5 backdrop-blur-3xl border border-white/60 dark:border-white/10 rounded-[64px] p-12 shadow-2xl flex flex-col items-center mb-12">
-                    
+
                     {/* 1. Mode Switcher at Top */}
-                    <div className="flex gap-4 mb-10 bg-white/40 dark:bg-white/10 p-2 rounded-3xl border border-white/60 dark:border-white/10">
-                        <button
-                            onClick={() => switchMode("Focus")}
-                            className={`px-8 py-3 rounded-2xl font-black text-sm transition-all ${currentMode === 'Focus' ? 'bg-primary text-white shadow-xl translate-y-[-2px]' : 'text-gray-500 hover:text-gray-900'}`}
-                        >
-                            Focus Time
-                        </button>
-                        <button
-                            onClick={() => switchMode("Break")}
-                            className={`px-8 py-3 rounded-2xl font-black text-sm transition-all ${currentMode === 'Break' ? 'bg-emerald-500 text-white shadow-xl translate-y-[-2px]' : 'text-gray-500 hover:text-gray-900'}`}
-                        >
-                            Short Break
-                        </button>
+                    <div className="flex flex-col items-center mb-10 gap-3">
+                        <div className="flex gap-4 bg-white/40 dark:bg-white/10 p-2 rounded-3xl border border-white/60 dark:border-white/10">
+                            <button
+                                onClick={() => switchMode("Focus")}
+                                className={`px-8 py-3 rounded-2xl font-black text-sm transition-all ${currentMode === 'Focus' ? 'bg-primary text-white shadow-xl translate-y-[-2px]' : 'text-gray-500 hover:text-gray-900'}`}
+                            >
+                                Focus Time
+                            </button>
+                            <button
+                                onClick={() => switchMode("Break")}
+                                className={`px-8 py-3 rounded-2xl font-black text-sm transition-all ${currentMode === 'Break' ? 'bg-emerald-500 text-white shadow-xl translate-y-[-2px]' : 'text-gray-500 hover:text-gray-900'}`}
+                            >
+                                Short Break
+                            </button>
+                        </div>
+
+                        {/* คำอธิบายการได้รางวัล */}
+                        {currentMode === 'Focus' && (
+                            <div className="bg-primary/10 text-primary px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in zoom-in duration-300">
+                                <Sparkles size={16} className="text-yellow-500" />
+                                โฟกัสครบตามเวลาที่คุณตั้งไว้ รับไปเลย <span className="text-yellow-600">5 เหรียญ</span> และ <span className="text-pink-500">10 EXP</span> ทุกรอบ! <Star size={16} className="fill-yellow-500 text-yellow-500" />
+                            </div>
+                        )}
+                        {currentMode === 'Break' && (
+                            <div className="bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in zoom-in duration-300">
+                                <Coffee size={16} />
+                                พักสมองให้เต็มที่ ไม่ได้เหรียญนะจ๊ะ!
+                            </div>
+                        )}
                     </div>
 
                     {/* 2. Integrated Motion Visual Section */}
                     <div className="mb-8 w-full max-w-md flex justify-center perspective-1000">
-                        <div className={`relative transition-all duration-700 transform ${isActive ? 'scale-110' : 'scale-100'}`}>
+                        <div className={`relative transition-all duration-700 transform flex flex-col items-center ${isActive ? 'scale-110' : 'scale-100'}`}>
                             <div className={`absolute -inset-6 bg-gradient-to-tr from-primary/30 via-transparent to-pink-300/30 blur-[60px] rounded-full transition-opacity duration-1000 ${isActive ? 'opacity-100 animate-pulse' : 'opacity-0'}`}></div>
-                            <img 
-                                src={MotionReading} 
-                                alt="Reading Motion" 
-                                className="w-72 h-72 object-contain relative z-10 drop-shadow-[0_20px_60px_rgba(0,0,0,0.15)]"
+
+                            {/* Character GIF or Static frame */}
+                            <img
+                                src={isActive ? MotionReading : (staticMotionImg || MotionReading)}
+                                alt="Reading Motion"
+                                className="w-72 h-72 object-contain relative z-10 drop-shadow-[0_20px_60px_rgba(0,0,0,0.15)] mb-[-2rem] transition-all"
+                                style={{ filter: isActive ? 'none' : 'grayscale(20%) brightness(90%)' }}
                             />
+
+                            {/* Glass (Moved to Right side) */}
+                            <img
+                                src={isActive ? Glass : (staticGlass || Glass)}
+                                alt="Glass"
+                                className={`absolute -right-[20px] top-[180px] w-[120px] h-[120px] object-contain z-20 drop-shadow-xl ${isActive ? 'animate-float' : ''}`}
+                                style={{ filter: isActive ? 'none' : 'grayscale(20%) brightness(90%)' }}
+                            />
+
+                            {/* Speech Bubble (Moved to Left side) */}
+                            <img
+                                src={isActive ? Speech : (staticSpeech || Speech)}
+                                alt="Speech"
+                                className={`absolute -left-[35px] top-[150px] w-[180px] h-[160px] object-contain z-20 drop-shadow-xl ${isActive ? 'animate-float' : ''}`}
+                                style={{ filter: isActive ? 'none' : 'grayscale(20%) brightness(90%)' }}
+                            />
+
+
+
+
+
+                            {/* Table underneath */}
+                            <img
+                                src={TableImg}
+                                alt="Table"
+                                className="w-full object-contain relative z-0  mt-[-250px]"
+                            />
+
                         </div>
                     </div>
 
                     {/* 3. Timer Display (Text) */}
-                    <div className="relative mb-10">
+                    <div className="relative mb-10 flex items-center justify-center gap-4 sm:gap-6">
                         <div className="absolute inset-x-0 inset-y-4 bg-primary/20 blur-[80px] rounded-full animate-pulse"></div>
-                        <div className="text-[96px] font-black tracking-tighter text-gray-900 dark:text-white relative z-10 font-mono leading-none">
+
+                        {!isActive && (
+                            <button
+                                onClick={() => adjustTime(-5)}
+                                className="relative z-10 text-gray-300 hover:text-primary transition-all cursor-pointer disabled:opacity-30 active:scale-95"
+                                disabled={timeLeft <= 300}
+                                title="ลด 5 นาที"
+                            >
+                                <MinusCircle size={40} className="fill-white" />
+                            </button>
+                        )}
+
+                        <div className="text-[80px] sm:text-[96px] font-black tracking-tighter text-gray-900 dark:text-white relative z-10 font-mono leading-none transition-all duration-300">
                             {formatTime(timeLeft)}
                         </div>
+
+                        {!isActive && (
+                            <button
+                                onClick={() => adjustTime(5)}
+                                className="relative z-10 text-gray-300 hover:text-primary transition-all cursor-pointer active:scale-95"
+                                title="เพิ่ม 5 นาที"
+                            >
+                                <PlusCircle size={40} className="fill-white" />
+                            </button>
+                        )}
                     </div>
 
 
@@ -229,12 +341,14 @@ const ReadingSystem = () => {
                             <div className="absolute -top-2 -right-2 bg-yellow-400 p-2 rounded-full shadow-lg"><Sparkles className="text-white" size={18} /></div>
                         </div>
                         <div>
-                            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3">{companionName} กำลังให้กำลังใจอยู่! 🌷</h3>
-                            <p className="text-gray-500 dark:text-gray-400 font-bold italic text-lg leading-relaxed">
-                                "{currentMode === 'Focus'
-                                    ? 'ตั้งใจอ่านน้าเพื่อนจ๋า! วางมือถือแล้วโฟกัสกับเป้าหมายกันเถอะ ✨'
-                                    : 'พักผ่อนให้เต็มที่นะ ยืดเส้นยืดสายหน่อย เดี๋ยวเราค่อยกลับไปลุยกันต่อ! 🌈'}"
-                            </p>
+                            <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                {companionName} กำลังให้กำลังใจอยู่! <Heart size={24} className="fill-pink-500 text-pink-500" />
+                            </h3>
+                            <div className="text-gray-500 dark:text-gray-400 font-bold italic text-sm sm:text-lg leading-relaxed flex items-start gap-2">
+                                {currentMode === 'Focus'
+                                    ? <span>"ตั้งใจอ่านน้าเพื่อนจ๋า! วางมือถือแล้วโฟกัสกับเป้าหมายกันเถอะ <Sparkles size={18} className="text-yellow-500 inline" />"</span>
+                                    : <span>"พักผ่อนให้เต็มที่นะ ยืดเส้นยืดสายหน่อย เดี๋ยวเราค่อยกลับไปลุยกันต่อ! <Sun size={20} className="text-orange-400 inline" />"</span>}
+                            </div>
                         </div>
                     </div>
 
@@ -319,12 +433,14 @@ const ReadingSystem = () => {
                             <div className={`size-20 rounded-full mb-6 flex items-center justify-center ${customAlert.type === 'success' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500' : 'bg-primary/10 text-primary'}`}>
                                 {customAlert.type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
                             </div>
-                            <h3 className="text-xl font-black text-gray-900 dark:text-white mb-4">
-                                {customAlert.type === 'success' ? 'สำเร็จแล้วจ้า! 🌟' : 'แจ้งเตือนเพื่อนรัก! 🔔'}
+                            <h3 className="text-xl font-black text-gray-900 dark:text-white mb-4 flex items-center justify-center gap-2">
+                                {customAlert.type === 'success'
+                                    ? <>สำเร็จแล้วจ้า! <Star className="fill-yellow-500 text-yellow-500" size={24} /></>
+                                    : <>แจ้งเตือนเพื่อนรัก! <Bell className="fill-primary text-primary" size={24} /></>}
                             </h3>
-                            <p className="text-gray-500 dark:text-gray-400 font-bold leading-relaxed mb-8">
+                            <div className="text-gray-500 dark:text-gray-400 font-bold leading-relaxed mb-8">
                                 {customAlert.message}
-                            </p>
+                            </div>
                             <button
                                 onClick={() => setCustomAlert({ ...customAlert, isOpen: false })}
                                 className="w-full py-4 rounded-2xl bg-primary text-white font-black text-lg shadow-xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95"

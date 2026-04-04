@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import pdfToText from "react-pdftotext"
-import { sendMessageToAI, sendMessageToAIWithImage } from "../../services/aiService"
+import { sendMessageToAI, sendMessageToAIWithImage, fetchChatHistory } from "../../services/aiService"
 
 // New Components
 import ChatHeader from "../chat-window/ChatHeader"
@@ -17,6 +17,7 @@ const ChatWindow = ({ mode: propsMode }) => {
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [activeHistoryContextId, setActiveHistoryContextId] = useState(null)
 
   // Image state
   const [selectedImage, setSelectedImage] = useState(null)
@@ -58,8 +59,33 @@ const ChatWindow = ({ mode: propsMode }) => {
   // Init messages
   useEffect(() => {
     const username = localStorage.getItem("username");
-    setMessages([{ text: getSystemMessage(mode, username), sender: "ai" }])
+    setMessages([{ text: getSystemMessage(mode, username), sender: "ai" }]);
+    setActiveHistoryContextId(null);
   }, [mode])
+
+  // Listen for active chat selection from sidebar
+  useEffect(() => {
+    const handleLoadSelectedHistory = (e) => {
+      const item = e.detail;
+      if (!item) return;
+
+      const username = localStorage.getItem("username");
+      const initSystemMessage = { text: getSystemMessage(mode, username), sender: "ai" };
+      
+      const newMessages = [initSystemMessage];
+      if (item.user_message) {
+          newMessages.push({ text: item.user_message, sender: "user", historyId: item.id });
+      }
+      if (item.ai_response) {
+          newMessages.push({ text: item.ai_response, sender: "ai", historyId: item.id });
+      }
+      
+      setMessages(newMessages);
+      setActiveHistoryContextId(item.id);
+    };
+    window.addEventListener("loadSelectedHistory", handleLoadSelectedHistory);
+    return () => window.removeEventListener("loadSelectedHistory", handleLoadSelectedHistory);
+  }, [mode]);
 
   // Auto scroll
   useEffect(() => {
@@ -68,7 +94,8 @@ const ChatWindow = ({ mode: propsMode }) => {
 
   const handleClearChat = () => {
     const username = localStorage.getItem("username");
-    setMessages([{ text: getSystemMessage(mode, username), sender: "ai" }])
+    setMessages([{ text: getSystemMessage(mode, username), sender: "ai" }]);
+    setActiveHistoryContextId(null);
   }
 
   const handlePickImage = () => {
@@ -194,11 +221,19 @@ const ChatWindow = ({ mode: propsMode }) => {
         ? buildPlannerSystemPrompt(textToSend)
         : textToSend
 
+      const conversationHistory = messages.slice(1).map(m => ({
+          role: m.sender,
+          content: m.text
+      }));
+
       const reply = selectedImage
-        ? await sendMessageToAIWithImage(finalPrompt, mode, selectedImage)
-        : await sendMessageToAI(finalPrompt, mode)
+        ? await sendMessageToAIWithImage(finalPrompt, mode, selectedImage, activeHistoryContextId, conversationHistory)
+        : await sendMessageToAI(finalPrompt, mode, [], activeHistoryContextId, conversationHistory)
 
       setMessages((prev) => [...prev, { text: safeText(reply), sender: "ai" }])
+
+      // Reset active history to null so subsequent messages use standard recent history logic
+      setActiveHistoryContextId(null)
 
       removeSelectedImage()
     } catch (error) {

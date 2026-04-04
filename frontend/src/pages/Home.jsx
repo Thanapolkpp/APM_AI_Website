@@ -118,7 +118,8 @@ const Home = () => {
 
             {/* Right: Actions */}
             <div className="flex justify-end items-center gap-2 sm:gap-4 shrink-0">
-              <CoinBadge className="hidden sm:flex" />
+              <CoinBadge className="scale-90" />
+
 
               <div className="relative">
                 <button

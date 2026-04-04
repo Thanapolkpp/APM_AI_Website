@@ -90,7 +90,8 @@ def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
 
     # สร้าง token ใหม่ หมดอายุใน 15 นาที
     token = secrets.token_urlsafe(32)
-    expires_at = datetime.utcnow() + timedelta(minutes=15)
+    expires_at = datetime.now() + timedelta(minutes=15)
+
 
     reset_token = PasswordResetToken(
         user_id=user.id,
@@ -117,7 +118,8 @@ def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="ลิงก์ไม่ถูกต้อง")
 
     # เช็คว่าหมดอายุหรือยัง
-    if datetime.utcnow() > reset_token.expires_at:
+    if datetime.now() > reset_token.expires_at:
+
         db.delete(reset_token)
         db.commit()
         raise HTTPException(status_code=400, detail="ลิงก์หมดอายุแล้ว กรุณาขอใหม่อีกครั้ง")

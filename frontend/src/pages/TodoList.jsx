@@ -98,7 +98,8 @@ const TodoList = () => {
                         <Navbar />
                     </div>
                     <div className="flex justify-end items-center gap-4 shrink-0">
-                        <CoinBadge />
+                        <CoinBadge className="scale-90" />
+
                         <img src={profileImage} className="size-10 rounded-full border-2 border-primary shadow-sm ml-2" />
                         <div className="lg:hidden"><Navbar /></div>
                     </div>

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react"
 import { NavLink } from "react-router-dom"
 import { PiAtomBold, PiBackspaceBold } from "react-icons/pi"
+import CoinBadge from "../UI/CoinBadge"
+
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -97,6 +99,10 @@ const Navbar = () => {
             <div className="flex-1 flex items-center justify-center px-6">
               <div className="w-full max-w-sm bg-white/85 dark:bg-gray-900/80 border border-white/40 dark:border-gray-700 rounded-[2.5rem] shadow-2xl p-5">
                 <div className="flex flex-col gap-2">
+                  <div className="flex justify-center mb-4 pt-2">
+                    <CoinBadge />
+                  </div>
+                  
                   {navLinks.map((link) => (
                     <NavLink
                       key={link.to}
@@ -108,6 +114,7 @@ const Navbar = () => {
                     </NavLink>
                   ))}
                 </div>
+
 
                 <div className="mt-6 text-center">
                   <p className="text-[11px] text-gray-500 dark:text-gray-400 font-bold">

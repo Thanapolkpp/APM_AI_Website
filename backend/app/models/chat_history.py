@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, Text, String, DateTime, ForeignKey
 from datetime import datetime
 from app.utils.db import Base
 
@@ -9,4 +9,6 @@ class ChatHistory(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     user_message = Column(Text)
     ai_response = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    mode = Column(String(50), default="bro")
+    created_at = Column(DateTime, default=datetime.now)
+

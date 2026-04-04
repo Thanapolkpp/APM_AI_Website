@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/footer";
 import Logo from "../assets/logo.png";
+import CoinBadge from "../components/UI/CoinBadge";
 import CuteGirlIcon from "../assets/Girl.png";
+
 import BroIcon from "../assets/Bro.png";
 import NerdIcon from "../assets/Nerd.1.2.png";
 import {
@@ -109,11 +111,14 @@ const About = () => {
 
                         {/* ✅ Right (Actions) */}
                         <div className="flex items-center justify-end gap-3 sm:gap-4">
+                            <CoinBadge className="hidden sm:flex scale-90" />
+                            
                             {/* Avatar */}
                             <button
                                 type="button"
                                 onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
                                 className="size-10 rounded-full border-2 border-primary/70 cursor-pointer hover:scale-105 active:scale-95 transition-all shadow-md"
+
                                 style={{
                                     backgroundImage: `url("${profileImage}")`,
                                     backgroundColor: "white",

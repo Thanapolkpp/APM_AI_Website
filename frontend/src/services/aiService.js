@@ -41,20 +41,33 @@ export const resetPassword = async (token, new_password) => {
 };
 
 // ---------- AI ----------
-export const sendMessageToAI = async (message, mode, sheet_ids = []) => {
+export const sendMessageToAI = async (message, mode, sheet_ids = [], context_history_id = null, conversation_history = null) => {
+    const payload = { message, mode, sheet_ids };
+    if (context_history_id) {
+        payload.context_history_id = context_history_id;
+    }
+    if (conversation_history) {
+        payload.conversation_history = conversation_history;
+    }
     const response = await axios.post(
         API_TEXT_URL,
-        { message, mode, sheet_ids },
+        payload,
         { headers: authHeader() }
     );
     return String(response.data?.reply ?? "");
 };
 
-export const sendMessageToAIWithImage = async (prompt, mode, imageFile) => {
+export const sendMessageToAIWithImage = async (prompt, mode, imageFile, context_history_id = null, conversation_history = null) => {
     const formData = new FormData();
     formData.append("prompt", prompt || "");
     formData.append("mode", mode || "bro");
     formData.append("file", imageFile);
+    if (context_history_id) {
+        formData.append("context_history_id", context_history_id);
+    }
+    if (conversation_history) {
+        formData.append("conversation_history", JSON.stringify(conversation_history));
+    }
 
     const response = await axios.post(API_IMAGE_URL, formData, {
         headers: {

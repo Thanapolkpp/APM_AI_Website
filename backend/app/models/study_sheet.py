@@ -12,4 +12,5 @@ class StudySheet(Base):
     extracted_text = Column(Text)
     price = Column(Integer, default=0)
     is_public = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now)
+

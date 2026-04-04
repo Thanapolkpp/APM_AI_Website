@@ -25,6 +25,30 @@ def get_me(current_user: User = Depends(get_current_user)):
         "email": current_user.email,
         "coins": current_user.coins,
         "exp": current_user.exp,
+        "has_claimed_test_reward": current_user.has_claimed_test_reward,
+    }
+
+
+@router.post("/claim-test-reward")
+def claim_test_reward(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.has_claimed_test_reward:
+        raise HTTPException(
+            status_code=400,
+            detail="คุณได้รับรางวัลนี้ไปแล้วนะเพื่อน!"
+        )
+    
+    current_user.coins += 50
+    current_user.exp = (current_user.exp or 0) + 30
+    current_user.has_claimed_test_reward = True
+    
+    db.commit()
+    return {
+        "message": "รับรางวัลสำเร็จ!",
+        "coins": current_user.coins,
+        "exp": current_user.exp
     }
 
 

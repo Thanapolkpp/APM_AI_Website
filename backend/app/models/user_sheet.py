@@ -8,4 +8,5 @@ class UserSheet(Base):
     id = Column(Integer, primary_key=True, index=True)
     buyer_id = Column(Integer, ForeignKey("users.id"))
     sheet_id = Column(Integer, ForeignKey("study_sheets.id"))
-    bought_at = Column(DateTime, default=datetime.utcnow)
+    bought_at = Column(DateTime, default=datetime.now)
+

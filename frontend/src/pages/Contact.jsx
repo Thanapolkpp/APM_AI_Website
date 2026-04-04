@@ -2,7 +2,9 @@ import React from "react"
 import { useNavigate } from "react-router-dom"
 import { Github, Instagram } from "lucide-react"
 import Navbar from "../components/Layout/Navbar"
+import CoinBadge from "../components/UI/CoinBadge"
 import Logo from "../assets/logo.png"
+
 import BroIcon from "../assets/Bro.png"
 import NerdIcon from "../assets/Nerd.1.2.png"
 import CuteGirlIcon from "../assets/Girl.png"
@@ -73,10 +75,12 @@ const Contact = () => {
                             </div>
                         </div>
                         <div className="flex justify-end items-center gap-3">
+                            <CoinBadge className="hidden sm:flex scale-90" />
                             <button
                                 type="button"
                                 onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
                                 className="size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer hover:scale-105 transition-all shadow-sm"
+
                                 style={{ backgroundImage: `url("${profileImage}")`, backgroundColor: "white" }}
                             />
                             <div className="md:hidden"><Navbar /></div>

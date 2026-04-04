@@ -8,7 +8,9 @@ import BroIcon from "../assets/Bro.png";
 import CuteGirlIcon from "../assets/Girl.png";
 import NerdIcon from "../assets/Nerd.1.2.png";
 import Notification from "../components/UI/Notification";
+import CoinBadge from "../components/UI/CoinBadge";
 import { getUserProfile } from "../services/aiService";
+
 
 
 const Account = () => {
@@ -139,8 +141,11 @@ const Account = () => {
 
                     {/* Right */}
                     <div className="flex justify-end gap-3 items-center">
+                        <CoinBadge className="hidden sm:flex scale-90" />
+                        
                         {/* Notification Button */}
                         <div className="relative">
+
                             <button
                                 onClick={() => setShowNoti(true)}
                                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/80 dark:bg-gray-800/80 flex items-center justify-center shadow-sm hover:scale-105 transition active:scale-95 border border-white dark:border-gray-600"

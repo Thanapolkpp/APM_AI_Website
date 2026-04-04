@@ -4,6 +4,8 @@ import Logo from "../../assets/logo.png"
 import GirlIcon from "../../assets/Girl.png"
 import BroIcon from "../../assets/Bro.png"
 import NerdIcon from "../../assets/Nerd.1.2.png"
+import CoinBadge from "../UI/CoinBadge"
+
 
 const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, isLoggedIn }) => {
     const [profileImage] = React.useState(() => {
@@ -41,12 +43,15 @@ const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, 
 
                 {/* RIGHT */}
                 <div className="flex justify-end items-center gap-3">
+                    <CoinBadge className="hidden sm:flex scale-90" />
+                    
                     <button className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95">
                         <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
                             notifications
                         </span>
                         <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
                     </button>
+
 
                     <button
                         type="button"

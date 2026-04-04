@@ -3,8 +3,9 @@ import { getUserProfile, updateCoins as apiUpdateCoins } from "../services/aiSer
 
 export const useCoins = () => {
     const [coins, setCoins] = useState(() => Number(localStorage.getItem("user_coins") || 0));
+    const [exp, setExp] = useState(() => Number(localStorage.getItem("user_exp") || 0));
 
-    // โหลด coins จาก backend ตอน mount (ถ้า login อยู่)
+    // โหลด coins และ exp จาก backend ตอน mount (ถ้า login อยู่)
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) return;
@@ -12,7 +13,9 @@ export const useCoins = () => {
         getUserProfile()
             .then((data) => {
                 localStorage.setItem("user_coins", String(data.coins));
+                localStorage.setItem("user_exp", String(data.exp || 0));
                 setCoins(data.coins);
+                setExp(data.exp || 0);
                 window.dispatchEvent(new Event("coinsUpdated"));
             })
             .catch(() => {
@@ -24,6 +27,7 @@ export const useCoins = () => {
     useEffect(() => {
         const handleStorage = () => {
             setCoins(Number(localStorage.getItem("user_coins") || 0));
+            setExp(Number(localStorage.getItem("user_exp") || 0));
         };
         window.addEventListener("storage", handleStorage);
         window.addEventListener("coinsUpdated", handleStorage);
@@ -79,5 +83,6 @@ export const useCoins = () => {
         }
     };
 
-    return { coins, addCoins, spendCoins };
+    return { coins, exp, addCoins, spendCoins };
 };
+

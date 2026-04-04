@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 from app.utils.db import get_db
 from app.utils.security import get_current_user
@@ -14,15 +14,21 @@ router = APIRouter()
 
 HISTORY_CONTEXT_COUNT = 3
 
+class ChatMessage(BaseModel):
+    role: str
+    content: str
 
 class ChatRequest(BaseModel):
     message: str
     mode: str
     sheet_ids: List[int] = []
+    context_history_id: Optional[int] = None
+    conversation_history: Optional[List[ChatMessage]] = None
 
 
 @router.get("/history")
 def get_chat_history(
+    limit: int = 50,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -30,7 +36,7 @@ def get_chat_history(
         db.query(ChatHistory)
         .filter(ChatHistory.user_id == current_user.id)
         .order_by(ChatHistory.created_at.desc())
-        .limit(HISTORY_CONTEXT_COUNT)
+        .limit(limit)
         .all()
     )
     # เรียงจากเก่า → ใหม่ เพื่อให้ frontend แสดงเป็น chat bubble ได้เลย
@@ -40,6 +46,7 @@ def get_chat_history(
             "id": h.id,
             "user_message": h.user_message,
             "ai_response": h.ai_response,
+            "mode": h.mode,
             "created_at": h.created_at,
         }
         for h in histories
@@ -70,22 +77,40 @@ def chat(
         if pdf_parts:
             pdf_context_block = "\n\n".join(pdf_parts)
 
-    # ดึง 3 บทสนทนาล่าสุดของ user นี้
-    recent_histories = (
-        db.query(ChatHistory)
-        .filter(ChatHistory.user_id == current_user.id)
-        .order_by(ChatHistory.created_at.desc())
-        .limit(HISTORY_CONTEXT_COUNT)
-        .all()
-    )
-    recent_histories = list(reversed(recent_histories))
+    # กำหนด context จาก History
+    history_block = ""
+    if req.conversation_history is not None:
+        # ใช้ History สดๆ จากหน้าจอ Frontend เลย!
+        context_lines = []
+        for msg in req.conversation_history[-HISTORY_CONTEXT_COUNT*2:]: # จำกัดเพื่อไม่ให้ prompt ยาวไป
+            role_label = "User" if msg.role == "user" else "AI"
+            context_lines.append(f"{role_label}: {msg.content}")
+        history_block = "\n".join(context_lines)
+    else:
+        # Fallback (ดึงบทสนทนาที่จะนำมาทำ Context จาก DB)
+        if req.context_history_id:
+            target_history = (
+                db.query(ChatHistory)
+                .filter(ChatHistory.id == req.context_history_id, ChatHistory.user_id == current_user.id)
+                .first()
+            )
+            recent_histories = [target_history] if target_history else []
+        else:
+            recent_histories = (
+                db.query(ChatHistory)
+                .filter(ChatHistory.user_id == current_user.id)
+                .order_by(ChatHistory.created_at.desc())
+                .limit(HISTORY_CONTEXT_COUNT)
+                .all()
+            )
+            recent_histories = list(reversed(recent_histories))
 
-    # ประกอบ context จากประวัติ
-    context_lines = []
-    for h in recent_histories:
-        context_lines.append(f"User: {h.user_message}")
-        context_lines.append(f"AI: {h.ai_response}")
-    history_block = "\n".join(context_lines)
+        # ประกอบ context จากประวัติ DB
+        context_lines = []
+        for h in recent_histories:
+            context_lines.append(f"User: {h.user_message}")
+            context_lines.append(f"AI: {h.ai_response}")
+        history_block = "\n".join(context_lines)
 
     # ประกอบ prompt สุดท้าย
     prompt_parts = []
@@ -109,8 +134,27 @@ def chat(
         user_id=current_user.id,
         user_message=req.message,
         ai_response=ai_reply,
+        mode=req.mode,
     )
     db.add(new_history)
     db.commit()
 
+    # จำกัดประวัติแชท: ถ้าเกิน 4 ให้ลบตัวที่เก่าที่สุดออก
+    MAX_HISTORY = 4
+    current_count = db.query(ChatHistory).filter(ChatHistory.user_id == current_user.id).count()
+    
+    if current_count > MAX_HISTORY:
+        # ดึงรายการที่เก่าที่สุดที่ต้องลบ (ปกติคืออันเดียวที่เพิ่งเกินมา)
+        oldest_to_delete = (
+            db.query(ChatHistory)
+            .filter(ChatHistory.user_id == current_user.id)
+            .order_by(ChatHistory.created_at.asc())
+            .limit(current_count - MAX_HISTORY)
+            .all()
+        )
+        for h in oldest_to_delete:
+            db.delete(h)
+        db.commit()
+
     return {"reply": ai_reply}
+
