@@ -133,7 +133,7 @@ def get_all_rooms(
 ):
     rooms = db.query(Room).all()
     return [
-        {"id": r.id, "name": r.name, "price": r.price, "image_path": r.image_path}
+        {"id": r.id, "name": r.name, "price": r.price, "image_path": r.image_path, "model_path": r.model_path}
         for r in rooms
     ]
 
@@ -180,6 +180,7 @@ def get_my_rooms(
             "name": room.name,
             "price": room.price,
             "image_path": room.image_path,
+            "model_path": room.model_path,
             "is_equipped": ur.is_equipped,
         }
         for ur, room in rows

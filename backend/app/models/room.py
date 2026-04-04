@@ -8,3 +8,4 @@ class Room(Base):
     name = Column(String(100))
     price = Column(Integer)
     image_path = Column(String(255))
+    model_path = Column(String(255), nullable=True)
