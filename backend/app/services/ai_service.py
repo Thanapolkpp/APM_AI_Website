@@ -2,12 +2,12 @@ import base64
 import requests
 import os
 import tempfile
-from gradio_client import Client, handle_file
 from typing import Optional
 
 # ─── Config ──────────────────────────────────────────────────
-GRADIO_URL = os.getenv("GRADIO_URL", "https://35fe2c4c7c4e08ee56.gradio.live")
-MODEL_NAME = "apm-genz"
+# ใช้ OLLAMA_URL จาก env ถ้ามี หรือใช้ localhost:11434 เป็นค่าเริ่มต้น
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+MODEL_NAME = os.getenv("MODEL_NAME", "gemma3:12b") # ตามที่ระบุใน README.md
 
 # ─── Persona ─────────────────────────────────────────────────
 def _build_persona(mode: str) -> str:
@@ -41,86 +41,59 @@ def _build_persona(mode: str) -> str:
     return f"{core_mindset}\n{persona_mode}\n{format_rules}"
 
 
-# ─── Gradio Client ───────────────────────────────────────────
-gradio_client_instance = None
-
-def get_gradio_client():
-    global gradio_client_instance
-    if gradio_client_instance is None:
-        try:
-            gradio_client_instance = Client(GRADIO_URL)
-            print(f"✅ Connected to Gradio: {GRADIO_URL}")
-        except Exception as e:
-            print(f"❌ Error connecting to Gradio: {e}")
-            gradio_client_instance = None
-    return gradio_client_instance
-
-def reset_gradio_client(new_url: str = None):
-    """เรียกใช้เมื่อ Gradio URL เปลี่ยน"""
-    global gradio_client_instance, GRADIO_URL
-    if new_url:
-        GRADIO_URL = new_url
-        os.environ["GRADIO_URL"] = new_url
-    gradio_client_instance = None
-    print(f"🔄 Reset client — URL ใหม่: {GRADIO_URL}")
-
-
-# ─── ฟังก์ชันกลาง — ยิง Gradio ──────────────────────────────
-def _call_gradio(message: str, mode: str, file_path: Optional[str] = None) -> str:
+# ─── Ollama API Caller ───────────────────────────────────────
+def _call_ollama(message: str, mode: str, image_bytes: Optional[bytes] = None) -> str:
     """
-    ยิง Gradio API
-    - api_name : /chat
-    - params   : message, file, mode (ใช้ positional เพื่อความชัวร์)
+    เรียกใช้ Ollama Chat API โดยตรงผ่าน requests (ไม่ต้องมี gradio-client)
     """
-    client = get_gradio_client()
-    if client is None:
-        raise Exception("ไม่สามารถเชื่อมต่อกับ Gradio ได้")
+    url = f"{OLLAMA_URL}/api/chat"
+    persona = _build_persona(mode)
+    
+    # เตรียม Messages
+    messages = [
+        {"role": "system", "content": persona},
+        {"role": "user", "content": message}
+    ]
 
-    # ประกอบ Persona เข้าไปใน prompt
-    persona_prompt = _build_persona(mode)
-    full_prompt = f"{persona_prompt}\n\n[ข้อความจากผู้ใช้/บริบท]:\n{message}"
+    # ถ้ามีรูปภาพ ให้แนบไปใน message ล่าสุด (Base64)
+    if image_bytes:
+        image_b64 = base64.b64encode(image_bytes).decode('utf-8')
+        messages[-1]["images"] = [image_b64]
 
-    # ✅ ใช้ positional arguments แทน keyword เพื่อกัน error ชื่อ parameter ไม่ตรง
-    result = client.predict(
-        full_prompt,                                  # message
-        handle_file(file_path) if file_path else None,  # file
-        mode,                                         # mode
-        api_name="/chat"
-    )
-    return str(result).strip()
+    payload = {
+        "model": MODEL_NAME,
+        "messages": messages,
+        "stream": False # รับทีเดียวจบ ไม่ต้อง Stream
+    }
+
+    try:
+        response = requests.post(url, json=payload, timeout=30)
+        response.raise_for_status()
+        result = response.json()
+        return result.get("message", {}).get("content", "").strip()
+    except Exception as e:
+        print(f"❌ Ollama Error: {e}")
+        raise Exception(f"ไม่สามารถติดต่อ Ollama ได้ ({str(e)})")
 
 
-# ─── ข้อความธรรมดา ───────────────────────────────────────────
+# ─── Public Functions ─────────────────────────────────────────
+
 async def get_ai_response(prompt: str, mode: str):
     try:
-        reply = _call_gradio(message=prompt, mode=mode)
+        reply = _call_ollama(message=prompt, mode=mode)
         return {"reply": reply}
     except Exception as e:
         print(f"❌ get_ai_response Error: {e}")
         return {"reply": f"เกิดข้อผิดพลาด: {str(e)}"}
 
-
-# ─── รูปภาพ ──────────────────────────────────────────────────
 async def get_ai_response_with_image(prompt: str, mode: str, image_data: Optional[bytes]):
-    tmp_path = None
     try:
-        if image_data:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
-                tmp.write(image_data)
-                tmp_path = tmp.name
-
-        reply = _call_gradio(message=prompt, mode=mode, file_path=tmp_path)
+        reply = _call_ollama(message=prompt, mode=mode, image_bytes=image_data)
         return {"reply": reply}
-
     except Exception as e:
         print(f"❌ Image Error: {e}")
         return {"reply": f"เกิดข้อผิดพลาด (รูปภาพ): {str(e)}"}
-    finally:
-        if tmp_path and os.path.exists(tmp_path):
-            os.remove(tmp_path)
 
-
-# ─── PDF ─────────────────────────────────────────────────────
 async def get_ai_response_with_pdf(prompt: str, mode: str, pdf_data: Optional[bytes]):
     tmp_path = None
     try:
@@ -136,9 +109,10 @@ async def get_ai_response_with_pdf(prompt: str, mode: str, pdf_data: Optional[by
         for page in doc:
             pdf_text += page.get_text()
         pdf_text = pdf_text[:4000]
+        doc.close()
 
         final_prompt = f"{prompt}\n\n[เนื้อหาจาก PDF]\n{pdf_text}"
-        reply = _call_gradio(message=final_prompt, mode=mode)
+        reply = _call_ollama(message=final_prompt, mode=mode)
         return {"reply": reply}
 
     except ImportError:
@@ -150,8 +124,6 @@ async def get_ai_response_with_pdf(prompt: str, mode: str, pdf_data: Optional[by
         if tmp_path and os.path.exists(tmp_path):
             os.remove(tmp_path)
 
-
-# ─── ฟังก์ชันหลัก — รับทุกอย่าง ─────────────────────────────
 async def get_ai_response_with_file(
     prompt: str,
     mode: str,
@@ -160,13 +132,10 @@ async def get_ai_response_with_file(
 ):
     """
     ฟังก์ชันหลักสำหรับเรียกใช้จาก Backend
-    - image_data : bytes ของรูปภาพ (jpg, png, webp)
-    - pdf_data   : bytes ของไฟล์ PDF
-    - ถ้าไม่มีไฟล์ : ตอบจากข้อความอย่างเดียว
     """
     if image_data:
         return await get_ai_response_with_image(prompt, mode, image_data)
     elif pdf_data:
         return await get_ai_response_with_pdf(prompt, mode, pdf_data)
     else:
-        return get_ai_response(prompt, mode)
+        return await get_ai_response(prompt, mode)
