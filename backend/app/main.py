@@ -29,15 +29,19 @@ app = FastAPI(
 # ตั้งค่า CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "*", 
+        "https://apm-ai-website-j4pyorb1c-thanapolkpps-projects.vercel.app", # Vercel ของคุณ
+        "http://localhost:5173" # สำหรับรันเครื่องตัวเอง
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(auth_router, prefix="/api")
+# จัดระเบียบ Router (เน้น v1 เป็นหลัก)
+app.include_router(auth_router, prefix="/api/v1/user", tags=["Users Authentication"])
 app.include_router(chatbot_router, prefix="/api/v1/ai", tags=["AI Chatbot"])
-app.include_router(auth_router, prefix="/api/v1/user", tags=["Users"])
 app.include_router(inventory_router, prefix="/api/v1/inventory", tags=["Inventory"])
 app.include_router(study_sheets_router, prefix="/api/v1/study-sheets", tags=["Study Sheets"])
 app.include_router(todos_router, prefix="/api/v1/todos", tags=["Todos"])
