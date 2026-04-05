@@ -169,7 +169,7 @@ const TodoList = () => {
     const [pendingTasks, setPendingTasks] = useState([])
     
     const [proofPhotos, setProofPhotos] = useState({})
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com"
 
     // logic for proof photo mapping
     useEffect(() => {

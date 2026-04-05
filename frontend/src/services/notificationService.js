@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com";
 const API_URL = `${BASE_URL}/api/v1/notifications`;
 
 const authHeader = () => ({
