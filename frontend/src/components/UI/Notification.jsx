@@ -38,20 +38,22 @@ const Notification = ({
     if (!show) return null
 
     return (
-        <div className="fixed top-5 right-5 z-50">
-            <div className={`w-[340px] rounded-2xl border shadow-lg p-4 flex gap-3 items-start ${typeStyles[type]}`}>
-                <div>{typeIcon[type]}</div>
+        <div className="fixed top-4 left-4 right-4 md:left-auto md:right-5 md:top-5 z-[200] animate-in slide-in-from-top-4 duration-300">
+            <div className={`mx-auto w-full max-w-sm md:w-[380px] rounded-[2rem] border shadow-2xl p-5 flex gap-4 backdrop-blur-xl transition-all ${typeStyles[type]}`}>
+                <div className="size-10 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+                    {typeIcon[type]}
+                </div>
 
-                <div className="flex-1">
-                    <p className="font-bold text-sm">{title}</p>
-                    <p className="text-sm opacity-90 mt-1">{message}</p>
+                <div className="flex-1 pt-0.5">
+                    <p className="font-black text-sm uppercase tracking-tight">{title}</p>
+                    <p className="text-sm font-medium opacity-90 mt-0.5 leading-relaxed">{message}</p>
                 </div>
 
                 <button
                     onClick={onClose}
-                    className="w-8 h-8 rounded-full bg-white/60 hover:bg-white transition flex items-center justify-center"
+                    className="size-8 rounded-xl bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 transition flex items-center justify-center shrink-0"
                 >
-                    <FaTimes className="text-sm" />
+                    <FaTimes className="text-xs" />
                 </button>
             </div>
         </div>

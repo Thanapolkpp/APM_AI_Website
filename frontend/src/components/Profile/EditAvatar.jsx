@@ -12,13 +12,9 @@ import {
     buyAvatarApi, buyRoomApi,
     equipAvatarApi, equipRoomApi,
 } from "../../services/aiService";
-import Private_room from "../../assets/NERD_ROOM.png";
-import rock_room from "../../assets/Rock_Room.png";
-import Chirtmas_room from "../../assets/Chirtmas_room.png";
-import broImg from "../../assets/Bro.png";
-import girlImg from "../../assets/Girl.png";
-import nerdImg from "../../assets/Nerd.1.2.png";
-import Logo from "../../assets/logo.png";
+import { ASSETS, mapModelPath, mapImagePath } from "../../config/assets";
+
+const Logo = ASSETS.BRANDING.LOGO;
 
 /* ================= Loader ================= */
 const Loader = () => {
@@ -57,86 +53,62 @@ const EditAvatar = () => {
 
     const [avatarCatalog, setAvatarCatalog] = useState([]);
     const [roomCatalog, setRoomCatalog] = useState([]);
+    const [ownedIds, setOwnedIds] = useState([]);
+    const [ownedSceneIds, setOwnedSceneIds] = useState([]);
 
-    const avatars = useMemo(() => [
-        {
-            id: "bro",
-            name: "Bro - The Chill Friend",
-            model: "/models/bro.glb",
-            image: broImg,
-            price: 15,
-            glow: "from-sky-400 to-blue-600 shadow-[0_0_25px_rgba(56,189,248,0.4)]",
-            description: "สบายๆ เหมือนเป็นเพื่อนคนนึง คุยได้ทุกเรื่องแบบแมนๆ ชิลล์ๆ"
-        },
-        {
-            id: "girl",
-            name: "Bestie - The Motivator",
-            model: "/models/girl.glb",
-            image: girlImg,
-            price: 15,
-            glow: "from-pink-400 to-rose-500 shadow-[0_0_25px_rgba(244,114,182,0.4)]",
-            description: "ใส่ใจทุกรายละเอียด ให้กำลังใจเก่งเหมือนเพื่อนสาวสุดซี้ ✨"
-        },
-        {
-            id: "nerd",
-            name: "Genius - The Specialist",
-            model: "/models/nerd.glb",
-            image: nerdImg,
-            price: 15,
-            glow: "from-emerald-400 to-teal-600 shadow-[0_0_25px_rgba(52,211,153,0.4)]",
-            description: "อัจฉริยะด้านข้อมูล แม่นยำ และช่วยวางแผนการเรียนแบบมือโปร 🤓"
-        }
-    ], []);
+    // Descriptions/Metadata map for UI enrichment
+    const metaMap = {
+        "bro": { glow: "from-sky-400 to-blue-600 shadow-sky-400/40", desc: "สบายๆ เหมือนเป็นเพื่อนคนนึง ชิลล์ๆ" },
+        "girl": { glow: "from-pink-400 to-rose-500 shadow-pink-400/40", desc: "ใส่ใจเก่งเหมือนเพื่อนสาวสุดซี้ ✨" },
+        "bestie": { glow: "from-pink-400 to-rose-500 shadow-pink-400/40", desc: "ใส่ใจเก่งเหมือนเพื่อนสาวสุดซี้ ✨" },
+        "nerd": { glow: "from-emerald-400 to-teal-600 shadow-emerald-400/40", desc: "อัจฉริยะด้านข้อมูล แม่นยำมือโปร 🤓" },
+        "genius": { glow: "from-emerald-400 to-teal-600 shadow-emerald-400/40", desc: "อัจฉริยะด้านข้อมูล แม่นยำมือโปร 🤓" },
+        "nerdroom": { color: "#111827", desc: "สตูดิโอส่วนตัวสไตล์ Nerd ตกแต่งครบชุด! 💻📚" },
+        "rock studio": { color: "#1f2937", desc: "สตูดิโอสไตล์ร็อค เท่ๆ ดิบๆ ปลุกพลัง! 🎸🔥" },
+        "christmas night": { color: "#166534", desc: "ฉลองคริสต์มาสในห้องแสนอบอุ่น 🎄✨" }
+    };
 
-    const scenes = useMemo(() => [
-        {
-            id: "nerdroom",
-            name: "Nerd - Private Studio",
-            image: Private_room,
-            dbPath: "NERD_ROOM.png",
-            yOffset: -3.0,
-            color: "#111827",
-            price: 15,
-            description: "สตูดิโอส่วนตัวสไตล์ Nerd ตกแต่งครบชุด เพิ่มไฟการเรียน! 💻📚"
-        },
-        {
-            id: "rock",
-            name: "Rock Studio",
-            image: rock_room,
-            dbPath: "Rock_Room.png",
-            yOffset: -2.5,
-            color: "#1f2937",
-            price: 15,
-            description: "สตูดิโอสไตล์ร็อค เท่ๆ ดิบๆ ปลุกพลังในตัวคุณ! 🎸🔥"
-        },
-        {
-            id: "christmas",
-            name: "Christmas Night",
-            image: Chirtmas_room,
-            dbPath: "Chirtmas_room.png",
-            yOffset: -2.7,
-            color: "#166534",
-            price: 15,
-            description: "ฉลองคริสต์มาสในห้องแสนอบอุ่น พร้อมต้นสนและของขวัญ 🎄✨"
-        }
-    ], []);
+    const visualAvatars = useMemo(() => {
+        if (!avatarCatalog.length) return [];
+        return avatarCatalog.map(a => {
+            const nameKey = a.name.toLowerCase();
+            const meta = metaMap[nameKey] || { glow: "from-gray-400 to-gray-600", desc: "เพื่อนคนใหม่" };
+            return {
+                id: a.id,
+                name: a.name,
+                model: mapModelPath(a.model_path),
+                image: mapImagePath(a.model_path),
+                price: a.price,
+                glow: meta.glow,
+                description: meta.desc
+            };
+        });
+    }, [avatarCatalog]);
+
+    const visualScenes = useMemo(() => {
+        if (!roomCatalog.length) return [];
+        return roomCatalog.map(r => {
+            const nameKey = r.name.toLowerCase();
+            const meta = metaMap[nameKey] || { color: "#333", desc: "ห้องใหม่" };
+            return {
+                id: r.id,
+                name: r.name,
+                image: mapImagePath(r.image_path),
+                model: mapModelPath(r.model_path),
+                yOffset: -3.0,
+                color: meta.color,
+                price: r.price,
+                description: meta.desc
+            };
+        });
+    }, [roomCatalog]);
 
     const [currentTab, setCurrentTab] = useState("avatar");
-    const [selectedId, setSelectedId] = useState("bro");
-    const [selectedSceneId, setSelectedSceneId] = useState("nerdroom");
-
-    const [ownedIds, setOwnedIds] = useState(() => JSON.parse(localStorage.getItem("owned_avatars") || '["nerd"]'));
-    const [ownedSceneIds, setOwnedSceneIds] = useState(() => JSON.parse(localStorage.getItem("owned_scenes") || '["nerdroom"]'));
+    const [selectedId, setSelectedId] = useState(null);
+    const [selectedSceneId, setSelectedSceneId] = useState(null);
 
     const [customAlert, setCustomAlert] = useState({ isOpen: false, message: "", type: "info" });
     const showCustomAlert = (message, type = "info") => setCustomAlert({ isOpen: true, message, type });
-
-    const normalize = (p) => {
-        if (!p || typeof p !== 'string' || p.startsWith('data:')) return "unknown_" + Math.random();
-        const parts = p.split(/[/\\]/);
-        const filename = parts[parts.length - 1];
-        return filename.split('-')[0].split('.')[0].toLowerCase();
-    };
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -144,59 +116,43 @@ const EditAvatar = () => {
 
         const syncInventory = async () => {
             try {
-                const [avatarsData, roomsData, allAvatarsData, allRoomsData] = await Promise.all([
+                const [ownedAvatars, ownedRooms, allAvatars, allRooms] = await Promise.all([
                     fetchOwnedAvatars(), fetchOwnedRooms(), fetchAvatarCatalog(), fetchRoomCatalog()
                 ]);
-                setAvatarCatalog(allAvatarsData);
-                setRoomCatalog(allRoomsData);
 
-                const dbAvatarIds = avatarsData.map(a => {
-                    const match = avatars.find(fe => normalize(fe.model) === normalize(a.model_path));
-                    return match?.id;
-                }).filter(Boolean);
+                setAvatarCatalog(allAvatars);
+                setRoomCatalog(allRooms);
 
-                const dbSceneIds = roomsData.map(r => {
-                    const match = scenes.find(fe => (fe.dbPath && normalize(fe.dbPath) === normalize(r.image_path)) || (fe.model && normalize(fe.model) === normalize(r.image_path)));
-                    return match?.id;
-                }).filter(Boolean);
+                const ownIds = ownedAvatars.map(a => a.id);
+                const ownRoomIds = ownedRooms.map(r => r.id);
 
-                const finalAvatars = dbAvatarIds.length ? dbAvatarIds : ["nerd"];
-                const finalScenes = dbSceneIds.length ? dbSceneIds : ["nerdroom"];
-                setOwnedIds(finalAvatars);
-                setOwnedSceneIds(finalScenes);
-                localStorage.setItem("owned_avatars", JSON.stringify(finalAvatars));
-                localStorage.setItem("owned_scenes", JSON.stringify(finalScenes));
+                setOwnedIds(ownIds);
+                setOwnedSceneIds(ownRoomIds);
 
-                const equippedAvatar = avatarsData.find(a => a.is_equipped);
-                if (equippedAvatar) {
-                    const match = avatars.find(fe => normalize(fe.model) === normalize(equippedAvatar.model_path));
-                    if (match) setSelectedId(match.id);
-                }
+                // Set initial selection
+                const equippedAvatar = ownedAvatars.find(a => a.is_equipped);
+                if (equippedAvatar) setSelectedId(equippedAvatar.id);
+                else if (allAvatars.length) setSelectedId(allAvatars[0].id);
 
-                const equippedRoom = roomsData.find(r => r.is_equipped);
-                if (equippedRoom) {
-                    const match = scenes.find(fe => (fe.dbPath && normalize(fe.dbPath) === normalize(equippedRoom.image_path)) || (fe.model && normalize(fe.model) === normalize(equippedRoom.image_path)));
-                    if (match) setSelectedSceneId(match.id);
-                }
+                const equippedRoom = ownedRooms.find(r => r.is_equipped);
+                if (equippedRoom) setSelectedSceneId(equippedRoom.id);
+                else if (allRooms.length) setSelectedSceneId(allRooms[0].id);
+
             } catch (err) { console.error("Sync error:", err); }
         };
         syncInventory();
-    }, [avatars, scenes]);
+    }, []);
 
     const isOwned = (id) => currentTab === "avatar" ? ownedIds.includes(id) : ownedSceneIds.includes(id);
 
     const handleBuy = async (item) => {
         try {
             if (currentTab === "avatar") {
-                const catalogItem = avatarCatalog.find(a => normalize(a.model_path) === normalize(item.model));
-                if (!catalogItem) return showCustomAlert("ไม่พบ Avatar ในระบบ", "error");
-                const result = await buyAvatarApi(catalogItem.id);
+                const result = await buyAvatarApi(item.id);
                 localStorage.setItem("user_coins", String(result.coins_remaining));
                 setOwnedIds(prev => [...new Set([...prev, item.id])]);
             } else {
-                const catalogItem = roomCatalog.find(r => (r.image_path && (normalize(r.image_path) === normalize(item.dbPath) || normalize(r.image_path) === normalize(item.model))));
-                if (!catalogItem) return showCustomAlert("ไม่พบ Room ในระบบ กรุณาลองใหม่ (Seed DB?)", "error");
-                const result = await buyRoomApi(catalogItem.id);
+                const result = await buyRoomApi(item.id);
                 localStorage.setItem("user_coins", String(result.coins_remaining));
                 setOwnedSceneIds(prev => [...new Set([...prev, item.id])]);
             }
@@ -208,14 +164,16 @@ const EditAvatar = () => {
     const handleSave = async () => {
         try {
             if (currentTab === "avatar") {
-                localStorage.setItem("avatar", selectedId);
-                const catalogItem = avatarCatalog.find(a => normalize(a.model_path) === normalize(activeAvatar.model));
-                if (catalogItem) await equipAvatarApi(catalogItem.id);
+                if (selectedId) {
+                    await equipAvatarApi(selectedId);
+                    localStorage.setItem("equipped_avatar_id", selectedId);
+                }
                 showCustomAlert("บันทึกตัวละครแล้วจ้า! 🌷", "success");
             } else {
-                localStorage.setItem("current_scene", selectedSceneId);
-                const catalogItem = roomCatalog.find(r => (r.image_path && (normalize(r.image_path) === normalize(activeScene.dbPath) || normalize(r.image_path) === normalize(activeScene.model))));
-                if (catalogItem) await equipRoomApi(catalogItem.id);
+                if (selectedSceneId) {
+                    await equipRoomApi(selectedSceneId);
+                    localStorage.setItem("equipped_room_id", selectedSceneId);
+                }
                 showCustomAlert("เปลี่ยนฉากเสร็จแล้วนะเพื่อน! 🌸", "success");
             }
             window.dispatchEvent(new Event("avatarUpdated"));
@@ -223,13 +181,22 @@ const EditAvatar = () => {
     };
 
     const handleResetToDefault = () => {
-        if (currentTab === "avatar") setSelectedId("nerd");
-        else setSelectedSceneId("nerdroom");
+        if (currentTab === "avatar") {
+            const defaultAvatar = visualAvatars.find(a => a.price === 0) || visualAvatars[0];
+            if (defaultAvatar) setSelectedId(defaultAvatar.id);
+        } else {
+            const defaultRoom = visualScenes.find(s => s.price === 0) || visualScenes[0];
+            if (defaultRoom) setSelectedSceneId(defaultRoom.id);
+        }
     };
 
-    const activeAvatar = avatars.find(a => a.id === selectedId) || avatars[0];
-    const activeScene = scenes.find(s => s.id === selectedSceneId) || scenes[0];
+    const activeAvatar = visualAvatars.find(a => a.id === selectedId) || visualAvatars[0] || {};
+    const activeScene = visualScenes.find(s => s.id === selectedSceneId) || visualScenes[0] || {};
     const currentItem = currentTab === 'avatar' ? activeAvatar : activeScene;
+
+    if (!visualAvatars.length && !visualScenes.length) {
+        return <div className="min-h-screen bg-black flex items-center justify-center text-white font-black">LOADING MALL...</div>;
+    }
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex flex-col transition-colors duration-300 relative">
@@ -314,7 +281,7 @@ const EditAvatar = () => {
                             </button>
                         </div>
                         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4">
-                            {(currentTab === 'avatar' ? avatars : scenes).map(item => {
+                            {(currentTab === 'avatar' ? visualAvatars : visualScenes).map(item => {
                                 const active = currentTab === 'avatar' ? item.id === selectedId : item.id === selectedSceneId;
                                 const owned = isOwned(item.id);
                                 return (

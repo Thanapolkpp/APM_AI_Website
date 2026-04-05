@@ -7,63 +7,92 @@ import Footer from "../components/Layout/footer"
 import CoinBadge from "../components/UI/CoinBadge"
 import { useCoins } from "../hooks/useCoins"
 import { updateExp } from "../services/aiService"
-import Logo from "../assets/logo.png"
-import BroIcon from "../assets/Bro.png"
-import NerdIcon from "../assets/Nerd.1.2.png"
-import CuteGirlIcon from "../assets/Girl.png"
-import MotionReading from "../assets/Motion_Readding.gif"
-import TableImg from "../assets/Table.png"
-import Glass from "../assets/GlassBear.gif"
-import Speech from "../assets/SpeakerAPM.gif"
 
+// --- Cloudinary Asset Configuration ---
+const CLOUD_NAME = "dxfxkq0zs";
+const BASE_URL = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto/v1/APM-AI/assets/`;
+
+import { ASSETS, getStaticFrame, mapImagePath } from "../config/assets";
+import { fetchOwnedRooms, fetchOwnedAvatars } from "../services/aiService";
+
+const Logo = ASSETS.BRANDING.LOGO;
+const BroIcon = ASSETS.AVATARS.BRO;
+const NerdIcon = ASSETS.AVATARS.NERD2;
+const CuteGirlIcon = ASSETS.AVATARS.GIRL;
+const MotionReading = ASSETS.READING.MOTION_GIF;
+const TableImg = ASSETS.READING.TABLE;
+const Glass = ASSETS.READING.GLASS_BEAR;
+const Speech = ASSETS.READING.SPEAKER;
+const DefaultBackground = ASSETS.READING.BACKGROUND;
+const Chair = ASSETS.READING.CHAIR;
 
 const ReadingSystem = () => {
     const navigate = useNavigate()
     const { addCoins } = useCoins()
 
-    // Custom durations state
+    // --- State Management ---
     const [focusDuration, setFocusDuration] = useState(25 * 60)
     const [breakDuration, setBreakDuration] = useState(5 * 60)
-
     const [timeLeft, setTimeLeft] = useState(focusDuration)
     const [isActive, setIsActive] = useState(false)
     const [currentMode, setCurrentMode] = useState("Focus") // Focus, Break
     const [selectedAmbience, setSelectedAmbience] = useState("None")
     const [youtubeUrl, setYoutubeUrl] = useState("")
     const [youtubeId, setYoutubeId] = useState("")
+    const [isFullscreen, setIsFullscreen] = useState(false)
 
     // Custom Alert State
     const [customAlert, setCustomAlert] = useState({ isOpen: false, message: "", type: "info" })
+
+    // Assets & Profile State
+    const [background, setBackground] = useState(DefaultBackground)
+    const [profileImage, setProfileImage] = useState(BroIcon)
+    const [companionName, setCompanionName] = useState("Bro")
+
+    // --- แก้ไขจุดที่มีปัญหา: เพิ่ม State สำหรับ Static Frames ---
     const [staticMotionImg, setStaticMotionImg] = useState(null)
     const [staticGlass, setStaticGlass] = useState(null)
     const [staticSpeech, setStaticSpeech] = useState(null)
 
+    const timerRef = useRef(null)
+
+    // Sync Inventory Data
+    useEffect(() => {
+        const syncInventory = async () => {
+            try {
+                const rooms = await fetchOwnedRooms();
+                const equippedRoom = rooms.find(r => r.is_equipped);
+                if (equippedRoom) {
+                    setBackground(mapImagePath(equippedRoom.image_path));
+                }
+
+                const avatars = await fetchOwnedAvatars();
+                const equippedAvatar = avatars.find(a => a.is_equipped);
+                if (equippedAvatar) {
+                    const mode = equippedAvatar.name.toLowerCase();
+                    setCompanionName(equippedAvatar.name);
+                    setProfileImage(mapImagePath(equippedAvatar.model_path));
+
+                    let modeStr = "bro";
+                    if (mode.includes("girl") || mode.includes("bestie")) modeStr = "girl";
+                    if (mode.includes("nerd") || mode.includes("genius")) modeStr = "nerd";
+                    localStorage.setItem("avatar", modeStr);
+                }
+            } catch (err) { console.error("Inventory sync error:", err); }
+        };
+        syncInventory();
+    }, []);
+
+    // Set Static Frames for Assets
+    useEffect(() => {
+        setStaticMotionImg(getStaticFrame(MotionReading));
+        setStaticGlass(getStaticFrame(Glass));
+        setStaticSpeech(getStaticFrame(Speech));
+    }, [MotionReading, Glass, Speech])
+
     const showCustomAlert = (message, type = "info") => {
         setCustomAlert({ isOpen: true, message, type })
     }
-
-    // Capture first frame of the GIFs to use them when paused
-    useEffect(() => {
-        const captureFrame = (src, setState) => {
-            const img = new Image()
-            img.src = src
-            img.onload = () => {
-                const canvas = document.createElement("canvas")
-                canvas.width = img.width || 500
-                canvas.height = img.height || 500
-                const ctx = canvas.getContext("2d")
-                ctx.drawImage(img, 0, 0)
-                setState(canvas.toDataURL("image/png"))
-            }
-        }
-
-        captureFrame(MotionReading, setStaticMotionImg)
-        captureFrame(Glass, setStaticGlass)
-        captureFrame(Speech, setStaticSpeech)
-    }, [])
-
-
-    const timerRef = useRef(null)
 
     const ambiences = [
         { id: "Rain", icon: CloudRain, color: "bg-blue-400", title: "Rainy Day", youtubeId: "35AdtzquJYg" },
@@ -89,28 +118,40 @@ const ReadingSystem = () => {
         }
     }
 
+    // Timer Logic
     useEffect(() => {
         if (isActive && timeLeft > 0) {
             timerRef.current = setInterval(() => {
                 setTimeLeft(prev => prev - 1)
             }, 1000)
-        } else if (timeLeft === 0) {
+        } else if (timeLeft === 0 && isActive) {
             clearInterval(timerRef.current)
             setIsActive(false)
             if (currentMode === "Focus") {
-                addCoins(5) // แลกเป็นเหรียญเมื่อจดจ่อสำเร็จ
-                updateExp(10).catch(() => { }) // เพิ่ม EXP ความสนิท
-                showCustomAlert(<span className="flex items-center justify-center gap-2 flex-wrap">ดีมากเลยเพื่อน! รับไปเลย 5 เหรียญ! <Coins size={18} className="text-yellow-500" /> พักสักนิดมั้ยจ๊ะ? <Heart size={18} className="text-pink-500" /></span>, "success")
+                addCoins(5)
+                updateExp(10).catch(() => { })
+                showCustomAlert(<span className="flex flex-col items-center gap-1 text-center"><span>เก่งมากกล้ามาก ขอบคุณครับ! <Heart size={18} className="text-pink-500 inline fill-pink-500" /></span> <span className="text-xs opacity-70 font-bold">รับไปเลย 5 เหรียญ และ 10 EXP น้าา <Sparkles size={14} className="text-yellow-500 inline" /></span></span>, "success")
             } else {
                 showCustomAlert(<span className="flex items-center justify-center gap-2">พร้อมกลับไปลุยต่อรึยัง?! <Sparkles size={18} className="text-yellow-500" /></span>, "success")
             }
+            // Auto reset timer to prevent farming
+            setTimeout(() => {
+                resetTimer();
+            }, 3000);
         } else {
             clearInterval(timerRef.current)
         }
         return () => clearInterval(timerRef.current)
     }, [isActive, timeLeft, currentMode, addCoins])
 
-    // ตรวจสอบการสลับ Tab หรือออกจากหน้าจอ
+    const setManualTime = (totalSeconds) => {
+        if (totalSeconds < 10) return;
+        setTimeLeft(totalSeconds);
+        if (currentMode === "Focus") setFocusDuration(totalSeconds);
+        else setBreakDuration(totalSeconds);
+    }
+
+    // Visibility Check
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.hidden && isActive && currentMode === "Focus") {
@@ -118,12 +159,10 @@ const ReadingSystem = () => {
                 showCustomAlert(<span className="flex flex-col items-center gap-2 text-center"><span>แอบหนีไปเล่นอย่างอื่นเหรอ?! <EyeOff size={18} className="text-gray-500 inline" /></span> <span>เราหยุดเวลาไว้ให้แล้วนะ กลับมาตั้งใจต่อเร็ว! <Sparkles size={18} className="text-yellow-500 inline" /></span></span>, "info")
             }
         }
-
         document.addEventListener("visibilitychange", handleVisibilityChange)
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
     }, [isActive, currentMode])
 
-    const [isFullscreen, setIsFullscreen] = useState(false)
     const toggleFullscreen = () => {
         if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen()
@@ -144,8 +183,7 @@ const ReadingSystem = () => {
 
     const adjustTime = (minutes) => {
         const newSeconds = timeLeft + (minutes * 60);
-        if (newSeconds < 60) return; // Minimum 1 minute
-
+        if (newSeconds < 60) return;
         setTimeLeft(newSeconds);
         if (currentMode === "Focus") setFocusDuration(newSeconds);
         else setBreakDuration(newSeconds);
@@ -158,49 +196,46 @@ const ReadingSystem = () => {
 
     const switchMode = (mode) => {
         setCurrentMode(mode)
-        setTimeLeft(mode === "Focus" ? focusDuration : breakDuration)
+        const duration = mode === "Focus" ? focusDuration : breakDuration
+        setTimeLeft(duration)
         setIsActive(false)
     }
 
-    const [profileImage] = useState(() => {
-        const savedAvatar = localStorage.getItem("avatar") || "bro"
-        const map = { girl: CuteGirlIcon, nerd: NerdIcon, bro: BroIcon }
-        return map[savedAvatar.toLowerCase()] || BroIcon
-    })
-
-    const companionName = localStorage.getItem("avatar") || "Bro"
-
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex flex-col">
-            <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
-                <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-4 py-4 sm:px-6">
-                    {/* Left: Logo & Title */}
-                    <div className="flex items-center gap-3 cursor-pointer shrink-0" onClick={() => navigate("/")}>
-                        <div className="relative size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-2 ring-pink-300/50 shadow-md">
-                            <img src={Logo} alt="Logo" className="h-full w-full object-cover" />
+            <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-white/60 dark:bg-black/20 backdrop-blur-xl transition-all">
+                <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
+                    <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate("/")}>
+                        <div className="relative size-12 rounded-2xl bg-white shadow-xl ring-2 ring-pink-100 flex items-center justify-center overflow-hidden">
+                            <img src={Logo} alt="Logo" className="size-8 object-contain transition duration-500 hover:scale-110" />
                         </div>
-                        <h1 className="text-xl font-extrabold text-black dark:text-white hidden sm:block">APM Focus</h1>
+                        <div className="hidden sm:block">
+                            <h1 className="text-xl font-black text-gray-900 dark:text-white leading-tight">APM Focus</h1>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Focus Mode 🧘‍♂️</p>
+                        </div>
                     </div>
-
-                    {/* Center: Navbar */}
                     <div className="hidden lg:flex flex-1 justify-center px-4">
                         <Navbar />
                     </div>
-
-                    {/* Right: Coins & Profile */}
-                    <div className="flex justify-end items-center gap-4 shrink-0">
-                        <CoinBadge className="scale-90" />
-                        <img src={profileImage} className="size-10 rounded-full border-2 border-primary shadow-sm" />
+                    <div className="flex justify-end items-center gap-3 sm:gap-4 shrink-0">
+                        <div className="hidden sm:block">
+                            <CoinBadge className="scale-90" />
+                        </div>
+                        <img 
+                            src={profileImage} 
+                            className="size-10 rounded-2xl border-2 border-white dark:border-white/10 shadow-lg cursor-pointer hover:scale-110 transition-transform" 
+                            onClick={() => navigate("/account")}
+                            alt="Profile"
+                        />
+                        <div className="lg:hidden">
+                            <Navbar />
+                        </div>
                     </div>
-
                 </div>
             </header>
 
             <main className="flex-1 w-full max-w-6xl mx-auto py-12 px-6 flex flex-col items-center text-center">
-                {/* Timer Display Card */}
                 <div className="w-full max-w-2xl bg-white/40 dark:bg-white/5 backdrop-blur-3xl border border-white/60 dark:border-white/10 rounded-[64px] p-12 shadow-2xl flex flex-col items-center mb-12">
-
-                    {/* 1. Mode Switcher at Top */}
                     <div className="flex flex-col items-center mb-10 gap-3">
                         <div className="flex gap-4 bg-white/40 dark:bg-white/10 p-2 rounded-3xl border border-white/60 dark:border-white/10">
                             <button
@@ -216,144 +251,96 @@ const ReadingSystem = () => {
                                 Short Break
                             </button>
                         </div>
-
-                        {/* คำอธิบายการได้รางวัล */}
                         {currentMode === 'Focus' && (
-                            <div className="bg-primary/10 text-primary px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in zoom-in duration-300">
+                            <div className="bg-primary/10 text-primary px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2">
                                 <Sparkles size={16} className="text-yellow-500" />
-                                โฟกัสครบตามเวลาที่คุณตั้งไว้ รับไปเลย <span className="text-yellow-600">5 เหรียญ</span> และ <span className="text-pink-500">10 EXP</span> ทุกรอบ! <Star size={16} className="fill-yellow-500 text-yellow-500" />
+                                โฟกัสครบ 25 นาทีตามที่ตั้งไว้ รับไปเลย <span className="text-yellow-600">5 เหรียญ</span> และ <span className="text-pink-500">10 EXP</span>! <Star size={16} className="fill-yellow-500" />
                             </div>
                         )}
                         {currentMode === 'Break' && (
-                            <div className="bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in zoom-in duration-300">
-                                <Coffee size={16} />
-                                พักสมองให้เต็มที่ ไม่ได้เหรียญนะจ๊ะ!
+                            <div className="bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2">
+                                <Coffee size={16} /> พักสมองให้เต็มที่นะจ๊ะ!
                             </div>
                         )}
                     </div>
 
-                    {/* 2. Integrated Motion Visual Section */}
-                    <div className="mb-8 w-full max-w-md flex justify-center perspective-1000">
-                        <div className={`relative transition-all duration-700 transform flex flex-col items-center ${isActive ? 'scale-110' : 'scale-100'}`}>
-                            <div className={`absolute -inset-6 bg-gradient-to-tr from-primary/30 via-transparent to-pink-300/30 blur-[60px] rounded-full transition-opacity duration-1000 ${isActive ? 'opacity-100 animate-pulse' : 'opacity-0'}`}></div>
-
-                            {/* Character GIF or Static frame */}
-                            <img
-                                src={isActive ? MotionReading : (staticMotionImg || MotionReading)}
-                                alt="Reading Motion"
-                                className="w-72 h-72 object-contain relative z-10 drop-shadow-[0_20px_60px_rgba(0,0,0,0.15)] mb-[-2rem] transition-all"
-                                style={{ filter: isActive ? 'none' : 'grayscale(20%) brightness(90%)' }}
-                            />
-
-                            {/* Glass (Moved to Right side) */}
-                            <img
-                                src={isActive ? Glass : (staticGlass || Glass)}
-                                alt="Glass"
-                                className={`absolute -right-[20px] top-[180px] w-[120px] h-[120px] object-contain z-20 drop-shadow-xl ${isActive ? 'animate-float' : ''}`}
-                                style={{ filter: isActive ? 'none' : 'grayscale(20%) brightness(90%)' }}
-                            />
-
-                            {/* Speech Bubble (Moved to Left side) */}
-                            <img
-                                src={isActive ? Speech : (staticSpeech || Speech)}
-                                alt="Speech"
-                                className={`absolute -left-[35px] top-[150px] w-[180px] h-[160px] object-contain z-20 drop-shadow-xl ${isActive ? 'animate-float' : ''}`}
-                                style={{ filter: isActive ? 'none' : 'grayscale(20%) brightness(90%)' }}
-                            />
-
-
-
-
-
-                            {/* Table underneath */}
-                            <img
-                                src={TableImg}
-                                alt="Table"
-                                className="w-full object-contain relative z-0  mt-[-250px]"
-                            />
-
+                    {/* Room View */}
+                    <div className="mb-12 w-full max-w-2xl flex justify-center perspective-1000">
+                        <div className={`relative w-full aspect-[16/10] transition-all duration-1000 rounded-[48px] overflow-hidden shadow-2xl border-8 border-white/60 dark:border-white/10 ${isActive ? 'scale-[1.03] translate-y-[-10px]' : 'scale-100'}`}>
+                            <div className={`absolute -inset-10 bg-gradient-to-tr from-primary/40 via-transparent to-pink-400/40 blur-[100px] transition-opacity duration-1000 ${isActive ? 'opacity-100 animate-pulse' : 'opacity-0'}`}></div>
+                            <img src={background} className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ${isActive ? 'scale-110' : 'scale-100'}`} style={{ filter: isActive ? 'brightness(100%) saturate(120%)' : 'brightness(40%)' }} alt="BG" />
+                            <img src={Chair} className={`absolute left-1/2 -translate-x-[48%] top-[32%] w-[32%] z-10 transition-all ${isActive ? 'scale-105 brightness-[100%]' : 'opacity-90 grayscale-[15%] brightness-[50%]'}`} alt="Chair" />
+                            <img src={isActive ? MotionReading : (staticMotionImg || MotionReading)} className="absolute left-1/2 -translate-x-1/2 top-[32%] w-[50%] z-20 drop-shadow-2xl" style={{ filter: isActive ? 'none' : 'grayscale(20%) brightness(70%)' }} alt="Avatar" />
+                            <img src={TableImg} className="absolute bottom-[-5%] w-full object-contain z-30" style={{ filter: isActive ? 'brightness(100%)' : 'brightness(60%)' }} alt="Table" />
+                            <img src={isActive ? Glass : (staticGlass || Glass)} className={`absolute right-[15%] bottom-[-5%] w-[15%] z-40 transition-all ${isActive ? 'animate-float brightness-[100%]' : 'grayscale-[20%] brightness-[60%]'}`} alt="Glass" />
+                            <img src={isActive ? Speech : (staticSpeech || Speech)} className={`absolute left-[5%] bottom-[0%] w-[30%] z-40 transition-all ${isActive ? 'animate-float brightness-[100%]' : 'grayscale-[20%] brightness-[60%]'}`} alt="Speaker" />
                         </div>
                     </div>
 
-                    {/* 3. Timer Display (Text) */}
+                    {/* Timer Display */}
                     <div className="relative mb-10 flex items-center justify-center gap-4 sm:gap-6">
-                        <div className="absolute inset-x-0 inset-y-4 bg-primary/20 blur-[80px] rounded-full animate-pulse"></div>
-
                         {!isActive && (
-                            <button
-                                onClick={() => adjustTime(-5)}
-                                className="relative z-10 text-gray-300 hover:text-primary transition-all cursor-pointer disabled:opacity-30 active:scale-95"
-                                disabled={timeLeft <= 300}
-                                title="ลด 5 นาที"
-                            >
+                            <button onClick={() => adjustTime(-5)} className="relative z-10 text-gray-300 hover:text-primary disabled:opacity-30" disabled={timeLeft <= 300}>
                                 <MinusCircle size={40} className="fill-white" />
                             </button>
                         )}
-
-                        <div className="text-[80px] sm:text-[96px] font-black tracking-tighter text-gray-900 dark:text-white relative z-10 font-mono leading-none transition-all duration-300">
+                        <div 
+                            onClick={() => {
+                                if (!isActive) {
+                                    const input = prompt("เพื่อนอยากโฟกัสกี่นาทีดีจ๊ะ? (ใส่เป็นตัวเลขนาทีนะ)", Math.floor(timeLeft / 60));
+                                    if (input !== null) {
+                                        const mins = parseInt(input);
+                                        if (!isNaN(mins) && mins > 0) {
+                                            setManualTime(mins * 60);
+                                        }
+                                    }
+                                }
+                            }}
+                            className={`text-[80px] sm:text-[96px] font-black tracking-tighter text-gray-900 dark:text-white relative z-10 font-mono ${!isActive ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+                        >
                             {formatTime(timeLeft)}
                         </div>
-
                         {!isActive && (
-                            <button
-                                onClick={() => adjustTime(5)}
-                                className="relative z-10 text-gray-300 hover:text-primary transition-all cursor-pointer active:scale-95"
-                                title="เพิ่ม 5 นาที"
-                            >
+                            <button onClick={() => adjustTime(5)} className="relative z-10 text-gray-300 hover:text-primary">
                                 <PlusCircle size={40} className="fill-white" />
                             </button>
                         )}
                     </div>
 
-
-
-
                     <div className="flex gap-6 relative z-10 w-full max-w-sm">
-                        <button
-                            onClick={() => setIsActive(!isActive)}
-                            className={`flex-1 py-6 rounded-[32px] text-white font-black text-xl flex items-center justify-center gap-3 shadow-2xl transition-all transform active:scale-95 ${isActive ? 'bg-gray-400' : 'bg-primary'}`}
-                        >
+                        <button onClick={() => setIsActive(!isActive)} className={`flex-1 py-6 rounded-[32px] text-white font-black text-xl flex items-center justify-center gap-3 shadow-2xl transition-all active:scale-95 ${isActive ? 'bg-gray-400' : 'bg-primary'}`}>
                             {isActive ? <Pause size={28} fill="white" /> : <Play size={28} fill="white" />}
                             {isActive ? "PAUSE" : "START"}
                         </button>
-                        <button
-                            onClick={resetTimer}
-                            className="w-20 rounded-[32px] bg-white border border-gray-200 text-gray-500 flex items-center justify-center shadow-xl active:scale-95 transition-all hover:bg-gray-50"
-                        >
+                        <button onClick={resetTimer} className="w-20 rounded-[32px] bg-white border border-gray-200 text-gray-500 flex items-center justify-center shadow-xl active:scale-95 transition-all hover:bg-gray-50">
                             <RotateCcw size={28} />
                         </button>
-                        <button
-                            onClick={toggleFullscreen}
-                            className="w-20 rounded-[32px] bg-white border border-gray-200 text-gray-500 flex items-center justify-center shadow-xl active:scale-95 transition-all hover:bg-gray-50"
-                            title="Fullscreen Mode"
-                        >
+                        <button onClick={toggleFullscreen} className="w-20 rounded-[32px] bg-white border border-gray-200 text-gray-500 flex items-center justify-center shadow-xl active:scale-95 transition-all hover:bg-gray-50">
                             {isFullscreen ? <Minimize size={28} /> : <Maximize size={28} />}
                         </button>
                     </div>
                 </div>
 
-                {/* Character & Ambience Section */}
+                {/* Character & Ambience */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
-                    {/* Character Advice */}
-                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 p-10 rounded-[48px] shadow-sm flex items-center gap-8">
+                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 p-10 rounded-[48px] flex items-center gap-8">
                         <div className="relative">
-                            <img src={profileImage} alt="Companion" className="w-40 h-40 object-contain animate-float" />
+                            <img src={profileImage} alt="Companion" className="w-40 h-40 object-contain animate-float" style={{ filter: 'brightness(80%)' }} />
                             <div className="absolute -top-2 -right-2 bg-yellow-400 p-2 rounded-full shadow-lg"><Sparkles className="text-white" size={18} /></div>
                         </div>
-                        <div>
+                        <div className="text-left">
                             <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                {companionName} กำลังให้กำลังใจอยู่! <Heart size={24} className="fill-pink-500 text-pink-500" />
+                                {companionName} ให้กำลังใจอยู่! <Heart size={24} className="fill-pink-500 text-pink-500" />
                             </h3>
-                            <div className="text-gray-500 dark:text-gray-400 font-bold italic text-sm sm:text-lg leading-relaxed flex items-start gap-2">
+                            <div className="text-gray-500 dark:text-gray-400 font-bold italic text-sm sm:text-lg">
                                 {currentMode === 'Focus'
-                                    ? <span>"ตั้งใจอ่านน้าเพื่อนจ๋า! วางมือถือแล้วโฟกัสกับเป้าหมายกันเถอะ <Sparkles size={18} className="text-yellow-500 inline" />"</span>
-                                    : <span>"พักผ่อนให้เต็มที่นะ ยืดเส้นยืดสายหน่อย เดี๋ยวเราค่อยกลับไปลุยกันต่อ! <Sun size={20} className="text-orange-400 inline" />"</span>}
+                                    ? <span>"ตั้งใจอ่านน้าเพื่อนจ๋า! วางมือถือแล้วโฟกัสกันเถอะ <Sparkles size={18} className="text-yellow-500 inline" />"</span>
+                                    : <span>"พักผ่อนให้เต็มที่นะ เดี๋ยวเราค่อยกลับไปลุยกันต่อ! <Sun size={20} className="text-orange-400 inline" />"</span>}
                             </div>
                         </div>
                     </div>
 
-                    {/* Ambience Control */}
-                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 p-10 rounded-[48px] shadow-sm flex flex-col justify-center">
+                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 p-10 rounded-[48px] flex flex-col justify-center">
                         <div className="flex items-center gap-3 mb-6">
                             <Music className="text-primary" size={24} />
                             <h3 className="text-xl font-black text-gray-800 dark:text-white">Study Ambience</h3>
@@ -367,94 +354,62 @@ const ReadingSystem = () => {
                                         if (amb.youtubeId) {
                                             setYoutubeId(amb.youtubeId)
                                             setYoutubeUrl(`https://www.youtube.com/watch?v=${amb.youtubeId}`)
-                                        }
-                                        if (amb.id === "YouTube") {
+                                        } else if (amb.id === "YouTube") {
                                             setYoutubeId("")
                                             setYoutubeUrl("")
-
                                         }
                                     }}
-                                    className={`flex flex-col items-center gap-3 p-5 rounded-[32px] border transition-all duration-300 ${selectedAmbience === amb.id ? 'bg-primary/10 border-primary text-primary shadow-lg scale-105' : 'bg-white/40 dark:bg-white/10 border-transparent hover:bg-white active:scale-95'}`}
+                                    className={`flex flex-col items-center gap-3 p-5 rounded-[32px] border transition-all ${selectedAmbience === amb.id ? 'bg-primary/10 border-primary text-primary scale-105 shadow-lg' : 'bg-white/40 dark:bg-white/10 border-transparent hover:bg-white'}`}
                                 >
-                                    <div className={`p-4 rounded-2xl ${amb.color} text-white shadow-xl`}><amb.icon size={24} /></div>
-                                    <span className="text-xs font-black uppercase tracking-wider">{amb.id}</span>
+                                    <div className={`p-4 rounded-2xl ${amb.color} text-white`}><amb.icon size={24} /></div>
+                                    <span className="text-xs font-black uppercase">{amb.id}</span>
                                 </button>
                             ))}
                         </div>
-
-                        {/* YouTube Link Input (Show when YouTube is selected or as an option) */}
                         <div className="mt-8 pt-6 border-t border-gray-100 dark:border-white/10">
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <div className="relative flex-1">
-                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
-                                        <Youtube size={18} />
-                                    </div>
+                                    <Youtube size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                                     <input
                                         type="text"
                                         placeholder="วางลิ้ง Youtube ตรงนี้จ้า..."
-                                        className="w-full bg-white/50 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                        className="w-full bg-white/50 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                         value={youtubeUrl}
                                         onChange={(e) => setYoutubeUrl(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && handleYoutubeSubmit()}
                                     />
                                 </div>
-                                <button
-                                    onClick={handleYoutubeSubmit}
-                                    className="bg-red-500 hover:bg-red-600 text-white font-black px-6 py-3 rounded-2xl transition-all shadow-md active:scale-95"
-                                >
-                                    PLAY MUSIC
-                                </button>
+                                <button onClick={handleYoutubeSubmit} className="bg-red-500 text-white font-black px-6 py-3 rounded-2xl shadow-md active:scale-95">PLAY MUSIC</button>
                             </div>
                         </div>
 
-                        {/* YouTube Player Embed */}
-                        {(selectedAmbience === "YouTube" || ambiences.find(a => a.id === selectedAmbience)?.youtubeId) && youtubeId && (
+                        {youtubeId && (
                             <div className="mt-6 rounded-2xl overflow-hidden aspect-video shadow-2xl border border-white/20">
-                                <iframe
-                                    width="100%"
-                                    height="100%"
-                                    src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
-                                    title="YouTube video player"
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                    allowFullScreen
-                                ></iframe>
+                                <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`} title="Music" frameBorder="0" allow="autoplay; encrypted-media" allowFullScreen></iframe>
                             </div>
                         )}
                     </div>
                 </div>
             </main>
 
-            {/* Custom Alert Modal */}
+            {/* Alert Modal */}
             {customAlert.isOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/40 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300">
-                        <div className="p-8 flex flex-col items-center text-center">
-                            <div className={`size-20 rounded-full mb-6 flex items-center justify-center ${customAlert.type === 'success' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500' : 'bg-primary/10 text-primary'}`}>
-                                {customAlert.type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
-                            </div>
-                            <h3 className="text-xl font-black text-gray-900 dark:text-white mb-4 flex items-center justify-center gap-2">
-                                {customAlert.type === 'success'
-                                    ? <>สำเร็จแล้วจ้า! <Star className="fill-yellow-500 text-yellow-500" size={24} /></>
-                                    : <>แจ้งเตือนเพื่อนรัก! <Bell className="fill-primary text-primary" size={24} /></>}
-                            </h3>
-                            <div className="text-gray-500 dark:text-gray-400 font-bold leading-relaxed mb-8">
-                                {customAlert.message}
-                            </div>
-                            <button
-                                onClick={() => setCustomAlert({ ...customAlert, isOpen: false })}
-                                className="w-full py-4 rounded-2xl bg-primary text-white font-black text-lg shadow-xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95"
-                            >
-                                ตกลงจ้า!
-                            </button>
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/40 backdrop-blur-md">
+                    <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl border border-white/20 p-8 flex flex-col items-center text-center">
+                        <div className={`size-20 rounded-full mb-6 flex items-center justify-center ${customAlert.type === 'success' ? 'bg-emerald-100 text-emerald-500' : 'bg-primary/10 text-primary'}`}>
+                            {customAlert.type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
                         </div>
+                        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-4">
+                            {customAlert.type === 'success' ? "สำเร็จแล้วจ้า!" : "แจ้งเตือนเพื่อนรัก!"}
+                        </h3>
+                        <div className="text-gray-500 dark:text-gray-400 font-bold mb-8">{customAlert.message}</div>
+                        <button onClick={() => setCustomAlert({ ...customAlert, isOpen: false })} className="w-full py-4 rounded-2xl bg-primary text-white font-black text-lg shadow-xl active:scale-95">ตกลงจ้า!</button>
                     </div>
                 </div>
             )}
-
             <Footer />
         </div>
     )
 }
 
-export default ReadingSystem
+export default ReadingSystem;

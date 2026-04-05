@@ -1,9 +1,11 @@
 import React from "react"
 import Navbar from "../Layout/Navbar"
-import Logo from "../../assets/logo.png"
-import GirlIcon from "../../assets/Girl.png"
-import BroIcon from "../../assets/Bro.png"
-import NerdIcon from "../../assets/Nerd.1.2.png"
+import { ASSETS } from "../../config/assets";
+
+const Logo = ASSETS.BRANDING.LOGO;
+const GirlIcon = ASSETS.AVATARS.GIRL;
+const BroIcon = ASSETS.AVATARS.BRO;
+const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
 import CoinBadge from "../UI/CoinBadge"
 
 
@@ -40,11 +42,10 @@ const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, 
                         <Navbar />
                     </div>
                 </div>
-
+         
                 {/* RIGHT */}
                 <div className="flex justify-end items-center gap-3">
-                    <CoinBadge className="hidden sm:flex scale-90" />
-                    
+
                     <button className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95">
                         <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
                             notifications
@@ -84,7 +85,11 @@ const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, 
                         <span>{mode} Mode Online</span>
                     </div>
 
+                    <CoinBadge isVibrant={true} className="scale-75 sm:scale-90" />
+
+
                     {!isLoggedIn && (
+
                         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-xs font-bold shadow-sm">
                             <span className="material-symbols-outlined text-[14px]">bolt</span>
                             <div>เหลือ {5 - guestChatCount} ครั้ง</div>

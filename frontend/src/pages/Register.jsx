@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../assets/logo.png";
-import BroIcon from "../assets/Bro.png";
-import NerdIcon from "../assets/Nerd.1.2.png";
+import { ASSETS } from "../config/assets";
+
+const Logo = ASSETS.BRANDING.LOGO;
+const BroIcon = ASSETS.AVATARS.BRO;
+const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
 import { register } from "../services/aiService";
 
 const Register = () => {

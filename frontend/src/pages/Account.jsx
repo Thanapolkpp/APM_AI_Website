@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/footer";
-import Logo from "../assets/logo.png";
+import { ASSETS } from "../config/assets";
 
-import BroIcon from "../assets/Bro.png";
-import CuteGirlIcon from "../assets/Girl.png";
-import NerdIcon from "../assets/Nerd.1.2.png";
+const Logo = ASSETS.BRANDING.LOGO;
+const BroIcon = ASSETS.AVATARS.BRO;
+const CuteGirlIcon = ASSETS.AVATARS.GIRL;
+const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
 import Notification from "../components/UI/Notification";
 import CoinBadge from "../components/UI/CoinBadge";
 import { getUserProfile } from "../services/aiService";
@@ -41,7 +42,7 @@ const Account = () => {
                     exp: data.exp,
                 }));
             })
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     // รูปภาพสำรอง (Fallback) กรณีที่ยังไม่ได้เซฟรูป 3D
@@ -142,7 +143,7 @@ const Account = () => {
                     {/* Right */}
                     <div className="flex justify-end gap-3 items-center">
                         <CoinBadge className="hidden sm:flex scale-90" />
-                        
+
                         {/* Notification Button */}
                         <div className="relative">
 

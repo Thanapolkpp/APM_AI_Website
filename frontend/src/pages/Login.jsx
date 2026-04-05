@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../assets/logo.png";
-import CuteGirlIcon from "../assets/Girl.png"; // Decorative image for the side panel logic
-import BroIcon from "../assets/Bro.png";
+import { ASSETS } from "../config/assets";
+
+const Logo = ASSETS.BRANDING.LOGO;
+const CuteGirlIcon = ASSETS.AVATARS.GIRL;
+const BroIcon = ASSETS.AVATARS.BRO;
 import { login } from "../services/aiService";
 
 const Login = () => {

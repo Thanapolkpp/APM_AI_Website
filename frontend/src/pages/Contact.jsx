@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom"
 import { Github, Instagram } from "lucide-react"
 import Navbar from "../components/Layout/Navbar"
 import CoinBadge from "../components/UI/CoinBadge"
-import Logo from "../assets/logo.png"
+import { ASSETS } from "../config/assets";
 
-import BroIcon from "../assets/Bro.png"
-import NerdIcon from "../assets/Nerd.1.2.png"
-import CuteGirlIcon from "../assets/Girl.png"
+const Logo = ASSETS.BRANDING.LOGO;
+const GirlIcon = ASSETS.AVATARS.GIRL;
+const BroIcon = ASSETS.AVATARS.BRO;
+const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
 
 const Contact = () => {
     const navigate = useNavigate()
@@ -17,7 +18,7 @@ const Contact = () => {
         const savedImage = localStorage.getItem("avatarImage");
         if (savedImage) return savedImage;
         const savedAvatar = localStorage.getItem("avatar") || "bro";
-        const map = { girl: CuteGirlIcon, nerd: NerdIcon, bro: BroIcon };
+        const map = { girl: GirlIcon, nerd: NerdIcon, bro: BroIcon };
         return map[savedAvatar.toLowerCase()] || BroIcon;
     });
 
@@ -25,14 +26,14 @@ const Contact = () => {
         {
             id: 1,
             name: "Supinyo Moontan",
-            image: "/src/assets/2.png",
+            image: ASSETS.GENERAL.SAMPLE_IMAGE_2,
             position: "UX/UI Designer",
             ig: "https://www.instagram.com/marque.k_/",
         },
         {
             id: 2,
             name: "Thanapol Khampimpit",
-            image: "/src/assets/1.png",
+            image: ASSETS.GENERAL.SAMPLE_IMAGE_1,
             position: "Frontend Developer",
             ig: "https://www.instagram.com/punz_tnp/",
             github: "https://github.com/Thanapolkpp",
@@ -40,7 +41,7 @@ const Contact = () => {
         {
             id: 3,
             name: "Tharatap Tape",
-            image: "/src/assets/3.png",
+            image: ASSETS.GENERAL.SAMPLE_IMAGE_3,
             position: "Backend Developer",
             ig: "https://www.instagram.com/chaje_e/",
             github: "https://github.com/Tharatap",
@@ -122,7 +123,7 @@ const Contact = () => {
                                 <div className="mt-8 bg-white/60 dark:bg-white/5 backdrop-blur-2xl p-8 rounded-[40px] w-full max-w-[20rem] border border-white/60 dark:border-white/10 text-center shadow-xl group-hover:shadow-2xl transition-all">
                                     <h3 className="text-gray-900 dark:text-white text-xl font-black mb-1">{dev.name}</h3>
                                     <p className="text-gray-400 font-bold text-xs uppercase tracking-[0.2em] mb-6">{dev.position}</p>
-                                    
+
                                     <div className="flex justify-center gap-4">
                                         <a href={dev.ig} target="_blank" rel="noopener noreferrer" className="size-12 rounded-2xl bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg hover:shadow-pink-500/30">
                                             <Instagram size={24} />

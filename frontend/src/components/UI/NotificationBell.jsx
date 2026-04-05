@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
+import { AnimatePresence, motion } from "framer-motion"
 import {
     fetchNotifications,
     fetchUnreadCount,
@@ -101,65 +102,103 @@ const NotificationBell = () => {
                 )}
             </button>
 
-            {/* Dropdown */}
-            {open && (
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden">
-                    {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                        <span className="font-bold text-sm text-gray-800 dark:text-white">
-                            การแจ้งเตือน
-                        </span>
-                        {unreadCount > 0 && (
-                            <button
-                                onClick={handleMarkAllRead}
-                                className="text-xs text-primary hover:underline font-medium"
-                            >
-                                อ่านทั้งหมด
-                            </button>
-                        )}
-                    </div>
+            {/* Dropdown / Overlay Control */}
+            <AnimatePresence>
+                {open && (
+                    <div className="fixed sm:absolute inset-0 sm:inset-auto sm:right-0 sm:mt-2 z-[500] w-full sm:w-[380px] h-full sm:h-auto flex items-center justify-center sm:block p-6 sm:p-0">
+                        {/* Mobile Backdrop Overlay */}
+                        <div 
+                            className="fixed inset-0 bg-black/70 sm:hidden backdrop-blur-xl"
+                            onClick={() => setOpen(false)}
+                        />
 
-                    {/* List */}
-                    {notifications.length === 0 ? (
-                        <div className="px-4 py-8 text-center text-gray-400 dark:text-gray-500 text-sm">
-                            ยังไม่มีการแจ้งเตือน
-                        </div>
-                    ) : (
-                        <ul className="divide-y divide-gray-50 dark:divide-gray-800">
-                            {notifications.map((n) => {
-                                const cfg = TYPE_CONFIG[n.type] || TYPE_CONFIG.general
-                                return (
-                                    <li
-                                        key={n.id}
-                                        onClick={() => !n.is_read && handleMarkRead(n.id)}
-                                        className={`flex gap-3 px-4 py-3 cursor-pointer transition-colors ${
-                                            n.is_read
-                                                ? "bg-white dark:bg-gray-900"
-                                                : "bg-primary/5 dark:bg-primary/10 hover:bg-primary/10"
-                                        }`}
+                        {/* Content Card - Positioned in the bottom half (Top-50%, no Y translation) for consistency */}
+                        <motion.div 
+                            initial={{ opacity: 0, x: "-50%", y: "20%", scale: 0.95 }}
+                            animate={{ opacity: 1, x: "-50%", y: "0%", scale: 1 }}
+                            exit={{ opacity: 0, x: "-50%", y: "20%", scale: 0.95 }}
+                            style={{ position: 'absolute', top: '50%', left: '50%' }}
+                            className="z-10 w-full bg-white/95 dark:bg-[#0c0c0e] rounded-[3.5rem] sm:rounded-3xl shadow-[0_32px_128px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10 overflow-hidden flex flex-col max-h-[75vh] sm:max-h-[500px]"
+                        >
+                            {/* Header */}
+                            <div className="flex items-center justify-between p-7 sm:px-6 sm:py-5 bg-white/50 dark:bg-white/5 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
+                                <div>
+                                    <p className="text-[10px] font-black tracking-[0.2em] text-primary uppercase mb-0.5">Inbox</p>
+                                    <h3 className="font-black text-2xl sm:text-lg text-gray-900 dark:text-white leading-tight">การแจ้งเตือน</h3>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    {unreadCount > 0 && (
+                                        <button
+                                            onClick={handleMarkAllRead}
+                                            className="text-xs font-black text-primary px-3 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10 transition-all border border-primary/20"
+                                        >
+                                            อ่านทั้งหมด
+                                        </button>
+                                    )}
+                                    <button 
+                                        onClick={() => setOpen(false)}
+                                        className="sm:hidden size-12 rounded-2xl bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-400 active:scale-90"
                                     >
-                                        <span className="text-xl mt-0.5 shrink-0">{cfg.icon}</span>
-                                        <div className="min-w-0 flex-1">
-                                            <p className={`text-sm font-semibold truncate ${n.is_read ? "text-gray-600 dark:text-gray-400" : "text-gray-900 dark:text-white"}`}>
-                                                {n.title}
-                                            </p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
-                                                {n.message}
-                                            </p>
-                                            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
-                                                {timeAgo(n.created_at)}
-                                            </p>
+                                        <span className="material-symbols-outlined text-3xl">close</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* List area */}
+                            <div className="flex-1 overflow-y-auto scrollbar-hide">
+                                {notifications.length === 0 ? (
+                                    <div className="px-6 py-20 flex flex-col items-center justify-center text-center">
+                                        <div className="size-20 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center mb-6 text-gray-300 dark:text-gray-600">
+                                            <span className="material-symbols-outlined text-5xl">notifications_none</span>
                                         </div>
-                                        {!n.is_read && (
-                                            <span className="size-2 rounded-full bg-primary mt-1.5 shrink-0" />
-                                        )}
-                                    </li>
-                                )
-                            })}
-                        </ul>
-                    )}
-                </div>
-            )}
+                                        <p className="font-black text-gray-400 text-sm italic">ยังไม่มีการแจ้งเตือนครับเพื่อน ✨</p>
+                                    </div>
+                                ) : (
+                                    <ul className="divide-y divide-gray-50 dark:divide-gray-800">
+                                        {notifications.map((n) => {
+                                            const cfg = TYPE_CONFIG[n.type] || TYPE_CONFIG.general
+                                            return (
+                                                <li
+                                                    key={n.id}
+                                                    onClick={() => !n.is_read && handleMarkRead(n.id)}
+                                                    className={`flex gap-5 px-7 py-6 sm:py-4 cursor-pointer transition-all duration-300 ${
+                                                        n.is_read
+                                                            ? "bg-transparent opacity-80"
+                                                            : "bg-primary/5 dark:bg-primary/10 hover:bg-primary/10"
+                                                    }`}
+                                                >
+                                                    <span className="text-3xl pt-1 shrink-0">{cfg.icon}</span>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className={`text-lg sm:text-sm font-black tracking-tight leading-tight mb-1.5 ${n.is_read ? "text-gray-600 dark:text-gray-400" : "text-gray-900 dark:text-white"}`}>
+                                                            {n.title}
+                                                        </p>
+                                                        <p className="text-base sm:text-xs font-semibold text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                                                            {n.message}
+                                                        </p>
+                                                        <p className="text-[11px] font-black text-gray-400 dark:text-gray-600 mt-3 uppercase tracking-widest opacity-60">
+                                                            {timeAgo(n.created_at)}
+                                                        </p>
+                                                    </div>
+                                                    {!n.is_read && (
+                                                        <span className="size-2.5 rounded-full bg-primary mt-4 shrink-0 shadow-[0_0_15px_rgba(255,20,147,0.6)]" />
+                                                    )}
+                                                </li>
+                                            )
+                                        })}
+                                    </ul>
+                                )}
+                            </div>
+                            
+                            {/* Mobile Branding Footer */}
+                            <div className="sm:hidden p-10 pt-4 text-center pb-12">
+                                <p className="text-[10px] text-gray-300 dark:text-gray-600 font-black uppercase tracking-[0.4em]">
+                                    Stay Updated Bestie 🌷
+                                </p>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

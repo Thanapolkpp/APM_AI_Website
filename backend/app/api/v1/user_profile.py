@@ -26,6 +26,7 @@ def get_me(current_user: User = Depends(get_current_user)):
         "coins": current_user.coins,
         "exp": current_user.exp,
         "has_claimed_test_reward": current_user.has_claimed_test_reward,
+        "is_admin": current_user.is_admin,
     }
 
 

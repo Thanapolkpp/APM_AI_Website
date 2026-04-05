@@ -10,4 +10,5 @@ class User(Base):
     hashed_password = Column(String(255))
     coins = Column(Integer, default=30)
     exp = Column(Integer, default=0)
-    has_claimed_test_reward = Column(Boolean, default=False)
+    has_claimed_test_reward = Column(Boolean, default=False)
+    is_admin = Column(Boolean, default=False)

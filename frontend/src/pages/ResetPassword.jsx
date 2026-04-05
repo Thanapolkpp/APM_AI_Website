@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Logo from "../assets/logo.png";
+import { ASSETS } from "../config/assets";
+
+const Logo = ASSETS.BRANDING.LOGO;
 import { resetPassword } from "../services/aiService";
 
 const ResetPassword = () => {

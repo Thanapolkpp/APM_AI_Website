@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/footer";
 import CoinBadge from "../components/UI/CoinBadge";
-import Logo from "../assets/logo.png";
+import { ASSETS } from "../config/assets";
 
-import BroIcon from "../assets/Bro.png";
-import NerdIcon from "../assets/Nerd.1.2.png";
-import CuteGirlIcon from "../assets/Girl.png";
+const Logo = ASSETS.BRANDING.LOGO;
+const BroIcon = ASSETS.AVATARS.BRO;
+const NerdIcon = ASSETS.AVATARS.NERD1; // Default Nerd
+const CuteGirlIcon = ASSETS.AVATARS.GIRL;
 
 const Event = () => {
     const navigate = useNavigate();

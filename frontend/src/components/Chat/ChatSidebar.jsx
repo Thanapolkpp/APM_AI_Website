@@ -1,9 +1,11 @@
 import React from "react"
 import { createPortal } from "react-dom"
 import { useNavigate, useParams } from "react-router-dom"
-import broImg from "../../assets/Bro.png"
-import girlImg from "../../assets/Girl.png"
-import nerdImg from "../../assets/Nerd.1.2.png"
+import { ASSETS } from "../../config/assets";
+
+const broImg = ASSETS.AVATARS.BRO;
+const girlImg = ASSETS.AVATARS.GIRL;
+const nerdImg = ASSETS.AVATARS.NERD2; // Default Nerd
 import { Lock, Sparkles, History as HistoryIcon, Heart } from "lucide-react"
 import { getUserProfile, fetchChatHistory, fetchOwnedAvatars } from "../../services/aiService"
 

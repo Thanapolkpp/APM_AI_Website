@@ -1,26 +1,16 @@
 import React, { useEffect, useState } from "react"
 import { NavLink } from "react-router-dom"
+import { motion, AnimatePresence } from "framer-motion"
 import { PiAtomBold, PiBackspaceBold } from "react-icons/pi"
 import CoinBadge from "../UI/CoinBadge"
 
-
-const Navbar = () => {
+export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
 
-  // ✅ กัน scroll ตอนเมนูเปิด
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = "hidden"
-    else document.body.style.overflow = "auto"
+    document.body.style.overflow = isOpen ? "hidden" : "auto"
     return () => (document.body.style.overflow = "auto")
   }, [isOpen])
-
-  const linkClasses = ({ isActive }) =>
-    `w-full px-6 py-4 text-base font-extrabold transition-all duration-200 rounded-2xl
-     border
-     ${isActive
-      ? "text-primary bg-gradient-to-r from-primary/15 to-pink-500/15 border-primary/20"
-      : "text-gray-700 dark:text-gray-200 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-pink-300/40 dark:hover:border-pink-400/20 hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 dark:hover:from-pink-500/10 dark:hover:to-purple-500/10"
-    }`
 
   const navLinks = [
     { name: "Home", to: "/" },
@@ -32,19 +22,18 @@ const Navbar = () => {
   ]
 
   return (
-    <div className="relative">
-      {/* --- Desktop --- */}
-      <nav className="hidden md:flex items-center gap-1 bg-white/60 dark:bg-white/5 backdrop-blur-md px-2 py-2 rounded-full border border-white/60 dark:border-gray-800 shadow-sm">
+    <>
+      {/* DESKTOP NAV - Consistent with site theme */}
+      <nav className="hidden md:flex items-center gap-1.5 p-1.5 bg-white/40 dark:bg-black/20 backdrop-blur-3xl rounded-2xl border border-white/60 dark:border-white/10 shadow-sm">
         {navLinks.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
             className={({ isActive }) =>
-              `px-4 py-2 text-sm font-extrabold rounded-xl transition-all duration-200
-               border
+              `px-4 py-2 text-sm font-black rounded-xl transition-all duration-200 border
                 ${isActive
-                ? "text-pink-600 bg-gradient-to-r from-pink-100 to-purple-100 border-pink-300/40 dark:text-pink-300 dark:from-pink-500/15 dark:to-purple-500/15 dark:border-pink-400/20"
-                : "text-gray-700 dark:text-gray-200 border-transparent hover:text-gray-900 dark:hover:text-white hover:border-pink-300/40 dark:hover:border-pink-400/20 hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 dark:hover:from-pink-500/10 dark:hover:to-purple-500/10"
+                ? "text-white bg-gradient-to-r from-primary to-pink-500 border-white/20 shadow-md"
+                : "text-gray-600 dark:text-gray-300 border-transparent hover:bg-white/50 dark:hover:bg-white/10"
               }`
             }
           >
@@ -53,84 +42,80 @@ const Navbar = () => {
         ))}
       </nav>
 
-      {/* --- Mobile Button --- */}
+      {/* MOBILE TRIGGER - Small & Compact to avoid header crowding */}
       <button
         onClick={() => setIsOpen(true)}
-        className="md:hidden p-2 rounded-2xl bg-white/70 dark:bg-white/10 border border-white/60 dark:border-gray-700 shadow-sm text-gray-700 dark:text-gray-200 active:scale-90 transition"
-        aria-label="Open menu"
+        className="md:hidden p-2 rounded-xl bg-white/90 dark:bg-white/5 border border-white/60 dark:border-white/10 text-primary active:scale-90 transition-all shadow-sm"
       >
-        <PiAtomBold size={28} />
+        <PiAtomBold size={24} />
       </button>
 
-      {/* ✅ Mobile Full Screen Menu */}
-      {isOpen && (
-        <div className="fixed inset-0 z-[9999] md:hidden">
-          {/* Background blur */}
-          <div
-            className="absolute inset-0 bg-black/35 backdrop-blur-lg"
-            onClick={() => setIsOpen(false)}
-          />
+      {/* MOBILE OVERLAY */}
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 z-[10000] md:hidden">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+              onClick={() => setIsOpen(false)}
+            />
 
-          {/* Cute blobs */}
-          <div className="pointer-events-none absolute -top-24 -left-24 size-72 bg-pink-300/30 blur-3xl rounded-full" />
-          <div className="pointer-events-none absolute -bottom-24 -right-24 size-72 bg-blue-300/30 blur-3xl rounded-full" />
-
-          {/* Menu content */}
-          <div className="relative z-10 w-full h-full flex flex-col">
-            {/* Top bar */}
-            <div className="w-full px-6 pt-6 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-extrabold tracking-widest text-white/80 uppercase">
-                  Menu
-                </p>
-                <h3 className="text-2xl font-extrabold text-white">APM AI</h3>
+            {/* Modal Card - Absolute centering for maximum reliability */}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, x: "-50%", y: "0%" }}
+              animate={{ scale: 1, opacity: 1, x: "-50%", y: "0%" }}
+              exit={{ scale: 0.9, opacity: 0, x: "-50%", y: "0%" }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-[90%] max-w-[340px] max-h-[85vh] bg-white/95 dark:bg-[#111113] rounded-[3rem] shadow-2xl border border-white/20 overflow-y-auto scrollbar-hide flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center p-8 pb-4">
+                <h3 className="font-black text-2xl text-primary italic">MENU</h3>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="size-12 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-400 active:scale-90"
+                >
+                  <PiBackspaceBold size={28} />
+                </button>
               </div>
 
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-3 rounded-2xl bg-white/15 text-white hover:scale-105 active:scale-95 transition"
-                aria-label="Close menu"
-              >
-                <PiBackspaceBold size={26} />
-              </button>
-            </div>
-
-            {/* Links Card */}
-            <div className="flex-1 flex items-center justify-center px-6">
-              <div className="w-full max-w-sm bg-white/85 dark:bg-gray-900/80 border border-white/40 dark:border-gray-700 rounded-[2.5rem] shadow-2xl p-5">
-                <div className="flex flex-col gap-2">
-                  <div className="flex justify-center mb-4 pt-2">
-                    <CoinBadge />
-                  </div>
-                  
-                  {navLinks.map((link) => (
+              {/* Links */}
+              <div className="flex-1 flex flex-col gap-2 px-6 pb-12">
+                <div className="mb-6 bg-gray-50/50 dark:bg-black/20 p-4 rounded-3xl border border-gray-100 dark:border-white/5 flex justify-center">
+                   <CoinBadge className="scale-110" />
+                </div>
+                
+                {navLinks.map((link, i) => (
+                  <motion.div
+                    key={link.to}
+                    initial={{ x: -10, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="w-full"
+                  >
                     <NavLink
-                      key={link.to}
                       to={link.to}
-                      className={linkClasses}
                       onClick={() => setIsOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center justify-between w-full px-7 py-4 rounded-2xl font-black transition-all border
+                          ${isActive
+                            ? "bg-gradient-to-r from-primary to-pink-500 text-white border-white/30 shadow-lg"
+                            : "text-gray-500 dark:text-gray-400 border-transparent hover:bg-primary/5 active:bg-primary/10"
+                          }`
+                      }
                     >
-                      {link.name}
+                      <span className="text-lg uppercase tracking-tight">{link.name}</span>
+                      <span className="material-symbols-outlined text-xl opacity-60">chevron_right</span>
                     </NavLink>
-                  ))}
-                </div>
-
-
-                <div className="mt-6 text-center">
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 font-bold">
-                    Powered by APM AI • Assistant for Personal Motivation 💖
-                  </p>
-                </div>
+                  </motion.div>
+                ))}
               </div>
-            </div>
-
-            {/* bottom spacing */}
-            <div className="h-10" />
+            </motion.div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
-
-export default Navbar

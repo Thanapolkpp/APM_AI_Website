@@ -54,7 +54,7 @@ def get_chat_history(
 
 
 @router.post("/")
-def chat(
+async def chat(
     req: ChatRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -126,7 +126,7 @@ def chat(
     final_prompt = "\n\n".join(prompt_parts)
 
     # เรียก AI
-    result = get_ai_response(final_prompt, req.mode)
+    result = await get_ai_response(final_prompt, req.mode)
     ai_reply = result.get("reply", "")
 
     # บันทึกบทสนทนาใหม่ลง DB

@@ -1,15 +1,17 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react"
 import { HiOutlineDownload, HiOutlineEye, HiOutlineSparkles, HiOutlineX } from "react-icons/hi"
 import { Lock, Unlock } from "lucide-react"
-import { BookText, FileText, Code2, Calculator, Atom, Palette, PlusCircle, Search, Filter, Upload, Coins } from "lucide-react"
+import { BookText, FileText, Code2, Calculator, Atom, Palette, PlusCircle, Search, Filter, Upload, Coins, Sparkles } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import Navbar from "../components/Layout/Navbar"
 import Footer from "../components/Layout/footer"
 import CoinBadge from "../components/UI/CoinBadge"
-import Logo from "../assets/logo.png"
-import BroIcon from "../assets/Bro.png"
-import NerdIcon from "../assets/Nerd.1.2.png"
-import CuteGirlIcon from "../assets/Girl.png"
+import { ASSETS } from "../config/assets";
+
+const Logo = ASSETS.BRANDING.LOGO;
+const GirlIcon = ASSETS.AVATARS.GIRL;
+const BroIcon = ASSETS.AVATARS.BRO;
+const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
 import { jsPDF } from "jspdf"
 import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice, deleteSheet, updateExp } from "../services/aiService"
 
@@ -143,10 +145,10 @@ const Summaries = () => {
     useEffect(() => {
         const handleKeyDown = (e) => {
             // Apply security ONLY if it's a paid sheet AND the user doesn't own/purchase it yet
-            const isProtected = selectedItem && 
-                               selectedItem.price > 0 && 
-                               !selectedItem.is_mine && 
-                               !selectedItem.already_purchased;
+            const isProtected = selectedItem &&
+                selectedItem.price > 0 &&
+                !selectedItem.is_mine &&
+                !selectedItem.already_purchased;
 
             if (isProtected) {
                 // Detect PrintScreen or Snipping tool shortcuts
@@ -160,10 +162,10 @@ const Summaries = () => {
         };
 
         const handleBlur = () => {
-            const isProtected = selectedItem && 
-                               selectedItem.price > 0 && 
-                               !selectedItem.is_mine && 
-                               !selectedItem.already_purchased;
+            const isProtected = selectedItem &&
+                selectedItem.price > 0 &&
+                !selectedItem.is_mine &&
+                !selectedItem.already_purchased;
 
             if (isPdfModalOpen && isProtected) {
                 console.log("Window blurred - Security activated");
@@ -208,7 +210,7 @@ const Summaries = () => {
             )
             localStorage.setItem("user_coins", String(result.coins_total))
             window.dispatchEvent(new Event("coinsUpdated"))
-            updateExp(15).catch(() => {})
+            updateExp(15).catch(() => { })
             await loadSheets()
             setIsUploadModalOpen(false)
             setUploadForm({ title: "", price: 0, is_public: false })
@@ -228,7 +230,7 @@ const Summaries = () => {
             const result = await buySheet(item.id)
             localStorage.setItem("user_coins", String(result.coins_remaining))
             window.dispatchEvent(new Event("coinsUpdated"))
-            updateExp(5).catch(() => {})
+            updateExp(5).catch(() => { })
             await loadSheets()
             alert(`เย้! ซื้อสรุป "${item.title}" สำเร็จแล้วครับ 🌷`)
         } catch (err) {
@@ -240,7 +242,7 @@ const Summaries = () => {
         const token = localStorage.getItem("token")
         if (!token) return Logo
         const savedAvatar = localStorage.getItem("avatar") || "bro"
-        const map = { girl: CuteGirlIcon, nerd: NerdIcon, bro: BroIcon }
+        const map = { girl: GirlIcon, nerd: NerdIcon, bro: BroIcon }
         return map[savedAvatar.toLowerCase()] || BroIcon
     })
 
@@ -253,23 +255,25 @@ const Summaries = () => {
             <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-white/60 dark:bg-black/20 backdrop-blur-xl transition-all">
                 <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
                     <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate("/")}>
-                        <div className="relative size-10 rounded-xl bg-white shadow-xl ring-2 ring-pink-100 overflow-hidden">
-                            <img src={Logo} alt="Logo" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        <div className="relative size-12 rounded-2xl bg-white shadow-xl ring-2 ring-pink-100 flex items-center justify-center overflow-hidden">
+                            <img src={Logo} alt="Logo" className="size-8 object-contain group-hover:scale-110 transition-transform duration-500" />
                         </div>
-                        <div>
-                            <h1 className="text-lg font-black text-gray-900 dark:text-white leading-tight">APM AI</h1>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">คลังสรุปสุดชิค 🌷</p>
+                        <div className="hidden sm:block">
+                            <h1 className="text-xl font-black text-gray-900 dark:text-white leading-tight">APM AI</h1>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Community Store 🌷</p>
                         </div>
                     </div>
-                    <div className="hidden lg:flex flex-1 justify-center"><Navbar /></div>
-                    <div className="flex items-center gap-4">
-                        <CoinBadge className="scale-90" />
+                    <div className="hidden md:flex flex-1 justify-center px-4"><Navbar /></div>
+                    <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="hidden sm:block">
+                            <CoinBadge className="scale-90" />
+                        </div>
                         <div
-                            className="size-10 rounded-2xl border-2 border-white dark:border-white/10 cursor-pointer bg-white bg-cover bg-center shadow-lg hover:scale-110 transition-all"
+                            className="size-10 rounded-2xl border-2 border-white dark:border-white/10 cursor-pointer bg-white bg-cover bg-center shadow-lg hover:scale-110 active:scale-95 transition-all overflow-hidden"
                             style={{ backgroundImage: `url("${profileImage}")` }}
                             onClick={() => navigate("/account")}
                         />
-                        <div className="lg:hidden"><Navbar /></div>
+                        <div className="md:hidden"><Navbar /></div>
                     </div>
                 </div>
             </header>
@@ -277,33 +281,33 @@ const Summaries = () => {
             <main className="flex-1 w-full max-w-7xl mx-auto py-12 px-6 relative z-10">
                 {/* Header View Options */}
                 <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-16">
-                    <div className="space-y-2 text-center md:text-left transition-all">
-                        <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">
-                            {currentView === 'market' ? 'Community Store 🍦' : currentView === 'my-sheets' ? 'Private Collection ✨' : 'Purchased 🛍️'}
+                    <div className="space-y-3 text-center md:text-left transition-all">
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary font-black text-[10px] uppercase tracking-[0.2em] shadow-sm border border-primary/20">
+                            <Sparkles className="size-3" /> {currentView === 'market' ? 'Community Store' : currentView === 'my-sheets' ? 'Private Collection' : 'Purchased'}
                         </span>
-                        <h2 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                            {currentView === 'market' ? 'คลังสรุป 🌷' : currentView === 'my-sheets' ? 'ชีทของฉัน ✨' : 'ที่ซื้อมา 🛍️'}
+                        <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-gray-900 dark:text-white">
+                            {currentView === 'market' ? 'Summaries 🌷' : currentView === 'my-sheets' ? 'My Library ✨' : 'My Orders 🛍️'}
                         </h2>
                     </div>
 
-                    <div className="flex bg-gray-100 dark:bg-white/5 p-1.5 rounded-[24px] border border-gray-200 dark:border-white/10 shadow-inner">
+                    <div className="flex bg-gray-100 dark:bg-white/5 p-1.5 rounded-[28px] border border-gray-200 dark:border-white/10 shadow-inner overflow-x-auto no-scrollbar max-w-full">
                         <button
                             onClick={() => setCurrentView("market")}
-                            className={`px-8 py-3 rounded-[20px] font-black text-sm transition-all duration-300 ${currentView === 'market' ? 'bg-white dark:bg-primary text-gray-900 dark:text-white shadow-xl scale-[1.02]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                            className={`px-6 md:px-8 py-3.5 rounded-[22px] font-black text-sm whitespace-nowrap transition-all duration-300 ${currentView === 'market' ? 'bg-white dark:bg-primary text-gray-900 dark:text-white shadow-xl scale-[1.05]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
                         >
-                            Marketplace
+                            Market
                         </button>
                         <button
                             onClick={() => setCurrentView("my-sheets")}
-                            className={`px-8 py-3 rounded-[20px] font-black text-sm transition-all duration-300 ${currentView === 'my-sheets' ? 'bg-white dark:bg-primary text-gray-900 dark:text-white shadow-xl scale-[1.02]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                            className={`px-6 md:px-8 py-3.5 rounded-[22px] font-black text-sm whitespace-nowrap transition-all duration-300 ${currentView === 'my-sheets' ? 'bg-white dark:bg-primary text-gray-900 dark:text-white shadow-xl scale-[1.05]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
                         >
-                            ชีทของฉัน
+                            My Sheets
                         </button>
                         <button
                             onClick={() => setCurrentView("purchased")}
-                            className={`px-8 py-3 rounded-[20px] font-black text-sm transition-all duration-300 ${currentView === 'purchased' ? 'bg-white dark:bg-primary text-gray-900 dark:text-white shadow-xl scale-[1.02]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                            className={`px-6 md:px-8 py-3.5 rounded-[22px] font-black text-sm whitespace-nowrap transition-all duration-300 ${currentView === 'purchased' ? 'bg-white dark:bg-primary text-gray-900 dark:text-white shadow-xl scale-[1.05]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
                         >
-                            ที่ซื้อมา
+                            Purchased
                         </button>
                     </div>
                 </div>
@@ -312,30 +316,34 @@ const Summaries = () => {
                     /* --- Marketplace Section --- */
                     <div className="space-y-12 animate-in fade-in duration-700">
                         {/* Improved Search & Filters Area */}
-                        <div className="space-y-8 bg-white/40 dark:bg-white/5 p-8 rounded-[40px] border border-white/60 shadow-sm backdrop-blur-md">
+                        <div className="space-y-8 bg-white/40 dark:bg-white/5 p-6 md:p-8 rounded-[48px] border border-white/60 dark:border-white/10 shadow-sm backdrop-blur-md">
                             <div className="relative group">
                                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={24} />
                                 <input
                                     type="text"
-                                    placeholder="ค้นหาชีทสรุปที่ต้องการ..."
-                                    className="w-full pl-16 pr-8 py-5 rounded-[24px] bg-white border border-gray-100 dark:bg-black/20 dark:border-white/10 outline-none font-bold text-lg dark:text-white focus:ring-4 focus:ring-primary/10 transition-all"
+                                    placeholder="Search for summaries..."
+                                    className="w-full pl-16 pr-8 py-5 rounded-[28px] bg-white border border-gray-100 dark:bg-black/40 dark:border-white/10 outline-none font-bold text-lg dark:text-white focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-4">
-                                <div className="flex items-center gap-2 px-1.5 py-1.5 rounded-2xl bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5">
-                                    <div className="px-3 text-[10px] font-black text-gray-400 uppercase tracking-widest hidden sm:block">วิชา:</div>
-                                    {subjects.map(s => (
-                                        <button key={s} onClick={() => setSelectedSubject(s)} className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${selectedSubject === s ? 'bg-primary text-white shadow-lg' : 'text-gray-500 hover:text-gray-800 dark:hover:text-white'}`}>{s}</button>
-                                    ))}
+                            <div className="flex flex-col gap-6">
+                                <div className="space-y-3">
+                                    <p className="px-1 text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Subjects</p>
+                                    <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2 px-1">
+                                        {subjects.map(s => (
+                                            <button key={s} onClick={() => setSelectedSubject(s)} className={`px-5 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all border ${selectedSubject === s ? 'bg-primary border-primary text-white shadow-lg shadow-primary/30' : 'bg-white/50 dark:bg-black/20 border-gray-100 dark:border-white/5 text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}>{s}</button>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2 px-1.5 py-1.5 rounded-2xl bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5">
-                                    <div className="px-3 text-[10px] font-black text-gray-400 uppercase tracking-widest hidden lg:block">ประเภท:</div>
-                                    {categories.map(c => (
-                                        <button key={c} onClick={() => setSelectedCategory(c)} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${selectedCategory === c ? 'bg-indigo-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-800 dark:hover:text-white'}`}>{c}</button>
-                                    ))}
+                                <div className="space-y-3">
+                                    <p className="px-1 text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Categories</p>
+                                    <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2 px-1">
+                                        {categories.map(c => (
+                                            <button key={c} onClick={() => setSelectedCategory(c)} className={`px-5 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all border ${selectedCategory === c ? 'bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'bg-white/50 dark:bg-black/20 border-gray-100 dark:border-white/5 text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}>{c}</button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -363,8 +371,8 @@ const Summaries = () => {
                                     >
                                         {item.file_path ? (
                                             <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-                                                <iframe 
-                                                    src={`${API_BASE_URL}${item.file_path}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`} 
+                                                <iframe
+                                                    src={`${API_BASE_URL}${item.file_path}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
                                                     className="w-full h-full border-none pointer-events-none scale-[1.2] origin-top"
                                                     title="Preview"
                                                 />
@@ -403,11 +411,10 @@ const Summaries = () => {
                                             <button
                                                 onClick={() => handleCollectSheet(item)}
                                                 disabled={item.already_purchased || item.is_mine || item.price === 0}
-                                                className={`w-full py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 transition-all text-sm uppercase tracking-tighter ${
-                                                    (item.already_purchased || item.is_mine || item.price === 0)
-                                                        ? 'bg-gray-100 dark:bg-white/5 text-gray-400 cursor-not-allowed'
-                                                        : 'bg-gradient-to-r from-indigo-600 to-primary text-white hover:scale-[1.02] hover:brightness-110 active:scale-95 shadow-indigo-600/20'
-                                                }`}
+                                                className={`w-full py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 transition-all text-sm uppercase tracking-tighter ${(item.already_purchased || item.is_mine || item.price === 0)
+                                                    ? 'bg-gray-100 dark:bg-white/5 text-gray-400 cursor-not-allowed'
+                                                    : 'bg-gradient-to-r from-indigo-600 to-primary text-white hover:scale-[1.02] hover:brightness-110 active:scale-95 shadow-indigo-600/20'
+                                                    }`}
                                             >
                                                 {item.is_mine ? 'ชีทของคุณ' : (item.already_purchased || item.price === 0) ? 'มีอยู่ในคลังแล้ว' : 'รับชีทนี้'}
                                             </button>
@@ -464,8 +471,8 @@ const Summaries = () => {
                                     <div className="w-1/3 bg-gray-100 dark:bg-black/40 flex items-center justify-center relative overflow-hidden group">
                                         {item.file_path ? (
                                             <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-                                                <iframe 
-                                                    src={`${API_BASE_URL}${item.file_path}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`} 
+                                                <iframe
+                                                    src={`${API_BASE_URL}${item.file_path}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
                                                     className="w-full h-full border-none pointer-events-none scale-[1.5] origin-top"
                                                     title="My Preview"
                                                 />
@@ -667,17 +674,17 @@ const Summaries = () => {
                             <button onClick={() => setIsPdfModalOpen(false)} className="size-12 rounded-2xl bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all active:scale-90"><HiOutlineX size={28} /></button>
                         </div>
                         <div className={`flex-1 bg-gray-100 dark:bg-black/60 overflow-hidden relative select-none print:hidden group/pdf-container`}
-                             onMouseLeave={(e) => {
-                                 const isProtected = selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased;
-                                 if (isProtected) {
-                                     const overlay = e.currentTarget.querySelector('.security-overlay');
-                                     if(overlay) overlay.classList.remove('hidden');
-                                 }
-                             }}
-                             onMouseEnter={(e) => {
-                                 const overlay = e.currentTarget.querySelector('.security-overlay');
-                                 if(overlay) overlay.classList.add('hidden');
-                             }}>
+                            onMouseLeave={(e) => {
+                                const isProtected = selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased;
+                                if (isProtected) {
+                                    const overlay = e.currentTarget.querySelector('.security-overlay');
+                                    if (overlay) overlay.classList.remove('hidden');
+                                }
+                            }}
+                            onMouseEnter={(e) => {
+                                const overlay = e.currentTarget.querySelector('.security-overlay');
+                                if (overlay) overlay.classList.add('hidden');
+                            }}>
                             {/* Watermark Overlay - Only for Paid & Unpurchased */}
                             {selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased && (
                                 <div className="absolute inset-0 z-20 pointer-events-none grid grid-cols-3 grid-rows-3 opacity-[0.08] select-none uppercase font-black text-gray-500 text-4xl overflow-hidden rotate-[-15deg] scale-125">
@@ -686,7 +693,7 @@ const Summaries = () => {
                                     ))}
                                 </div>
                             )}
-                            
+
                             {/* Blackout Overlay on switch - Only for Paid & Unpurchased */}
                             {selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased && (
                                 <div className="security-overlay hidden absolute inset-0 z-30 bg-black flex flex-col items-center justify-center text-white text-center gap-4 transition-all">
@@ -696,10 +703,10 @@ const Summaries = () => {
                                 </div>
                             )}
 
-                            <iframe 
-                                src={`${selectedItem.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`} 
-                                className={`w-full h-full border-none ${ (selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased) ? 'pointer-events-none' : ''}`}
-                                title="PDF Viewer" 
+                            <iframe
+                                src={`${selectedItem.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                                className={`w-full h-full border-none ${(selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased) ? 'pointer-events-none' : ''}`}
+                                title="PDF Viewer"
                             />
                         </div>
                         <div className="p-6 bg-white dark:bg-gray-900 border-t dark:border-white/10 flex justify-between items-center px-10">
@@ -714,11 +721,10 @@ const Summaries = () => {
                                         link.click();
                                     }}
                                     disabled={!selectedItem.already_purchased && !selectedItem.is_mine && selectedItem.price > 0}
-                                    className={`px-8 py-4 rounded-2xl font-black text-sm flex items-center gap-3 transition-all shadow-xl ${
-                                        (selectedItem.already_purchased || selectedItem.is_mine || selectedItem.price === 0)
+                                    className={`px-8 py-4 rounded-2xl font-black text-sm flex items-center gap-3 transition-all shadow-xl ${(selectedItem.already_purchased || selectedItem.is_mine || selectedItem.price === 0)
                                         ? 'bg-primary text-white hover:scale-105 active:scale-95 shadow-primary/20 cursor-pointer'
                                         : 'bg-gray-100 dark:bg-white/5 text-gray-400 cursor-not-allowed opacity-50'
-                                    }`}
+                                        }`}
                                 >
                                     <HiOutlineDownload size={20} />
                                     {(selectedItem.already_purchased || selectedItem.is_mine || selectedItem.price === 0) ? 'DOWNLOAD' : 'ซื้อเพื่อดาวน์โหลด'}

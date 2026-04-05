@@ -8,7 +8,9 @@ import ChatHeader from "../chat-window/ChatHeader"
 import MessageList from "../chat-window/MessageList"
 import ChatInput from "../chat-window/ChatInput"
 import ImagePreview from "../chat-window/ImagePreview"
+import CoinBadge from "../UI/CoinBadge"
 import { getSystemMessage, buildPlannerSystemPrompt, plannerPrompt } from "../../data/aiPrompts"
+
 const ChatWindow = ({ mode: propsMode }) => {
   const navigate = useNavigate()
   const { mode: urlMode } = useParams()
@@ -253,6 +255,8 @@ const ChatWindow = ({ mode: propsMode }) => {
     <div className="flex flex-col h-full max-w-4xl mx-auto p-2 md:p-4 bg-gray-50 rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
 
       <ChatHeader
+
+
         mode={mode}
         headerTheme={headerTheme}
         onClearChat={handleClearChat}

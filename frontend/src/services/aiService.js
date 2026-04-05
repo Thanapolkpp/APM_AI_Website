@@ -173,6 +173,25 @@ export const deleteTodo = async (id) => {
     await axios.delete(`${API_TODOS_URL}/${id}`, { headers: authHeader() });
 };
 
+export const uploadTodoProof = async (id, file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await axios.post(`${API_TODOS_URL}/${id}/proof`, formData, {
+        headers: { "Content-Type": "multipart/form-data", ...authHeader() },
+    });
+    return response.data;
+};
+
+export const verifyTodo = async (id, status) => {
+    const response = await axios.patch(`${API_TODOS_URL}/${id}/verify`, { status }, { headers: authHeader() });
+    return response.data;
+};
+
+export const fetchPendingTodos = async () => {
+    const response = await axios.get(`${API_TODOS_URL}/admin/all`, { headers: authHeader() });
+    return response.data;
+};
+
 // ---------- Study Sheets ----------
 export const fetchMySheets = async () => {
     const response = await axios.get(API_SHEETS_URL + "/", { headers: authHeader() });

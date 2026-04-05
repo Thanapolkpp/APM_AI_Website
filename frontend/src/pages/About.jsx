@@ -1,13 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/footer";
-import Logo from "../assets/logo.png";
+import { ASSETS } from "../config/assets";
 import CoinBadge from "../components/UI/CoinBadge";
-import CuteGirlIcon from "../assets/Girl.png";
-
-import BroIcon from "../assets/Bro.png";
-import NerdIcon from "../assets/Nerd.1.2.png";
 import {
     HiOutlineLightBulb,
     HiOutlineUserGroup,
@@ -16,6 +13,11 @@ import {
     HiOutlineLightningBolt,
     HiOutlineChartBar
 } from "react-icons/hi";
+
+const Logo = ASSETS.BRANDING.LOGO;
+const CuteGirlIcon = ASSETS.AVATARS.GIRL;
+const BroIcon = ASSETS.AVATARS.BRO;
+const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
 
 const About = () => {
     const navigate = useNavigate();
@@ -68,74 +70,82 @@ const About = () => {
         }
     ];
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: {
+            y: 0,
+            opacity: 1,
+            transition: { type: "spring", stiffness: 100 }
+        }
+    };
+
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark font-display relative overflow-hidden transition-colors duration-300">
             {/* Background Decorations */}
             <div className="pointer-events-none absolute -top-40 -left-20 size-[500px] rounded-full bg-pink-300/20 dark:bg-pink-500/10 blur-[120px]" />
             <div className="pointer-events-none absolute top-80 -right-20 size-[600px] rounded-full bg-blue-300/20 dark:bg-primary/10 blur-[150px]" />
-            <div className="pointer-events-none absolute -bottom-40 left-1/3 size-[500px] rounded-full bg-purple-300/20 dark:bg-purple-500/10 blur-[130px]" />
+            <div className="pointer-events-none absolute -bottom-40 left-1/2 size-[500px] rounded-full bg-purple-300/20 dark:bg-purple-500/10 blur-[130px]" />
 
             <div className="flex flex-col min-h-screen relative z-10 w-full max-w-7xl mx-auto md:px-6">
 
-                {/* ✅ Header Customizations */}
-                <header className="sticky top-0 z-50 w-full md:mt-4 md:rounded-[32px] border-b md:border border-white/20 bg-white/10 backdrop-blur-xl shadow-lg transition-all">
-                    <div className="mx-auto grid w-full grid-cols-2 items-center px-4 py-4 sm:px-6 md:grid-cols-3">
-
-                        {/* ✅ Left (Logo) */}
-                        <div className="flex min-w-0 items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
-                            <div className="relative size-11 sm:size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-2 ring-pink-300/50 shadow-md">
-                                <img
-                                    src={Logo}
-                                    alt="Logo"
-                                    className="h-full w-full object-cover transition duration-300 hover:scale-110"
-                                />
-                                <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
+                <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-white/60 dark:bg-black/20 backdrop-blur-xl transition-all">
+                    <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
+                        <motion.div 
+                            initial={{ x: -20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            className="flex items-center gap-3 cursor-pointer group" 
+                            onClick={() => navigate("/")}
+                        >
+                            <div className="relative size-12 rounded-2xl bg-white shadow-xl ring-2 ring-pink-100 flex items-center justify-center overflow-hidden">
+                                <img src={Logo} alt="Logo" className="size-8 object-contain transition duration-500 hover:scale-110" />
                             </div>
-
-                            <div className="min-w-0">
-                                <h1 className="truncate text-lg font-black tracking-tight leading-none text-gray-900 dark:text-white">
-                                    APM AI
-                                </h1>
-                                <p className="truncate text-[11px] font-bold text-gray-500 dark:text-gray-400 mt-1">
-                                    Motivation Engine ✨
-                                </p>
+                            <div className="hidden sm:block">
+                                <h1 className="text-xl font-black text-gray-900 dark:text-white leading-tight">APM AI</h1>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Motivation Engine ✨</p>
                             </div>
+                        </motion.div>
+
+                        <div className="hidden lg:flex flex-1 justify-center px-4">
+                            <Navbar />
                         </div>
 
-                        {/* ✅ Center (Navbar - Desktop) */}
-                        <div className="hidden md:flex justify-center">
-                            <div className="rounded-full border border-white/20 bg-white/10 px-6 py-2 backdrop-blur-md">
-                                <Navbar />
+                        <motion.div 
+                            initial={{ x: 20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            className="flex justify-end items-center gap-3 sm:gap-4 ml-auto lg:ml-0"
+                        >
+                            <div className="hidden sm:block">
+                                <CoinBadge className="scale-90" />
                             </div>
-                        </div>
-
-                        {/* ✅ Right (Actions) */}
-                        <div className="flex items-center justify-end gap-3 sm:gap-4">
-                            <CoinBadge className="hidden sm:flex scale-90" />
-                            
-                            {/* Avatar */}
-                            <button
-                                type="button"
+                            <div
+                                className="size-11 rounded-2xl border-2 border-white dark:border-white/10 cursor-pointer bg-white overflow-hidden shadow-lg hover:scale-110 active:scale-95 transition-all"
                                 onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
-                                className="size-10 rounded-full border-2 border-primary/70 cursor-pointer hover:scale-105 active:scale-95 transition-all shadow-md"
-
-                                style={{
-                                    backgroundImage: `url("${profileImage}")`,
-                                    backgroundColor: "white",
-                                    backgroundSize: "cover"
-                                }}
-                            />
-                            {/* Mobile Nav */}
-                            <div className="md:hidden">
+                            >
+                                <img src={profileImage} alt="User" className="w-full h-full object-cover" />
+                            </div>
+                            <div className="lg:hidden">
                                 <Navbar />
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 </header>
 
                 {/* ================= HERO SECTION ================= */}
-                <section className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-16 text-center">
-                    <div className="inline-flex items-center gap-2 px-6 py-2.5 mb-8 rounded-full bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border border-white/60 dark:border-white/10 text-primary font-black text-sm tracking-widest uppercase hover:scale-105 transition-transform cursor-default">
+                <motion.section 
+                    initial={{ y: 30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.8 }}
+                    className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-16 text-center"
+                >
+                    <div className="inline-flex items-center gap-2 px-6 py-2.5 mb-8 rounded-full bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border border-white/60 dark:border-white/10 text-primary font-black text-sm tracking-widest uppercase cursor-default">
                         <span className="animate-pulse">✨</span> Discover The Future of Learning
                     </div>
 
@@ -152,17 +162,31 @@ const About = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row justify-center gap-6 mt-8">
-                        <button onClick={() => navigate("/chat/girl")} className="px-10 py-5 rounded-2xl bg-gradient-to-r from-primary to-purple-600 text-white font-black text-lg shadow-xl shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 active:scale-95 transition-all">
+                        <motion.button 
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => navigate("/chat/girl")} 
+                            className="px-10 py-5 rounded-2xl bg-gradient-to-r from-primary to-purple-600 text-white font-black text-lg shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all font-display"
+                        >
                             เริ่มใช้งานฟรี ✨
-                        </button>
-                        <button className="px-10 py-5 rounded-2xl bg-white dark:bg-white/5 text-gray-900 dark:text-white font-black text-lg shadow-sm hover:shadow-md hover:-translate-y-1 transition-all border border-gray-100 dark:border-white/10 flex items-center justify-center gap-2">
+                        </motion.button>
+                        <motion.button 
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-10 py-5 rounded-2xl bg-white dark:bg-white/5 text-gray-900 dark:text-white font-black text-lg shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-white/10 flex items-center justify-center gap-2"
+                        >
                             <span className="material-symbols-outlined text-2xl text-primary">play_circle</span> ดูตัวอย่าง
-                        </button>
+                        </motion.button>
                     </div>
-                </section>
+                </motion.section>
 
                 {/* ================= STATS / HIGHLIGHTS ================= */}
-                <section className="relative z-10 max-w-6xl mx-auto px-6 py-10 mb-20">
+                <motion.section 
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                    viewport={{ once: true }}
+                    className="relative z-10 max-w-6xl mx-auto px-6 py-10 mb-20"
+                >
                     <div className="bg-white/40 dark:bg-white/5 backdrop-blur-3xl border border-white/60 dark:border-white/10 shadow-2xl rounded-[48px] p-12 transition-all">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 divide-y md:divide-y-0 md:divide-x divide-white/20">
                             <div className="text-center px-4 group">
@@ -182,10 +206,16 @@ const About = () => {
                             </div>
                         </div>
                     </div>
-                </section>
+                </motion.section>
 
                 {/* ================= CORE FEATURES ================= */}
-                <section className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20">
+                <motion.section 
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20"
+                >
                     <div className="text-center mb-20">
                         <h2 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white mb-6">Why Choose APM AI?</h2>
                         <div className="h-2 w-24 bg-primary rounded-full mx-auto" />
@@ -193,7 +223,12 @@ const About = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {features.map((f, i) => (
-                            <div key={i} className="group p-10 rounded-[48px] bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-lg hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 relative overflow-hidden">
+                            <motion.div 
+                                key={i} 
+                                variants={itemVariants}
+                                whileHover={{ y: -12 }}
+                                className="group p-10 rounded-[48px] bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-lg hover:shadow-2xl transition-all duration-500 relative overflow-hidden"
+                            >
                                 <div className={`absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br ${f.color} rounded-full blur-[64px] opacity-10 group-hover:opacity-30 transition-opacity`} />
                                 <div className={`w-16 h-16 rounded-3xl flex items-center justify-center text-3xl text-white shadow-xl bg-gradient-to-br ${f.color} mb-8 transform group-hover:scale-110 group-hover:rotate-6 transition duration-300`}>
                                     {f.icon}
@@ -202,10 +237,10 @@ const About = () => {
                                 <p className="text-gray-500 dark:text-gray-400 leading-relaxed font-bold">
                                     {f.description}
                                 </p>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
-                </section>
+                </motion.section>
 
                 <Footer />
             </div>

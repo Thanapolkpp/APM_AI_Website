@@ -6,7 +6,7 @@ from gradio_client import Client, handle_file
 from typing import Optional
 
 # ─── Config ──────────────────────────────────────────────────
-GRADIO_URL = os.getenv("GRADIO_URL", "https://3d53d19c1711b9997b.gradio.live/")
+GRADIO_URL = os.getenv("GRADIO_URL", "https://35fe2c4c7c4e08ee56.gradio.live")
 MODEL_NAME = "apm-genz"
 
 # ─── Persona ─────────────────────────────────────────────────
@@ -70,7 +70,7 @@ def _call_gradio(message: str, mode: str, file_path: Optional[str] = None) -> st
     """
     ยิง Gradio API
     - api_name : /chat
-    - params   : message, file, mode
+    - params   : message, file, mode (ใช้ positional เพื่อความชัวร์)
     """
     client = get_gradio_client()
     if client is None:
@@ -80,17 +80,18 @@ def _call_gradio(message: str, mode: str, file_path: Optional[str] = None) -> st
     persona_prompt = _build_persona(mode)
     full_prompt = f"{persona_prompt}\n\n[ข้อความจากผู้ใช้/บริบท]:\n{message}"
 
+    # ✅ ใช้ positional arguments แทน keyword เพื่อกัน error ชื่อ parameter ไม่ตรง
     result = client.predict(
-        message=full_prompt,
-        file=handle_file(file_path) if file_path else None,
-        mode=mode,
+        full_prompt,                                  # message
+        handle_file(file_path) if file_path else None,  # file
+        mode,                                         # mode
         api_name="/chat"
     )
     return str(result).strip()
 
 
 # ─── ข้อความธรรมดา ───────────────────────────────────────────
-def get_ai_response(prompt: str, mode: str):
+async def get_ai_response(prompt: str, mode: str):
     try:
         reply = _call_gradio(message=prompt, mode=mode)
         return {"reply": reply}
