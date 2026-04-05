@@ -363,7 +363,7 @@ const Summaries = () => {
                                         className={`h-48 w-full bg-gray-100 dark:bg-black/40 flex items-center justify-center relative cursor-pointer overflow-hidden`}
                                         onClick={() => {
                                             if (checkAuth()) {
-                                                const pdfUrl = item.file_path ? `${API_BASE_URL}${item.file_path}` : "";
+                                                const pdfUrl = item.file_path ? item.file_path : "";
                                                 setSelectedItem({ ...item, pdfUrl });
                                                 setIsPdfModalOpen(true);
                                             }
@@ -372,7 +372,7 @@ const Summaries = () => {
                                         {item.file_path ? (
                                             <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
                                                 <iframe
-                                                    src={`${API_BASE_URL}${item.file_path}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                                                    src={`${item.file_path}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
                                                     className="w-full h-full border-none pointer-events-none scale-[1.2] origin-top"
                                                     title="Preview"
                                                 />
@@ -472,7 +472,7 @@ const Summaries = () => {
                                         {item.file_path ? (
                                             <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
                                                 <iframe
-                                                    src={`${API_BASE_URL}${item.file_path}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                                                    src={`${item.file_path}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
                                                     className="w-full h-full border-none pointer-events-none scale-[1.5] origin-top"
                                                     title="My Preview"
                                                 />
@@ -547,7 +547,7 @@ const Summaries = () => {
                                                 </div>
                                                 <button
                                                     onClick={() => {
-                                                        const pdfUrl = item.file_path ? `${API_BASE_URL}${item.file_path}` : "";
+                                                        const pdfUrl = item.file_path ? item.file_path : "";
                                                         setSelectedItem({ ...item, pdfUrl });
                                                         setIsPdfModalOpen(true);
                                                     }}
@@ -608,7 +608,7 @@ const Summaries = () => {
                                             <span className="text-sm font-black text-gray-400">{item.price ?? 0} 🪙</span>
                                             <button
                                                 onClick={() => {
-                                                    const pdfUrl = item.file_path ? `${API_BASE_URL}${item.file_path}` : "";
+                                                    const pdfUrl = item.file_path ? item.file_path : "";
                                                     setSelectedItem({ ...item, pdfUrl });
                                                     setIsPdfModalOpen(true);
                                                 }}

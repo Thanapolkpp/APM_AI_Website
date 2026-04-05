@@ -1,51 +1,20 @@
-import os
-import io
-import uuid
-import shutil
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 from app.utils.db import get_db
 from app.utils.security import get_current_user
+from app.utils.pdf_utils import compress_pdf, extract_text_from_pdf
 from app.models.study_sheet import StudySheet
 from app.models.user_sheet import UserSheet
 from app.models.user import User
 from app.services import notification_service
-
-try:
-    import PyPDF2
-    PDF_SUPPORT = True
-except ImportError:
-    PDF_SUPPORT = False
+from app.services.storage_service import upload_file, delete_file
 
 router = APIRouter()
 
-UPLOAD_BASE_DIR = "uploads/sheets"
+BUCKET = "sheets"
 MAX_SHEETS_PER_USER = 10
-
-
-# ---------- Helpers ----------
-
-def get_user_upload_dir(user_id: int) -> str:
-    user_dir = os.path.join(UPLOAD_BASE_DIR, str(user_id))
-    os.makedirs(user_dir, exist_ok=True)
-    return user_dir
-
-
-def extract_text_from_pdf(file_bytes: bytes) -> str:
-    if not PDF_SUPPORT:
-        return ""
-    try:
-        reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
-        pages_text = []
-        for page in reader.pages:
-            text = page.extract_text()
-            if text:
-                pages_text.append(text)
-        return "\n".join(pages_text)
-    except Exception:
-        return ""
 
 
 # ---------- Schemas ----------
@@ -73,7 +42,7 @@ def upload_study_sheet(
 
     file_bytes = file.file.read()
 
-    # FIFO: ถ้ามีครบ 10 ลบเก่าสุดก่อน
+    # FIFO: ถ้ามีครบ 10 ลบเก่าสุดก่อน (ลบจาก Supabase + DB)
     sheet_count = db.query(StudySheet).filter(StudySheet.user_id == current_user.id).count()
     if sheet_count >= MAX_SHEETS_PER_USER:
         oldest = (
@@ -83,27 +52,23 @@ def upload_study_sheet(
             .first()
         )
         if oldest:
-            physical_path = oldest.file_path.lstrip("/")
-            if os.path.exists(physical_path):
-                os.remove(physical_path)
+            if oldest.file_path:
+                delete_file(BUCKET, oldest.file_path)
             db.query(UserSheet).filter(UserSheet.sheet_id == oldest.id).delete()
             db.delete(oldest)
             db.commit()
 
-    unique_filename = f"{uuid.uuid4().hex}.pdf"
-    user_dir = get_user_upload_dir(current_user.id)
-    file_path = os.path.join(user_dir, unique_filename)
-
-    with open(file_path, "wb") as f:
-        f.write(file_bytes)
-
-    file_path_normalized = "/" + file_path.replace("\\", "/")
+    # extract text จาก original bytes ก่อน (compress อาจ reformat รูปภาพ)
     extracted_text = extract_text_from_pdf(file_bytes)
+
+    # compress PDF ให้เล็กลง แล้วค่อย upload
+    compressed_bytes = compress_pdf(file_bytes)
+    public_url = upload_file(BUCKET, compressed_bytes, file.filename or "sheet.pdf")
 
     new_sheet = StudySheet(
         user_id=current_user.id,
         title=title,
-        file_path=file_path_normalized,
+        file_path=public_url,
         extracted_text=extracted_text,
         price=price,
         is_public=is_public,
@@ -169,7 +134,6 @@ def get_market(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # ดู sheet ที่วางขายทั้งหมด (รวมของตัวเองเพื่อเช็ค)
     sheets = (
         db.query(StudySheet)
         .filter(StudySheet.is_public == True)
@@ -258,18 +222,15 @@ def buy_sheet(
             detail=f"เหรียญไม่พอ (มี {current_user.coins}, ต้องการ {sheet.price})"
         )
 
-    # โอน coins
     current_user.coins -= sheet.price
     seller = db.query(User).filter(User.id == sheet.user_id).first()
     if seller:
         seller.coins += sheet.price
 
-    # บันทึกการซื้อ
     new_purchase = UserSheet(buyer_id=current_user.id, sheet_id=sheet_id)
     db.add(new_purchase)
     db.commit()
 
-    # แจ้งเตือนผู้ซื้อ
     notification_service.add_notification(
         db=db,
         user_id=current_user.id,
@@ -277,7 +238,6 @@ def buy_sheet(
         title="ซื้อชีทสำเร็จ!",
         message=f"คุณซื้อชีท '{sheet.title}' สำเร็จ ใช้ไป {sheet.price} coins",
     )
-    # แจ้งเตือนผู้ขาย
     if seller:
         notification_service.add_notification(
             db=db,
@@ -357,14 +317,11 @@ def delete_study_sheet(
     if sheet.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="คุณไม่มีสิทธิ์ลบ Sheet นี้")
 
-    # ลบไฟล์ทางกายภาพ
+    # ลบไฟล์จาก Supabase Storage
     if sheet.file_path:
-        # ลบ / นำหน้าออกถ้ามี
-        physical_path = sheet.file_path.lstrip("/")
-        if os.path.exists(physical_path):
-            os.remove(physical_path)
+        delete_file(BUCKET, sheet.file_path)
 
-    # ลบ records ในฐานข้อมูล
+    # ลบ records ใน DB (UserSheet ก่อน แล้วค่อยลบ StudySheet)
     db.query(UserSheet).filter(UserSheet.sheet_id == sheet_id).delete()
     db.delete(sheet)
     db.commit()
