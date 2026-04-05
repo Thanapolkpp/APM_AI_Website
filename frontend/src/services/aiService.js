@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 const API_TEXT_URL = `${BASE_URL}/api/v1/chat/`;
 const API_IMAGE_URL = `${BASE_URL}/api/v1/ai/chat-with-image`;
 const API_USER_URL = `${BASE_URL}/api/v1/user`;

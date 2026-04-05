@@ -29,8 +29,9 @@ const Event = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
             try {
-                const response = await fetch("http://localhost:8000/api/v1/user/me", {
+                const response = await fetch(`${API_BASE_URL}/api/v1/user/me`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
                 if (response.ok) {
@@ -52,8 +53,9 @@ const Event = () => {
         }
 
         setIsLoading(true);
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
         try {
-            const response = await fetch("http://localhost:8000/api/v1/user/claim-test-reward", {
+            const response = await fetch(`${API_BASE_URL}/api/v1/user/claim-test-reward`, {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${token}` }
             });
