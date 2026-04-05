@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com";
+const RAW_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com";
+const BASE_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
 const API_URL = `${BASE_URL}/api/v1/notifications`;
 
 const authHeader = () => ({

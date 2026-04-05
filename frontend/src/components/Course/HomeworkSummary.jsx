@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom"
 import jsPDF from "jspdf"
 import { fetchMarketSheets } from "../../services/aiService"
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com"
+const RAW_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com"
+const API_BASE_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
 
 const ICON_MAP = {
     BookText,

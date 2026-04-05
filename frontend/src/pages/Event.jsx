@@ -29,7 +29,8 @@ const Event = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com";
+            const RAW_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com";
+            const API_BASE_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
             try {
                 const response = await fetch(`${API_BASE_URL}/api/v1/user/me`, {
                     headers: { "Authorization": `Bearer ${token}` }
@@ -53,7 +54,8 @@ const Event = () => {
         }
 
         setIsLoading(true);
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com";
+        const RAW_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com";
+        const API_BASE_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
         try {
             const response = await fetch(`${API_BASE_URL}/api/v1/user/claim-test-reward`, {
                 method: "POST",
