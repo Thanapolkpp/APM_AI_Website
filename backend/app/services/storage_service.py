@@ -17,13 +17,23 @@ def _get_client() -> Client:
     return _client
 
 
+import re
+
 def upload_file(bucket: str, file_bytes: bytes, filename: str, content_type: str = "application/pdf") -> str:
     """
     อัปโหลดไฟล์ไปยัง Supabase Storage
     คืน public URL ของไฟล์ (Full URL)
     """
     client = _get_client()
-    unique_name = f"{uuid.uuid4().hex}_{filename}"
+    
+    # ทำความสะอาดชื่อไฟล์: แทนที่อักขระพิเศษและอักษรไทยด้วย '_' เพื่อความปลอดภัยของ Path
+    # เก็บเฉพาะภาษาอังกฤษ, ตัวเลข, '.', '-', '_'
+    name_only = os.path.splitext(filename)[0]
+    ext_only = os.path.splitext(filename)[1]
+    safe_name = re.sub(r'[^\w\d.-]', '_', name_only)
+    
+    unique_name = f"{uuid.uuid4().hex}_{safe_name}{ext_only}"
+    
     client.storage.from_(bucket).upload(
         path=unique_name,
         file=file_bytes,

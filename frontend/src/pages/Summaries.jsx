@@ -232,7 +232,8 @@ const Summaries = () => {
             alert("เย้! ชีทของคุณขึ้นระบบแล้วครับ ✨")
         } catch (err) {
             console.error("Upload Error:", err)
-            alert("อัปโหลดไม่สำเร็จ กรุณาลองใหม่")
+            const errorMsg = err.response?.data?.detail || "อัปโหลดไม่สำเร็จ กรุณาลองใหม่ครับเพื่อน";
+            alert(errorMsg)
         } finally {
             setIsLoadingSheets(false)
         }

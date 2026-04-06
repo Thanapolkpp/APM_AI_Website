@@ -62,71 +62,86 @@ def upload_study_sheet(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if file.content_type != "application/pdf":
-        raise HTTPException(status_code=400, detail="รองรับเฉพาะไฟล์ PDF เท่านั้น")
+    try:
+        if file.content_type != "application/pdf":
+            raise HTTPException(status_code=400, detail="รองรับเฉพาะไฟล์ PDF เท่านั้น")
 
-    if price < 0:
-        raise HTTPException(status_code=400, detail="ราคาต้องไม่ติดลบ")
+        if price < 0:
+            raise HTTPException(status_code=400, detail="ราคาต้องไม่ติดลบ")
 
-    file_bytes = file.file.read()
+        file_bytes = file.file.read()
 
-    # FIFO: ถ้ามีครบ 10 ลบเก่าสุดก่อน (ลบจาก Supabase + DB)
-    sheet_count = db.query(StudySheet).filter(StudySheet.user_id == current_user.id).count()
-    if sheet_count >= MAX_SHEETS_PER_USER:
-        oldest = (
-            db.query(StudySheet)
-            .filter(StudySheet.user_id == current_user.id)
-            .order_by(StudySheet.created_at.asc())
-            .first()
+        # FIFO: ถ้ามีครบ 10 ลบเก่าสุดก่อน (ลบจาก Supabase + DB)
+        sheet_count = db.query(StudySheet).filter(StudySheet.user_id == current_user.id).count()
+        if sheet_count >= MAX_SHEETS_PER_USER:
+            oldest = (
+                db.query(StudySheet)
+                .filter(StudySheet.user_id == current_user.id)
+                .order_by(StudySheet.created_at.asc())
+                .first()
+            )
+            if oldest:
+                if oldest.file_path:
+                    try:
+                        delete_file(BUCKET, oldest.file_path)
+                    except:
+                        pass
+                db.query(UserSheet).filter(UserSheet.sheet_id == oldest.id).delete()
+                db.delete(oldest)
+                db.commit()
+
+        # extract text จาก original bytes ก่อน
+        extracted_text = extract_text_from_pdf(file_bytes)
+
+        # compress PDF ให้เล็กลง แล้วค่อย upload
+        compressed_bytes = compress_pdf(file_bytes)
+        
+        # อัปโหลดไปยัง Supabase
+        public_url = upload_file(BUCKET, compressed_bytes, file.filename or "sheet.pdf")
+
+        new_sheet = StudySheet(
+            user_id=current_user.id,
+            title=title,
+            file_path=public_url,
+            extracted_text=extracted_text,
+            price=price,
+            is_public=is_public,
         )
-        if oldest:
-            if oldest.file_path:
-                delete_file(BUCKET, oldest.file_path)
-            db.query(UserSheet).filter(UserSheet.sheet_id == oldest.id).delete()
-            db.delete(oldest)
-            db.commit()
+        db.add(new_sheet)
+        db.commit()
+        db.refresh(new_sheet)
 
-    # extract text จาก original bytes ก่อน (compress อาจ reformat รูปภาพ)
-    extracted_text = extract_text_from_pdf(file_bytes)
+        current_user.coins += 3
+        db.commit()
 
-    # compress PDF ให้เล็กลง แล้วค่อย upload
-    compressed_bytes = compress_pdf(file_bytes)
-    public_url = upload_file(BUCKET, compressed_bytes, file.filename or "sheet.pdf")
+        notification_service.add_notification(
+            db=db,
+            user_id=current_user.id,
+            type="coin_earned",
+            title="ได้รับ Coin!",
+            message=f"อัปโหลดชีท '{title}' สำเร็จ ได้รับ +3 coins เป็นรางวัล!",
+        )
 
-    new_sheet = StudySheet(
-        user_id=current_user.id,
-        title=title,
-        file_path=public_url,
-        extracted_text=extracted_text,
-        price=price,
-        is_public=is_public,
-    )
-    db.add(new_sheet)
-    db.commit()
-    db.refresh(new_sheet)
-
-    current_user.coins += 3
-    db.commit()
-
-    notification_service.add_notification(
-        db=db,
-        user_id=current_user.id,
-        type="coin_earned",
-        title="ได้รับ Coin!",
-        message=f"อัปโหลดชีท '{title}' สำเร็จ ได้รับ +3 coins เป็นรางวัล!",
-    )
-
-    return {
-        "message": "อัปโหลดสำเร็จ",
-        "id": new_sheet.id,
-        "title": new_sheet.title,
-        "file_path": new_sheet.file_path,
-        "price": new_sheet.price,
-        "is_public": new_sheet.is_public,
-        "text_extracted": len(extracted_text) > 0,
-        "bonus_coins": 3,
-        "coins_total": current_user.coins,
-    }
+        return {
+            "message": "อัปโหลดสำเร็จ",
+            "id": new_sheet.id,
+            "title": new_sheet.title,
+            "file_path": normalize_pdf_url(new_sheet.file_path),
+            "price": new_sheet.price,
+            "is_public": new_sheet.is_public,
+            "text_extracted": len(extracted_text) > 0,
+            "bonus_coins": 3,
+            "coins_total": current_user.coins,
+        }
+    except Exception as e:
+        db.rollback()
+        # ส่งข้อความ Error กลับไปให้ Frontend รู้สาเหตุที่แท้จริง
+        error_detail = str(e)
+        print(f"❌ Upload Error: {error_detail}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"เกิดข้อผิดพลาดในการอัปโหลด: {error_detail} (เพื่อนเช็ค SUPABASE_URL/KEY ใน Render หรือยังครับ?)"
+        )
 
 
 @router.get("/")
