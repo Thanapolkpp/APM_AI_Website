@@ -97,8 +97,10 @@ const Event = () => {
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Special Events 🎉</p>
                         </div>
                     </div>
-                    {/* Desktop Navbar Hidden for this page per request "ในคอมไม่ต้องเจอ" */}
-                    <div className="hidden lg:flex flex-1" />
+                    {/* Desktop Navbar */}
+                    <div className="hidden lg:flex flex-1 justify-center">
+                        <Navbar />
+                    </div>
                     <div className="flex justify-end items-center gap-4 shrink-0">
                         <CoinBadge className="scale-90" />
                         <button

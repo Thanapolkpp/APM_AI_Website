@@ -8,6 +8,7 @@ const API_USER_URL = `${BASE_URL}/api/v1/user`;
 const API_TODOS_URL = `${BASE_URL}/api/v1/todos`;
 const API_SHEETS_URL = `${BASE_URL}/api/v1/study-sheets`;
 const API_INVENTORY_URL = `${BASE_URL}/api/v1/inventory`;
+const API_NOTIFICATIONS_URL = `${BASE_URL}/api/v1/notifications`;
 
 // Helper สำหรับดึง Token และจัดการ Header
 const authHeader = () => ({
@@ -256,3 +257,24 @@ export const deleteSheet = async (sheet_id) => {
     );
     return response.data;
 };
+
+// ---------- Notifications ----------
+export const fetchNotifications = async () => {
+    const response = await axios.get(API_NOTIFICATIONS_URL + "/", { headers: authHeader() });
+    return response.data;
+};
+
+export const fetchUnreadNotificationCount = async () => {
+    const response = await axios.get(`${API_NOTIFICATIONS_URL}/unread-count`, { headers: authHeader() });
+    return response.data.unread_count;
+};
+
+export const markAllNotificationsRead = async () => {
+    const response = await axios.patch(`${API_NOTIFICATIONS_URL}/read-all`, {}, { headers: authHeader() });
+    return response.data;
+};
+
+export const markNotificationRead = async (id) => {
+    const response = await axios.patch(`${API_NOTIFICATIONS_URL}/${id}/read`, {}, { headers: authHeader() });
+    return response.data;
+};

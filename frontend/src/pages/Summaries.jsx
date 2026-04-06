@@ -13,7 +13,8 @@ const GirlIcon = ASSETS.AVATARS.GIRL;
 const BroIcon = ASSETS.AVATARS.BRO;
 const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
 import { jsPDF } from "jspdf"
-import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice, deleteSheet, updateExp } from "../services/aiService"
+import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice, deleteSheet, updateExp, sendMessageToAI } from "../services/aiService"
+
 
 // แมพชื่อ string เข้ากับ Component จริงๆ เพื่อป้องกัน Error: Element type is invalid
 const ICON_MAP = {
@@ -34,18 +35,18 @@ const API_BASE_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
 
 const formatDocUrl = (path) => {
     if (!path) return "";
-    
+
     // ถ้าใน DB เผลอเก็บ localhost มา (เช่น ตอนรัน local) ให้เปลี่ยนเป็น production URL
     let cleanPath = path;
     if (cleanPath.includes("localhost:8000") || cleanPath.includes("127.0.0.1:8000")) {
         cleanPath = cleanPath.replace(/^https?:\/\/[^/]+/, API_BASE_URL);
     }
-    
+
     if (cleanPath.startsWith("http")) return cleanPath;
 
     // ถ้าเป็น path สัมพัทธ์ ให้เติม API_BASE_URL
     const normalizedPath = cleanPath.startsWith('/') ? cleanPath.slice(1) : cleanPath;
-    
+
     // ตรวจสอบว่ามีคำว่า uploads หรือยัง
     if (normalizedPath.startsWith('uploads/')) {
         return `${API_BASE_URL}/${normalizedPath}`;
@@ -139,6 +140,7 @@ const Summaries = () => {
     const [selectedItem, setSelectedItem] = useState(null)
     const [summaryText, setSummaryText] = useState("")
     const [isGenerating, setIsGenerating] = useState(false)
+    const [timeLeft, setTimeLeft] = useState(0)
 
     const checkAuth = () => {
         const token = localStorage.getItem("token")
@@ -157,11 +159,36 @@ const Summaries = () => {
         setIsGenerating(true)
         setSummaryText("")
 
-        setTimeout(() => {
-            const aiSummary = `✨ สรุปโดย APM AI ✨\n\nหัวข้อ: ${item.title}\n[ประเด็นสำคัญ]\n1. สรุปเนื้อหาเน้นทฤษฎีพื้นฐาน\n2. สูตรและจุดที่ควรระวังในข้อสอบ\n\n${item.extracted_text || item.fullContent || "เนื้อหากำลังถูกวิเคราะห์เพิ่มเติมน้าาเพื่อน..."}`
-            setSummaryText(aiSummary)
-            setIsGenerating(false)
-        }, 1500)
+        const TOTAL_TIME = 200 
+        setTimeLeft(TOTAL_TIME)
+
+
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timer)
+
+                    // --- [REAL AI CALL] หลังจากนับถอยหลังเสร็จ ---
+                    const contentToSummarize = item.extracted_text || item.title || "ไม่มีเนื้อหาที่จะสรุป";
+
+                    sendMessageToAI(
+                        `ช่วยสรุปใจความสำคัญจากเนื้อหาชีทติวเรื่อง "${item.title}" นี้ให้หน่อยเพื่อน โดยเน้นที่ประเด็นสำคัญ 3-5 ข้อ และสรุปให้สั้นกระชับเข้าใจง่ายสำหรับนักศึกษา:\n\n${contentToSummarize.substring(0, 5000)}`,
+                        "nerd" // ใช้โหมด Nerd เพื่อความแม่นยำของเนื้อหา
+                    ).then((aiReply) => {
+                        const finalSummary = `✨ สรุปโดย APM AI (สดใหม่!) ✨\n\nหัวข้อ: ${item.title}\n\n${aiReply}`;
+                        setSummaryText(finalSummary);
+                        setIsGenerating(false);
+                    }).catch((error) => {
+                        console.error("AI Error:", error);
+                        setSummaryText("ขออภัยครับเพื่อน พอดี AI ติดขัดนิดหน่อย ลองใหม่อีกรอบนะ! 🌷");
+                        setIsGenerating(false);
+                    });
+
+                    return 0
+                }
+                return prev - 1
+            })
+        }, 1000)
     }
 
     // --- SECURITY PROTOCOL (Anti-Screenshot) ---
@@ -620,12 +647,35 @@ const Summaries = () => {
                         </div>
                         <div className="flex-1 overflow-y-auto p-10 dark:text-gray-200 whitespace-pre-wrap text-lg leading-relaxed antialiased">
                             {isGenerating ? (
-                                <div className="flex flex-col items-center justify-center h-full py-12 space-y-6">
-                                    <div className="relative">
-                                        <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                                        <div className="absolute inset-0 flex items-center justify-center text-primary text-xs font-black">AI</div>
+                                <div className="flex flex-col items-center justify-center h-full py-12 space-y-8">
+                                    <div className="relative size-32 md:size-40">
+                                        {/* Background Ring */}
+                                        <svg className="size-full -rotate-90">
+                                            <circle cx="50%" cy="50%" r="45%" fill="none" stroke="currentColor" strokeWidth="8" className="text-gray-100 dark:text-white/5" />
+                                            {/* Progress Ring */}
+                                            <circle
+                                                cx="50%" cy="50%" r="45%" fill="none" stroke="currentColor" strokeWidth="8"
+                                                strokeDasharray="283"
+                                                strokeDashoffset={283 - (283 * (200 - timeLeft)) / 200}
+                                                className="text-primary transition-all duration-1000"
+                                                strokeLinecap="round"
+                                            />
+                                        </svg>
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                            <span className="text-3xl md:text-4xl font-black text-primary">{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
+                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Analyzing</span>
+                                        </div>
                                     </div>
-                                    <p className="font-black text-xl animate-pulse">กำลังติวเข้มให้เพื่อนอยู่... 🧠✨</p>
+                                    <div className="text-center space-y-2">
+                                        <p className="font-black text-xl md:text-2xl animate-pulse text-gray-900 dark:text-white">กำลังติวเข้มให้เพื่อนอยู่... 🧠✨</p>
+                                        <p className="text-sm font-bold text-gray-500 dark:text-gray-400">กรุณารอสักครู่ AI กำลังอ่านชีทเล่มนี้อย่างละเอียดน้าา</p>
+                                    </div>
+                                    <div className="w-full max-w-xs h-2 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-primary transition-all duration-1000"
+                                            style={{ width: `${((200 - timeLeft) / 200) * 100}%` }}
+                                        />
+                                    </div>
                                 </div>
                             ) : summaryText}
                         </div>
