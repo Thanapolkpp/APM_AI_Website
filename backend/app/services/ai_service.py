@@ -46,7 +46,9 @@ async def _call_ollama(message: str, mode: str, image_bytes: Optional[bytes] = N
     """
     เรียกใช้ Ollama Chat API ผ่าน httpx (Async)
     """
-    url = f"{OLLAMA_URL}/api/chat"
+    # ป้องกันเรื่อง / เกิน (Double Slash)
+    base_url = OLLAMA_URL.rstrip('/')
+    url = f"{base_url}/api/chat"
     persona = _build_persona(mode)
     
     # เตรียม Messages
@@ -67,8 +69,10 @@ async def _call_ollama(message: str, mode: str, image_bytes: Optional[bytes] = N
     }
 
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(url, json=payload, timeout=60)
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            # เพิ่ม header เพื่อข้ามหน้า Ngrok Warning
+            headers = {"ngrok-skip-browser-warning": "true"}
+            response = await client.post(url, json=payload, headers=headers, timeout=180) # ขยายเป็น 180 วินาที
             response.raise_for_status()
             result = response.json()
             return result.get("message", {}).get("content", "").strip()

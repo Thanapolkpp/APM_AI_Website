@@ -22,6 +22,15 @@ const CuteGirlIcon = ASSETS.AVATARS.GIRL
 const Home = () => {
   const navigate = useNavigate()
   const { coins, exp } = useCoins()
+  const [showSupportAlert, setShowSupportAlert] = useState(false)
+
+  React.useEffect(() => {
+    // ให้เด้งโชว์ทุกครั้งที่โหลดหน้า (ตามที่เจ้านายต้องการ)
+    const timer = setTimeout(() => {
+      setShowSupportAlert(true)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Level calculation logic (simplified for hero)
   const getLevelInfo = (totalExp) => {
@@ -197,7 +206,7 @@ const Home = () => {
             >
               {/* Glass Capsule */}
               <div className="inline-flex flex-col items-center px-8 py-3 md:px-14 md:py-7 rounded-[40px] md:rounded-[60px] bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-2xl transition-all duration-500 hover:shadow-primary/20 hover:scale-[1.02] active:scale-95">
-                
+
                 {/* Float label */}
                 <div className="flex items-center gap-3 mb-3 md:mb-4">
                   <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 dark:text-gray-500">
@@ -205,75 +214,75 @@ const Home = () => {
                   </span>
                   {isLoggedIn && (
                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 text-[8px] md:text-[10px] font-black">
-                       <span className="material-symbols-outlined text-[10px] md:text-[12px]">monetization_on</span>
-                       {coins.toLocaleString()}
+                      <span className="material-symbols-outlined text-[10px] md:text-[12px]">monetization_on</span>
+                      {coins.toLocaleString()}
                     </div>
                   )}
                 </div>
 
                 {/* Shield / Progress Ring */}
                 <div className="relative size-16 md:size-24 flex items-center justify-center">
-                   {/* Ring Background */}
-                   <div className="absolute inset-0 rounded-full border-4 border-gray-100 dark:border-white/5 shadow-inner" />
-                   
-                   {/* Progress Ring (Gradient) */}
-                   <svg className="absolute inset-0 size-full -rotate-90">
-                      <defs>
-                        <linearGradient id="hero-exp-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor={isLoggedIn ? theme.from : "#e5e7eb"} />
-                          <stop offset="100%" stopColor={isLoggedIn ? theme.to : "#d1d5db"} />
-                        </linearGradient>
-                      </defs>
-                      <circle
-                        cx="50%"
-                        cy="50%"
-                        r="44%"
-                        fill="none"
-                        stroke="url(#hero-exp-gradient)"
-                        strokeWidth="4"
-                        strokeDasharray="100 100"
-                        strokeDashoffset={100 - (isLoggedIn ? Math.min((exp % 200) / 2, 100) : 0)} 
-                        className="transition-all duration-1000"
-                        strokeLinecap="round"
-                      />
-                   </svg>
+                  {/* Ring Background */}
+                  <div className="absolute inset-0 rounded-full border-4 border-gray-100 dark:border-white/5 shadow-inner" />
 
-                   {/* Rank Image / Shield Icon */}
-                   <div className="relative z-10 size-10 md:size-16 drop-shadow-xl transform group-hover:scale-110 transition-transform duration-500">
-                      <img 
-                        src={rankImage} 
-                        alt="Rank" 
-                        className="w-full h-full object-contain"
-                      />
-                   </div>
+                  {/* Progress Ring (Gradient) */}
+                  <svg className="absolute inset-0 size-full -rotate-90">
+                    <defs>
+                      <linearGradient id="hero-exp-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor={isLoggedIn ? theme.from : "#e5e7eb"} />
+                        <stop offset="100%" stopColor={isLoggedIn ? theme.to : "#d1d5db"} />
+                      </linearGradient>
+                    </defs>
+                    <circle
+                      cx="50%"
+                      cy="50%"
+                      r="44%"
+                      fill="none"
+                      stroke="url(#hero-exp-gradient)"
+                      strokeWidth="4"
+                      strokeDasharray="100 100"
+                      strokeDashoffset={100 - (isLoggedIn ? Math.min((exp % 200) / 2, 100) : 0)}
+                      className="transition-all duration-1000"
+                      strokeLinecap="round"
+                    />
+                  </svg>
 
-                   {/* Particles / Sparkles Icon */}
-                   {isLoggedIn && (
-                      <div className="absolute -top-1 -right-1">
-                        <motion.div
-                          animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                           <Sparkles size={16} className="text-primary" />
-                        </motion.div>
-                      </div>
-                   )}
+                  {/* Rank Image / Shield Icon */}
+                  <div className="relative z-10 size-10 md:size-16 drop-shadow-xl transform group-hover:scale-110 transition-transform duration-500">
+                    <img
+                      src={rankImage}
+                      alt="Rank"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+
+                  {/* Particles / Sparkles Icon */}
+                  {isLoggedIn && (
+                    <div className="absolute -top-1 -right-1">
+                      <motion.div
+                        animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <Sparkles size={16} className="text-primary" />
+                      </motion.div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Sub-label (Logged in vs Guest) */}
                 <div className="mt-3 md:mt-4 flex flex-col items-center gap-1">
-                   {isLoggedIn ? (
-                     <div className="flex items-center gap-2">
-                        <div className="size-1.5 md:size-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
-                        <span className="text-[10px] md:text-[12px] font-black text-gray-700 dark:text-gray-300">
-                           {exp.toLocaleString()} EXP EARNED
-                        </span>
-                     </div>
-                   ) : (
-                     <span className="text-[10px] md:text-[12px] font-black text-primary animate-pulse">
-                        LOG IN TO START LEVELING!
-                     </span>
-                   )}
+                  {isLoggedIn ? (
+                    <div className="flex items-center gap-2">
+                      <div className="size-1.5 md:size-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+                      <span className="text-[10px] md:text-[12px] font-black text-gray-700 dark:text-gray-300">
+                        {exp.toLocaleString()} EXP EARNED
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-[10px] md:text-[12px] font-black text-primary animate-pulse">
+                      LOG IN TO START LEVELING!
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -283,14 +292,14 @@ const Home = () => {
 
             {/* Headline from Photo 2 */}
             <h2 className="text-4xl md:text-[84px] font-black tracking-tight leading-[1.05] text-gray-900 dark:text-white mb-6">
-              Your <span className="bg-gradient-to-r from-[#97d8c9] via-[#ae97d8] to-[#d897c5] bg-clip-text text-transparent">AI friend</span> for Uni Life 
-              <motion.span 
-                animate={{ 
+              Your <span className="bg-gradient-to-r from-[#97d8c9] via-[#ae97d8] to-[#d897c5] bg-clip-text text-transparent">AI friend</span> for Uni Life
+              <motion.span
+                animate={{
                   scale: [1, 1.2, 1],
-                  rotate: [0, 10, -10, 0] 
+                  rotate: [0, 10, -10, 0]
                 }}
-                transition={{ 
-                  duration: 2, 
+                transition={{
+                  duration: 2,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
@@ -305,7 +314,7 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -342,6 +351,60 @@ const Home = () => {
         </main>
 
         <Footer />
+
+        {/* AI Support Alert Popup */}
+        <AnimatePresence>
+          {showSupportAlert && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center px-6 bg-black/40 backdrop-blur-sm"
+              onClick={() => setShowSupportAlert(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.8, y: 20, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.8, y: 20, opacity: 0 }}
+                className="bg-white dark:bg-gray-900 rounded-[32px] p-8 md:p-10 shadow-2xl max-w-sm md:max-w-md w-full border border-white/20 relative overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Decorative background blob */}
+                <div className="absolute top-0 right-0 -mr-10 -mt-10 size-32 bg-primary/10 blur-3xl rounded-full" />
+
+                <div className="relative z-10 text-center">
+                  <div className="size-16 md:size-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6 text-primary">
+                    <span className="material-symbols-outlined text-3xl md:text-4xl">warning</span>
+                  </div>
+
+                  <h3 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white mb-3">
+                    ขออภัยเป็นอย่างสูงครับ
+                  </h3>
+                  
+                  <p className="text-gray-500 dark:text-gray-400 font-bold text-sm md:text-base leading-relaxed mb-8">
+                    เนื่องจากตัวเว็บไซต์อยู่ในช่วง <span className="text-red-500">Beta</span> และรันบน <span className="text-red-500">Server FREE</span> <br className="hidden md:block" />
+                    จึงอาจเกิดปัญหาการเชื่อมต่อหรือติดขัดของ AI ได้ครับ
+                  </p>
+
+                  <a 
+                    href="mailto:apmaiservice@gmail.com?subject=แจ้งปัญหาการใช้งาน AI&body=พบปัญหา Ai กรุณาเปิด server ให้ฉัน ด่วน ๆ"
+                    className="w-full py-4 px-6 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black text-sm md:text-base shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-2 group mb-3"
+                  >
+                    <span className="material-symbols-outlined text-xl group-hover:rotate-12 transition-transform">mail</span>
+                    apmaiservice@gmail.com
+                  </a>
+
+                  <button
+                    onClick={() => setShowSupportAlert(false)}
+                    className="w-full py-4 text-gray-400 dark:text-gray-500 font-black text-xs md:text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors uppercase tracking-widest"
+                  >
+                    รับทราบและปิดหน้าต่างนี้
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )
