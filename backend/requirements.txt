@@ -28,3 +28,9 @@ requests
 
 # Environment Variables
 python-dotenv
+
+# Supabase Storage
+supabase
+
+# PDF Compression
+pymupdf
