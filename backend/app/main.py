@@ -41,14 +41,15 @@ app.mount("/updates", StaticFiles(directory="uploads"), name="uploads")
 if os.path.exists("uploads"):
     app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads_direct")
 
-# ตั้งค่า CORS
+# ตั้งค่า CORS เพื่อรองรับ Vercel Preview แขนงต่างๆ
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "*", 
-        "https://apm-ai-website.vercel.app", # Vercel ของคุณ
-        "http://localhost:5173" # สำหรับรันเครื่องตัวเอง
+        "https://apm-ai-website.vercel.app", 
+        "http://localhost:5173"
     ],
+    allow_origin_regex=r"https://apm-ai-website-.*-thanapolkpps-projects\.vercel\.app", # เพิ่ม regex สำหรับ Vercel preview
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
