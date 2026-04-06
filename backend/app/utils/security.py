@@ -1,3 +1,4 @@
+import os
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
@@ -7,8 +8,9 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.utils.db import get_db
 
-# คีย์สำหรับเข้ารหัส (ควรเก็บใน Environment Variable)
-SECRET_KEY = "your-secret-key-for-gen-z-app"
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY environment variable is not set")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 วัน
 

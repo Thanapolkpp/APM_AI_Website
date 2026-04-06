@@ -81,6 +81,9 @@ def toggle_todo(
         "id": todo.id,
         "is_completed": todo.is_completed
     }
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+
 @router.post("/{todo_id}/proof")
 async def upload_todo_proof(
     todo_id: int,
@@ -92,24 +95,44 @@ async def upload_todo_proof(
     if not todo:
         raise HTTPException(status_code=404, detail="Todo not found")
 
+    # Validate file extension
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"ประเภทไฟล์ไม่รองรับ รองรับเฉพาะ: {', '.join(ALLOWED_EXTENSIONS)}")
+
+    # Validate file size (read into memory to check)
+    file_bytes = await file.read()
+    if len(file_bytes) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="ไฟล์ใหญ่เกิน 10 MB")
+
+    # Validate image magic bytes (prevent disguised files)
+    MAGIC_BYTES = {
+        b"\xff\xd8\xff": ".jpg",   # JPEG
+        b"\x89PNG":       ".png",   # PNG
+        b"GIF8":          ".gif",   # GIF
+        b"RIFF":          ".webp",  # WebP (partial)
+    }
+    is_valid_image = any(file_bytes.startswith(sig) for sig in MAGIC_BYTES)
+    if not is_valid_image:
+        raise HTTPException(status_code=400, detail="ไฟล์ไม่ใช่รูปภาพที่ถูกต้อง")
+
     # Create user-specific directory
     user_proof_dir = os.path.join(UPLOAD_DIR, str(current_user.id))
     if not os.path.exists(user_proof_dir):
         os.makedirs(user_proof_dir)
 
-    # Generate filename
-    file_ext = os.path.splitext(file.filename)[1]
+    # Generate filename (safe, no user input in path)
     filename = f"{uuid4()}{file_ext}"
     file_path = os.path.join(user_proof_dir, filename)
 
-    # Save file
+    # Save validated file
     with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        buffer.write(file_bytes)
 
     # Store relative path (e.g., "1/abc.jpg") in DB
     db_filename = f"{current_user.id}/{filename}"
     todo.proof_image = db_filename
-    todo.status = "pending" # Reset to pending when photo is uploaded
+    todo.status = "pending"
     db.commit()
 
     return {"message": "Upload successful", "image": f"/uploads/proofs/{db_filename}"}
@@ -120,8 +143,11 @@ def verify_todo(
     todo_id: int,
     body: TodoVerify,
     db: Session = Depends(get_db),
-    # current_user: User = Depends(get_current_user), # Should check for admin role here
+    current_user: User = Depends(get_current_user),
 ):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin only")
+
     todo = db.query(Todo).filter(Todo.id == todo_id).first()
     if not todo:
         raise HTTPException(status_code=404, detail="Todo not found")
@@ -129,11 +155,10 @@ def verify_todo(
     todo.status = body.status
     if body.status == "accepted":
         todo.is_completed = True
-        # Grant rewards (exp/coins) logic could be added here
         user = db.query(User).filter(User.id == todo.user_id).first()
         if user:
-            user.exp += 15 # Grant bonus EXP for proof verification
-            user.coins += 2 # Grant bonus coins
+            user.exp += 15
+            user.coins += 2
     else:
         todo.is_completed = False
 
@@ -144,7 +169,11 @@ def verify_todo(
 @router.get("/admin/all")
 def get_all_verify_todos(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin only")
+
     todos = (
         db.query(Todo, User.username)
         .join(User, Todo.user_id == User.id)
