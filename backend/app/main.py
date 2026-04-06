@@ -20,11 +20,26 @@ from app.models import notification, proof
 # สั่งสร้างตารางฐานข้อมูลทั้งหมด
 Base.metadata.create_all(bind=engine)
 
+from fastapi.staticfiles import StaticFiles
+import os
+
+# Create uploads directory if not exists
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+if not os.path.exists("uploads/sheets"):
+    os.makedirs("uploads/sheets")
+
 app = FastAPI(
     title="Gen Z AI Study Planner API",
     description="Backend สำหรับระบบจัดตารางเรียนและ Chatbot AI พร้อมระบบผู้ใช้",
     version="1.1.0"
 )
+
+# mount static files
+app.mount("/updates", StaticFiles(directory="uploads"), name="uploads")
+# หรือจะใช้ path ตรงๆ
+if os.path.exists("uploads"):
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads_direct")
 
 # ตั้งค่า CORS
 app.add_middleware(

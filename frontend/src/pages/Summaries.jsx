@@ -32,6 +32,19 @@ const ICON_MAP = {
 const RAW_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com"
 const API_BASE_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
 
+const formatDocUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    // ถ้าเป็น path สัมพัทธ์ ให้เติม API_BASE_URL
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    // ตรวจสอบว่ามีคำว่า uploads หรือยัง
+    if (cleanPath.startsWith('uploads/')) {
+        return `${API_BASE_URL}/${cleanPath}`;
+    }
+    // กรณีเก็บแค่ชื่อไฟล์หรือ path ใน bucket
+    return `${API_BASE_URL}/uploads/sheets/${cleanPath}`;
+};
+
 const SUMMARIES_DATA = []
 
 const Summaries = () => {
@@ -136,7 +149,7 @@ const Summaries = () => {
         setSummaryText("")
 
         setTimeout(() => {
-            const aiSummary = `✨ สรุปโดย APM AI ✨\n\nหัวข้อ: ${item.title}\n[ประเด็นสำคัญ]\n1. สรุปเนื้อหาเน้นทฤษฎีพื้นฐาน\n2. สูตรและจุดที่ควรระวังในข้อสอบ\n\n${item.fullContent}`
+            const aiSummary = `✨ สรุปโดย APM AI ✨\n\nหัวข้อ: ${item.title}\n[ประเด็นสำคัญ]\n1. สรุปเนื้อหาเน้นทฤษฎีพื้นฐาน\n2. สูตรและจุดที่ควรระวังในข้อสอบ\n\n${item.extracted_text || item.fullContent || "เนื้อหากำลังถูกวิเคราะห์เพิ่มเติมน้าาเพื่อน..."}`
             setSummaryText(aiSummary)
             setIsGenerating(false)
         }, 1500)
@@ -364,7 +377,7 @@ const Summaries = () => {
                                         className={`h-48 w-full bg-gray-100 dark:bg-black/40 flex items-center justify-center relative cursor-pointer overflow-hidden`}
                                         onClick={() => {
                                             if (checkAuth()) {
-                                                const pdfUrl = item.file_path ? item.file_path : "";
+                                                const pdfUrl = formatDocUrl(item.file_path);
                                                 setSelectedItem({ ...item, pdfUrl });
                                                 setIsPdfModalOpen(true);
                                             }
@@ -373,7 +386,7 @@ const Summaries = () => {
                                         {item.file_path ? (
                                             <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
                                                 <iframe
-                                                    src={`${item.file_path}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                                                    src={`${formatDocUrl(item.file_path)}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
                                                     className="w-full h-full border-none pointer-events-none scale-[1.2] origin-top"
                                                     title="Preview"
                                                 />
@@ -473,7 +486,7 @@ const Summaries = () => {
                                         {item.file_path ? (
                                             <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
                                                 <iframe
-                                                    src={`${item.file_path}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                                                    src={`${formatDocUrl(item.file_path)}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
                                                     className="w-full h-full border-none pointer-events-none scale-[1.5] origin-top"
                                                     title="My Preview"
                                                 />
@@ -548,7 +561,7 @@ const Summaries = () => {
                                                 </div>
                                                 <button
                                                     onClick={() => {
-                                                        const pdfUrl = item.file_path ? item.file_path : "";
+                                                        const pdfUrl = formatDocUrl(item.file_path);
                                                         setSelectedItem({ ...item, pdfUrl });
                                                         setIsPdfModalOpen(true);
                                                     }}
@@ -609,7 +622,7 @@ const Summaries = () => {
                                             <span className="text-sm font-black text-gray-400">{item.price ?? 0} 🪙</span>
                                             <button
                                                 onClick={() => {
-                                                    const pdfUrl = item.file_path ? item.file_path : "";
+                                                    const pdfUrl = formatDocUrl(item.file_path);
                                                     setSelectedItem({ ...item, pdfUrl });
                                                     setIsPdfModalOpen(true);
                                                 }}

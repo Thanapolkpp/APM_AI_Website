@@ -10,11 +10,39 @@ from app.models.user_sheet import UserSheet
 from app.models.user import User
 from app.services import notification_service
 from app.services.storage_service import upload_file, delete_file
+import os
 
 router = APIRouter()
 
 BUCKET = "sheets"
 MAX_SHEETS_PER_USER = 10
+
+def normalize_pdf_url(path: str) -> str:
+    """ENSURE FULL ABSOLUTE SUPABASE URL AND PREVENT DOUBLE BUCKET NAMES"""
+    if not path:
+        return ""
+    if path.startswith("http"):
+        return path
+    
+    supabase_url = os.getenv("SUPABASE_URL", "").strip()
+    if not supabase_url:
+        return path
+        
+    if not supabase_url.startswith("http"):
+        supabase_url = f"https://{supabase_url}"
+    supabase_url = supabase_url.rstrip("/")
+    
+    clean_path = path.lstrip("/")
+    
+    # ถ้าไม่มี /storage/v1/object/public/ อยู่ใน path ให้เติมให้ครบ
+    if "storage/v1/object/public/" not in clean_path:
+        # เช็คว่า clean_path มันมีชื่อ bucket (sheets/) อยู่ข้างหน้าแล้วหรือยัง
+        if clean_path.startswith(f"{BUCKET}/"):
+            return f"{supabase_url}/storage/v1/object/public/{clean_path}"
+        # ถ้าไม่มีเลย ให้ยัด bucket เข้าไป
+        return f"{supabase_url}/storage/v1/object/public/{BUCKET}/{clean_path}"
+    
+    return f"{supabase_url}/{clean_path}"
 
 
 # ---------- Schemas ----------
@@ -116,7 +144,7 @@ def get_my_sheets(
         {
             "id": s.id,
             "title": s.title,
-            "file_path": s.file_path,
+            "file_path": normalize_pdf_url(s.file_path),
             "price": s.price,
             "is_public": s.is_public,
             "category": "สรุปสอบ",
@@ -124,6 +152,7 @@ def get_my_sheets(
             "is_mine": True,
             "already_purchased": False,
             "created_at": s.created_at,
+            "extracted_text": s.extracted_text,
         }
         for s in sheets
     ]
@@ -153,12 +182,13 @@ def get_market(
             "price": s.price,
             "category": "บทเรียน",
             "subject": "General Education",
-            "file_path": s.file_path,
+            "file_path": normalize_pdf_url(s.file_path),
             "gradient": "from-blue-500 to-indigo-600",
             "iconName": "BookText",
             "already_purchased": s.id in purchased_ids or s.user_id == current_user.id,
             "is_mine": s.user_id == current_user.id,
             "created_at": s.created_at,
+            "extracted_text": s.extracted_text,
         }
         for s in sheets
     ]
@@ -180,7 +210,7 @@ def get_purchased_sheets(
         {
             "id": sheet.id,
             "title": sheet.title,
-            "file_path": sheet.file_path,
+            "file_path": normalize_pdf_url(sheet.file_path),
             "price": sheet.price,
             "category": "งานวิจัย",
             "subject": "General Education",
@@ -188,6 +218,7 @@ def get_purchased_sheets(
             "is_mine": False,
             "already_purchased": True,
             "bought_at": us.bought_at,
+            "extracted_text": sheet.extracted_text,
         }
         for us, sheet in rows
     ]

@@ -20,7 +20,7 @@ def _get_client() -> Client:
 def upload_file(bucket: str, file_bytes: bytes, filename: str, content_type: str = "application/pdf") -> str:
     """
     อัปโหลดไฟล์ไปยัง Supabase Storage
-    คืน public URL ของไฟล์
+    คืน public URL ของไฟล์ (Full URL)
     """
     client = _get_client()
     unique_name = f"{uuid.uuid4().hex}_{filename}"
@@ -29,7 +29,19 @@ def upload_file(bucket: str, file_bytes: bytes, filename: str, content_type: str
         file=file_bytes,
         file_options={"content-type": content_type},
     )
-    public_url = client.storage.from_(bucket).get_public_url(unique_name)
+    public_url_resp = client.storage.from_(bucket).get_public_url(unique_name)
+    
+    # บางเวอร์ชันคืนค่าเป็น Object บางเวอร์ชันเป็น String
+    public_url = str(public_url_resp)
+    
+    # ถ้ายังไม่ได้เป็น Full URL หรือลืม protocol ให้จัดการใหม่
+    if not public_url.startswith("http"):
+        base_url = SUPABASE_URL.strip()
+        if not base_url.startswith("http"):
+            base_url = f"https://{base_url}"
+        base_url = base_url.rstrip("/")
+        public_url = f"{base_url}/storage/v1/object/public/{bucket}/{unique_name}"
+        
     return public_url
 
 
