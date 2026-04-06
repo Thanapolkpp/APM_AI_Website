@@ -29,20 +29,29 @@ const ICON_MAP = {
     Upload
 }
 
-const RAW_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com"
+const RAW_URL = import.meta.env.VITE_API_URL || "https://apm-ai-website.onrender.com"
 const API_BASE_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
 
 const formatDocUrl = (path) => {
     if (!path) return "";
-    if (path.startsWith("http")) return path;
+    
+    // ถ้าใน DB เผลอเก็บ localhost มา (เช่น ตอนรัน local) ให้เปลี่ยนเป็น production URL
+    let cleanPath = path;
+    if (cleanPath.includes("localhost:8000") || cleanPath.includes("127.0.0.1:8000")) {
+        cleanPath = cleanPath.replace(/^https?:\/\/[^/]+/, API_BASE_URL);
+    }
+    
+    if (cleanPath.startsWith("http")) return cleanPath;
+
     // ถ้าเป็น path สัมพัทธ์ ให้เติม API_BASE_URL
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    const normalizedPath = cleanPath.startsWith('/') ? cleanPath.slice(1) : cleanPath;
+    
     // ตรวจสอบว่ามีคำว่า uploads หรือยัง
-    if (cleanPath.startsWith('uploads/')) {
-        return `${API_BASE_URL}/${cleanPath}`;
+    if (normalizedPath.startsWith('uploads/')) {
+        return `${API_BASE_URL}/${normalizedPath}`;
     }
     // กรณีเก็บแค่ชื่อไฟล์หรือ path ใน bucket
-    return `${API_BASE_URL}/uploads/sheets/${cleanPath}`;
+    return `${API_BASE_URL}/uploads/sheets/${normalizedPath}`;
 };
 
 const SUMMARIES_DATA = []
@@ -293,14 +302,14 @@ const Summaries = () => {
                 </div>
             </header>
 
-            <main className="flex-1 w-full max-w-7xl mx-auto py-12 px-6 relative z-10">
+            <main className="flex-1 w-full max-w-7xl mx-auto py-8 px-4 md:px-6 relative z-10">
                 {/* Header View Options */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-16">
-                    <div className="space-y-3 text-center md:text-left transition-all">
-                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary font-black text-[10px] uppercase tracking-[0.2em] shadow-sm border border-primary/20">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 md:mb-12">
+                    <div className="space-y-2 text-center md:text-left transition-all">
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary font-black text-[9px] uppercase tracking-[0.2em] shadow-sm border border-primary/20">
                             <Sparkles className="size-3" /> {currentView === 'market' ? 'Community Store' : currentView === 'my-sheets' ? 'Private Collection' : 'Purchased'}
                         </span>
-                        <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-gray-900 dark:text-white">
+                        <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-gray-900 dark:text-white">
                             {currentView === 'market' ? 'Summaries 🌷' : currentView === 'my-sheets' ? 'My Library ✨' : 'My Orders 🛍️'}
                         </h2>
                     </div>
@@ -329,15 +338,15 @@ const Summaries = () => {
 
                 {currentView === 'market' ? (
                     /* --- Marketplace Section --- */
-                    <div className="space-y-12 animate-in fade-in duration-700">
+                    <div className="space-y-8 animate-in fade-in duration-700">
                         {/* Improved Search & Filters Area */}
-                        <div className="space-y-8 bg-white/40 dark:bg-white/5 p-6 md:p-8 rounded-[48px] border border-white/60 dark:border-white/10 shadow-sm backdrop-blur-md">
+                        <div className="space-y-6 bg-white/40 dark:bg-white/5 p-5 md:p-6 rounded-[32px] md:rounded-[40px] border border-white/60 dark:border-white/10 shadow-sm backdrop-blur-md">
                             <div className="relative group">
-                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={24} />
+                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={20} />
                                 <input
                                     type="text"
                                     placeholder="Search for summaries..."
-                                    className="w-full pl-16 pr-8 py-5 rounded-[28px] bg-white border border-gray-100 dark:bg-black/40 dark:border-white/10 outline-none font-bold text-lg dark:text-white focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
+                                    className="w-full pl-14 pr-6 py-4 rounded-[22px] bg-white border border-gray-100 dark:bg-black/40 dark:border-white/10 outline-none font-bold text-base dark:text-white focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -368,14 +377,14 @@ const Summaries = () => {
                             <div className="text-center py-8 text-gray-400 font-bold">กำลังโหลดชีทจากตลาด...</div>
                         )}
                         {marketSheets.length > 0 && (
-                            <div className="mb-4 px-2 text-sm font-black text-primary">📦 ชีทจาก Community ({marketSheets.length} รายการ)</div>
+                            <div className="mb-2 px-2 text-[10px] font-black text-primary uppercase tracking-widest">📦 Community Marketplace ({marketSheets.length})</div>
                         )}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-8">
                             {filteredSummaries.map((item) => (
-                                <div key={item.id} className="group relative bg-white dark:bg-black/20 border border-gray-100 dark:border-white/10 rounded-[40px] overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col h-[480px]">
+                                <div key={item.id} className="group relative bg-white dark:bg-black/20 border border-gray-100 dark:border-white/10 rounded-[24px] md:rounded-[32px] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-[260px] md:h-[420px]">
                                     {/* Preview Top */}
                                     <div
-                                        className={`h-48 w-full bg-gray-100 dark:bg-black/40 flex items-center justify-center relative cursor-pointer overflow-hidden`}
+                                        className={`h-24 md:h-40 w-full bg-gray-100 dark:bg-black/40 flex items-center justify-center relative cursor-pointer overflow-hidden`}
                                         onClick={() => {
                                             if (checkAuth()) {
                                                 const pdfUrl = formatDocUrl(item.file_path);
@@ -388,50 +397,44 @@ const Summaries = () => {
                                             <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
                                                 <iframe
                                                     src={`${formatDocUrl(item.file_path)}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
-                                                    className="w-full h-full border-none pointer-events-none scale-[1.2] origin-top"
+                                                    className="w-full h-full border-none pointer-events-none scale-[1.2] md:scale-[1.2] origin-top"
                                                     title="Preview"
                                                 />
                                             </div>
                                         ) : (
                                             <>
                                                 <div className="absolute inset-0 bg-white/5 group-hover:bg-transparent transition-colors duration-500" />
-                                                <div className="p-6 rounded-[32px] bg-white/20 backdrop-blur-xl border border-white/40 text-white shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 relative z-10">
+                                                <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-white/20 backdrop-blur-xl border border-white/40 text-white shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 relative z-10">
                                                     {(() => {
                                                         const IconComponent = ICON_MAP[item.iconName] || FileText;
-                                                        return <IconComponent size={48} />;
+                                                        return <IconComponent size={24} className="md:size-32" />;
                                                     })()}
                                                 </div>
                                             </>
                                         )}
-                                        <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20 text-[10px] font-black uppercase tracking-widest z-10">{item.views} VIEWS</div>
+                                        <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20 text-[6px] md:text-[8px] font-black uppercase tracking-widest z-10">{item.views} V</div>
                                     </div>
 
                                     {/* Content Bottom */}
-                                    <div className="flex-1 p-8 flex flex-col relative bg-white dark:bg-gray-900/40">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <span className="text-[10px] font-black px-2.5 py-1 rounded-lg border border-primary/20 bg-primary/5 text-primary uppercase tracking-tighter shadow-sm">{item.category}</span>
-                                            <div className="px-3 py-1 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black text-xs uppercase tracking-widest">{item.price}</div>
+                                    <div className="flex-1 p-2.5 md:p-6 flex flex-col relative bg-white dark:bg-gray-900/40 min-w-0">
+                                        <div className="flex justify-between items-start mb-1.5 md:mb-3">
+                                            <span className="text-[6px] md:text-[8px] font-black px-1.5 py-0.5 rounded bg-primary/5 text-primary uppercase truncate max-w-[50px] md:max-w-none">{item.category}</span>
+                                            <div className="px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black text-[7px] md:text-[10px] uppercase">{item.price === 0 ? 'FREE' : item.price}</div>
                                         </div>
 
-                                        <h3 className="text-xl font-black text-gray-900 dark:text-white line-clamp-2 leading-tight mb-2 group-hover:text-primary transition-colors">{item.title}</h3>
-                                        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-6">{item.subject}</p>
+                                        <h3 className="text-[10px] md:text-base font-black text-gray-900 dark:text-white line-clamp-2 leading-tight mb-0.5 md:mb-1 group-hover:text-primary transition-colors">{item.title}</h3>
+                                        <p className="hidden md:block text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-4">{item.subject}</p>
 
-                                        <div className="mt-auto grid grid-cols-1 gap-3">
-                                            <button
-                                                onClick={() => handleAIGenerate(item)}
-                                                className="w-full py-3.5 rounded-2xl bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-300 font-black text-xs flex items-center justify-center gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-gray-100 dark:border-white/5 active:scale-95"
-                                            >
-                                                <HiOutlineSparkles size={16} /> AI สรุปบทเรียน
-                                            </button>
+                                        <div className="mt-auto grid grid-cols-1 gap-1.5">
                                             <button
                                                 onClick={() => handleCollectSheet(item)}
-                                                disabled={item.already_purchased || item.is_mine || item.price === 0}
-                                                className={`w-full py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 transition-all text-sm uppercase tracking-tighter ${(item.already_purchased || item.is_mine || item.price === 0)
+                                                disabled={item.already_purchased || item.is_mine || (item.price === 0 && false)}
+                                                className={`w-full py-1.5 md:py-3 rounded-lg md:rounded-xl font-black shadow-md flex items-center justify-center gap-1.5 transition-all text-[8px] md:text-[11px] uppercase tracking-tighter ${(item.already_purchased || item.is_mine)
                                                     ? 'bg-gray-100 dark:bg-white/5 text-gray-400 cursor-not-allowed'
-                                                    : 'bg-gradient-to-r from-indigo-600 to-primary text-white hover:scale-[1.02] hover:brightness-110 active:scale-95 shadow-indigo-600/20'
+                                                    : 'bg-gradient-to-r from-indigo-600 to-primary text-white active:scale-95'
                                                     }`}
                                             >
-                                                {item.is_mine ? 'ชีทของคุณ' : (item.already_purchased || item.price === 0) ? 'มีอยู่ในคลังแล้ว' : 'รับชีทนี้'}
+                                                {item.is_mine ? 'MY SHEET' : (item.already_purchased || item.price === 0) ? 'OWNED' : 'GET'}
                                             </button>
                                         </div>
                                     </div>
@@ -449,21 +452,21 @@ const Summaries = () => {
                     </div>
                 ) : currentView === "my-sheets" ? (
                     /* --- My Collection Section --- */
-                    <div className="space-y-12 animate-in fade-in duration-700">
+                    <div className="space-y-8 animate-in fade-in duration-700">
                         {/* User Performance Stats */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
                             {[
                                 { label: "ชีทสรุปทั้งหมด", value: mySummaries.length, icon: BookText, color: "bg-blue-600" },
                                 { label: "ยอดดาวน์โหลด", value: "0", icon: HiOutlineDownload, color: "bg-purple-600" },
                                 { label: "เหรียญสะสม", value: "0", icon: Coins, color: "bg-amber-500" }
                             ].map((stat, i) => (
-                                <div key={i} className="p-8 rounded-[40px] bg-white border border-gray-100 dark:bg-white/5 dark:border-white/10 flex items-center gap-6 shadow-sm hover:shadow-xl transition-all group">
-                                    <div className={`size-16 rounded-[24px] ${stat.color} flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform`}>
-                                        {React.createElement(stat.icon, { size: 28 })}
+                                <div key={i} className="p-5 rounded-[28px] bg-white border border-gray-100 dark:bg-white/5 dark:border-white/10 flex items-center gap-4 shadow-sm hover:shadow-lg transition-all group">
+                                    <div className={`size-12 rounded-[16px] ${stat.color} flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform`}>
+                                        {React.createElement(stat.icon, { size: 20 })}
                                     </div>
                                     <div className="flex flex-col">
-                                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-0.5">{stat.label}</p>
-                                        <p className="text-4xl font-black text-gray-900 dark:text-white leading-tight">{stat.value}</p>
+                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{stat.label}</p>
+                                        <p className="text-2xl font-black text-gray-900 dark:text-white leading-tight">{stat.value}</p>
                                     </div>
                                 </div>
                             ))}
@@ -482,7 +485,7 @@ const Summaries = () => {
                             </div>
 
                             {mySummaries.map((item) => (
-                                <div key={item.id} className="group h-[320px] bg-white dark:bg-gray-800/40 border border-gray-100 dark:border-white/10 rounded-[48px] overflow-hidden flex shadow-xl hover:-translate-y-2 transition-all duration-500">
+                                <div key={item.id} className="group h-[200px] md:h-[320px] bg-white dark:bg-gray-800/40 border border-gray-100 dark:border-white/10 rounded-[32px] md:rounded-[48px] overflow-hidden flex shadow-xl hover:-translate-y-2 transition-all duration-500">
                                     <div className="w-1/3 bg-gray-100 dark:bg-black/40 flex items-center justify-center relative overflow-hidden group">
                                         {item.file_path ? (
                                             <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
@@ -495,70 +498,38 @@ const Summaries = () => {
                                         ) : (
                                             <>
                                                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                <div className="p-4 rounded-2xl bg-white/20 border border-white/40 backdrop-blur-xl text-white shadow-2xl group-hover:rotate-12 transition-transform">
+                                                <div className="p-3 rounded-xl bg-white/20 border border-white/40 backdrop-blur-xl text-white shadow-2xl group-hover:rotate-12 transition-transform">
                                                     {(() => {
                                                         const IconComponent = ICON_MAP[item.iconName] || FileText;
-                                                        return <IconComponent size={32} />;
+                                                        return <IconComponent size={24} />;
                                                     })()}
                                                 </div>
                                             </>
                                         )}
                                     </div>
-                                    <div className="flex-1 p-8 flex flex-col">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-black/40 text-gray-500 dark:text-gray-400 uppercase tracking-widest border border-gray-200 dark:border-white/5">{item.category}</span>
+                                    <div className="flex-1 p-4 md:p-8 flex flex-col min-w-0">
+                                        <div className="flex justify-between items-start mb-1 md:mb-2">
+                                            <span className="text-[8px] md:text-[10px] font-black px-1.5 py-0.5 rounded bg-gray-100 dark:bg-black/40 text-gray-500 dark:text-gray-400 uppercase tracking-widest truncate max-w-[60px] md:max-w-none">{item.category}</span>
                                             <button
                                                 onClick={async () => {
-                                                    if (confirm('ต้องการลบชีทสรุปนี้ใช่ไหมครับเพื่อน? 🌷')) {
+                                                    if (confirm('ต้องการลบใช่ไหมครับ?')) {
                                                         try {
                                                             await deleteSheet(item.id)
                                                             await loadSheets()
-                                                            alert("ลบชีทสรุปสำเร็จแล้วครับ")
-                                                        } catch (err) {
-                                                            alert("ลบไม่สำเร็จ กรุณาลองใหม่")
-                                                        }
+                                                        } catch (err) { }
                                                     }
                                                 }}
-                                                className="size-9 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white shadow-sm transition-all active:scale-90"
+                                                className="size-7 md:size-9 rounded-lg md:rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all"
                                             >
-                                                <HiOutlineX size={18} />
+                                                <HiOutlineX size={14} />
                                             </button>
                                         </div>
-                                        <h3 className="text-xl font-black text-gray-900 dark:text-white line-clamp-2 leading-tight mb-4 group-hover:text-primary transition-colors">{item.title}</h3>
-                                        <div className="mt-auto border-t border-gray-100 dark:border-white/5 pt-5 space-y-3">
+                                        <h3 className="text-[11px] md:text-xl font-black text-gray-900 dark:text-white line-clamp-2 leading-tight mb-2 md:mb-4">{item.title}</h3>
+                                        <div className="mt-auto border-t border-gray-100 dark:border-white/5 pt-3 md:pt-5 space-y-2 md:space-y-3">
                                             <div className="flex items-center justify-between">
-                                                <div>
-                                                    <span className="block text-[9px] font-black text-gray-400 uppercase mb-0.5">Price</span>
-                                                    {editingPriceId === item.id ? (
-                                                        <div className="flex items-center gap-1">
-                                                            <input
-                                                                type="number"
-                                                                min="0"
-                                                                value={editingPriceValue}
-                                                                onChange={(e) => setEditingPriceValue(Number(e.target.value))}
-                                                                className="w-16 px-2 py-1 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-black outline-none border border-primary/30"
-                                                            />
-                                                            <button
-                                                                onClick={() => handleUpdatePrice(item.id)}
-                                                                className="px-2 py-1 rounded-lg bg-primary text-white font-black text-[10px]"
-                                                            >
-                                                                ✓
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setEditingPriceId(null)}
-                                                                className="px-2 py-1 rounded-lg bg-gray-200 dark:bg-white/10 font-black text-[10px]"
-                                                            >
-                                                                ✕
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => { setEditingPriceId(item.id); setEditingPriceValue(item.price ?? 0); }}
-                                                            className="text-lg font-black text-emerald-500 hover:underline"
-                                                        >
-                                                            {item.price ?? 0} 🪙
-                                                        </button>
-                                                    )}
+                                                <div className="flex flex-col">
+                                                    <span className="text-[7px] md:text-[9px] font-black text-gray-400 uppercase mb-0.5">Price</span>
+                                                    <span className="text-[10px] md:text-lg font-black text-emerald-500">{item.price ?? 0} 🪙</span>
                                                 </div>
                                                 <button
                                                     onClick={() => {
@@ -566,17 +537,11 @@ const Summaries = () => {
                                                         setSelectedItem({ ...item, pdfUrl });
                                                         setIsPdfModalOpen(true);
                                                     }}
-                                                    className="px-4 py-2 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black text-xs hover:shadow-xl hover:scale-105 active:scale-95 transition-all"
+                                                    className="px-3 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black text-[8px] md:text-xs"
                                                 >
-                                                    เปิดอ่าน
+                                                    READ
                                                 </button>
                                             </div>
-                                            <button
-                                                onClick={() => handleTogglePublish(item.id)}
-                                                className={`w-full py-2 rounded-xl font-black text-xs transition-all ${item.is_public ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-red-100 dark:hover:bg-red-500/20 hover:text-red-500' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:text-emerald-600'}`}
-                                            >
-                                                {item.is_public ? '🟢 ขายอยู่ — กดเพื่อหยุดขาย' : '⚪ ไม่ได้ขาย — กดเพื่อวางขาย'}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>

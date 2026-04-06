@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/footer";
-import { ASSETS } from "../config/assets";
+import { ASSETS, mapImagePath } from "../config/assets";
 
 const Logo = ASSETS.BRANDING.LOGO;
 const BroIcon = ASSETS.AVATARS.BRO;
@@ -10,7 +10,7 @@ const CuteGirlIcon = ASSETS.AVATARS.GIRL;
 const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
 import Notification from "../components/UI/Notification";
 import CoinBadge from "../components/UI/CoinBadge";
-import { getUserProfile } from "../services/aiService";
+import { getUserProfile, fetchOwnedRooms } from "../services/aiService";
 
 
 
@@ -31,16 +31,23 @@ const Account = () => {
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) return;
-        getUserProfile()
-            .then((data) => {
-                localStorage.setItem("user_coins", String(data.coins));
+
+        // Fetch User Profile and Equipped Room
+        Promise.all([getUserProfile(), fetchOwnedRooms()])
+            .then(([profileData, rooms]) => {
+                localStorage.setItem("user_coins", String(profileData.coins));
                 setUser((prev) => ({
                     ...prev,
-                    name: data.username || prev.name,
-                    email: data.email || prev.email,
-                    coins: data.coins,
-                    exp: data.exp,
+                    name: profileData.username || prev.name,
+                    email: profileData.email || prev.email,
+                    coins: profileData.coins,
+                    exp: profileData.exp,
                 }));
+
+                const equipped = rooms.find(r => r.is_equipped) || rooms[0];
+                if (equipped) {
+                    setCoverImage(mapImagePath(equipped.image_path));
+                }
             })
             .catch(() => { });
     }, []);
@@ -104,6 +111,9 @@ const Account = () => {
             return next;
         });
     };
+
+    // Cover Image State - Defaults to equipped room from Mall
+    const [coverImage, setCoverImage] = useState(null);
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -183,11 +193,20 @@ const Account = () => {
             <main className="flex-1 flex flex-col items-center justify-center w-full px-6 py-10 z-10">
                 <div className="w-full max-w-4xl bg-white/40 dark:bg-gray-800/40 backdrop-blur-2xl rounded-[40px] shadow-2xl border border-white/60 dark:border-gray-700/50 overflow-hidden">
 
-                    {/* Cover Photo */}
-                    <div className="h-40 sm:h-48 bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 dark:from-pink-900/50 dark:via-purple-900/50 dark:to-indigo-900/50 relative">
-                        {/* Edit Cover Button (Ornamental) */}
-                        <button className="absolute top-4 right-4 bg-white/30 hover:bg-white/50 dark:bg-black/30 dark:hover:bg-black/50 backdrop-blur-md p-2 rounded-xl transition text-white shadow-sm border border-white/40">
-                            <span className="material-symbols-outlined text-sm">edit</span>
+                    {/* Cover Photo - Compact Height */}
+                    <div className="h-40 md:h-48 bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 dark:from-pink-900/50 dark:via-purple-900/50 dark:to-indigo-900/50 relative overflow-hidden">
+                        {coverImage && (
+                            <img src={coverImage} alt="Cover" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 animate-in fade-in" />
+                        )}
+                        <div className="absolute inset-0 bg-black/5 dark:bg-black/20" />
+                        
+                        {/* Edit Cover Button - Link to Mall */}
+                        <button 
+                            onClick={() => navigate("/avatar")}
+                            className="absolute top-4 right-4 bg-white/30 hover:bg-white/50 dark:bg-black/30 dark:hover:bg-black/50 backdrop-blur-md p-2 rounded-xl transition text-white shadow-sm border border-white/40 cursor-pointer active:scale-90 group z-10"
+                            title="Go to Mall to change Screen"
+                        >
+                            <span className="material-symbols-outlined text-sm group-hover:rotate-12 transition-transform">shopping_bag</span>
                         </button>
                     </div>
 

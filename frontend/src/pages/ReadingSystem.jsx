@@ -43,6 +43,8 @@ const ReadingSystem = () => {
 
     // Custom Alert State
     const [customAlert, setCustomAlert] = useState({ isOpen: false, message: "", type: "info" })
+    const [isTimeModalOpen, setIsTimeModalOpen] = useState(false)
+    const [tempMinutes, setTempMinutes] = useState(25)
 
     // Assets & Profile State
     const [background, setBackground] = useState(DefaultBackground)
@@ -234,8 +236,8 @@ const ReadingSystem = () => {
                 </div>
             </header>
 
-            <main className="flex-1 w-full max-w-6xl mx-auto py-12 px-6 flex flex-col items-center text-center">
-                <div className="w-full max-w-2xl bg-white/40 dark:bg-white/5 backdrop-blur-3xl border border-white/60 dark:border-white/10 rounded-[64px] p-12 shadow-2xl flex flex-col items-center mb-12">
+            <main className="flex-1 w-full max-w-5xl mx-auto py-4 md:py-8 px-2 sm:px-4 md:px-6 flex flex-col items-center text-center">
+                <div className="w-full max-w-2xl bg-white/40 dark:bg-white/5 backdrop-blur-3xl border border-white/60 dark:border-white/10 rounded-[40px] md:rounded-[64px] p-5 md:p-8 shadow-2xl flex flex-col items-center mb-6 md:mb-8">
                     <div className="flex flex-col items-center mb-10 gap-3">
                         <div className="flex gap-4 bg-white/40 dark:bg-white/10 p-2 rounded-3xl border border-white/60 dark:border-white/10">
                             <button
@@ -265,8 +267,8 @@ const ReadingSystem = () => {
                     </div>
 
                     {/* Room View */}
-                    <div className="mb-12 w-full max-w-2xl flex justify-center perspective-1000">
-                        <div className={`relative w-full aspect-[16/10] transition-all duration-1000 rounded-[48px] overflow-hidden shadow-2xl border-8 border-white/60 dark:border-white/10 ${isActive ? 'scale-[1.03] translate-y-[-10px]' : 'scale-100'}`}>
+                    <div className="mb-6 w-full max-w-lg flex justify-center perspective-1000">
+                        <div className={`relative w-full aspect-[16/10] transition-all duration-1000 rounded-[32px] md:rounded-[40px] overflow-hidden shadow-2xl border-4 md:border-8 border-white/60 dark:border-white/10 ${isActive ? 'scale-[1.03] translate-y-[-10px]' : 'scale-100'}`}>
                             <div className={`absolute -inset-10 bg-gradient-to-tr from-primary/40 via-transparent to-pink-400/40 blur-[100px] transition-opacity duration-1000 ${isActive ? 'opacity-100 animate-pulse' : 'opacity-0'}`}></div>
                             <img src={background} className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ${isActive ? 'scale-110' : 'scale-100'}`} style={{ filter: isActive ? 'brightness(100%) saturate(120%)' : 'brightness(40%)' }} alt="BG" />
                             <img src={Chair} className={`absolute left-1/2 -translate-x-[48%] top-[32%] w-[32%] z-10 transition-all ${isActive ? 'scale-105 brightness-[100%]' : 'opacity-90 grayscale-[15%] brightness-[50%]'}`} alt="Chair" />
@@ -278,74 +280,69 @@ const ReadingSystem = () => {
                     </div>
 
                     {/* Timer Display */}
-                    <div className="relative mb-10 flex items-center justify-center gap-4 sm:gap-6">
+                    <div className="relative mb-6 md:mb-10 flex items-center justify-center gap-2 md:gap-8 w-full">
                         {!isActive && (
                             <button onClick={() => adjustTime(-5)} className="relative z-10 text-gray-300 hover:text-primary disabled:opacity-30" disabled={timeLeft <= 300}>
-                                <MinusCircle size={40} className="fill-white" />
+                                <MinusCircle className="size-8 md:size-12 fill-white" />
                             </button>
                         )}
                         <div 
                             onClick={() => {
                                 if (!isActive) {
-                                    const input = prompt("เพื่อนอยากโฟกัสกี่นาทีดีจ๊ะ? (ใส่เป็นตัวเลขนาทีนะ)", Math.floor(timeLeft / 60));
-                                    if (input !== null) {
-                                        const mins = parseInt(input);
-                                        if (!isNaN(mins) && mins > 0) {
-                                            setManualTime(mins * 60);
-                                        }
-                                    }
+                                    setTempMinutes(Math.floor(timeLeft / 60));
+                                    setIsTimeModalOpen(true);
                                 }
                             }}
-                            className={`text-[80px] sm:text-[96px] font-black tracking-tighter text-gray-900 dark:text-white relative z-10 font-mono ${!isActive ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+                            className={`text-6xl sm:text-[160px] md:text-[180px] font-black tracking-tighter text-gray-900 dark:text-white relative z-10 font-mono leading-none ${!isActive ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
                         >
                             {formatTime(timeLeft)}
                         </div>
                         {!isActive && (
                             <button onClick={() => adjustTime(5)} className="relative z-10 text-gray-300 hover:text-primary">
-                                <PlusCircle size={40} className="fill-white" />
+                                <PlusCircle className="size-8 md:size-12 fill-white" />
                             </button>
                         )}
                     </div>
 
-                    <div className="flex gap-6 relative z-10 w-full max-w-sm">
-                        <button onClick={() => setIsActive(!isActive)} className={`flex-1 py-6 rounded-[32px] text-white font-black text-xl flex items-center justify-center gap-3 shadow-2xl transition-all active:scale-95 ${isActive ? 'bg-gray-400' : 'bg-primary'}`}>
-                            {isActive ? <Pause size={28} fill="white" /> : <Play size={28} fill="white" />}
+                    <div className="flex gap-4 md:gap-6 relative z-10 w-full max-w-sm">
+                        <button onClick={() => setIsActive(!isActive)} className={`flex-1 py-4 md:py-6 rounded-[24px] md:rounded-[32px] text-white font-black text-sm md:text-xl flex items-center justify-center gap-2 md:gap-3 shadow-2xl transition-all active:scale-95 ${isActive ? 'bg-gray-400' : 'bg-primary'}`}>
+                            {isActive ? <Pause size={20} className="md:size-7" fill="white" /> : <Play size={20} className="md:size-7" fill="white" />}
                             {isActive ? "PAUSE" : "START"}
                         </button>
-                        <button onClick={resetTimer} className="w-20 rounded-[32px] bg-white border border-gray-200 text-gray-500 flex items-center justify-center shadow-xl active:scale-95 transition-all hover:bg-gray-50">
-                            <RotateCcw size={28} />
+                        <button onClick={resetTimer} className="size-14 md:w-20 md:h-[inherit] rounded-[24px] md:rounded-[32px] bg-white border border-gray-200 text-gray-500 flex items-center justify-center shadow-xl active:scale-95 transition-all hover:bg-gray-50">
+                            <RotateCcw className="size-6 md:size-7" />
                         </button>
-                        <button onClick={toggleFullscreen} className="w-20 rounded-[32px] bg-white border border-gray-200 text-gray-500 flex items-center justify-center shadow-xl active:scale-95 transition-all hover:bg-gray-50">
-                            {isFullscreen ? <Minimize size={28} /> : <Maximize size={28} />}
+                        <button onClick={toggleFullscreen} className="size-14 md:w-20 md:h-[inherit] rounded-[24px] md:rounded-[32px] bg-white border border-gray-200 text-gray-500 flex items-center justify-center shadow-xl active:scale-95 transition-all hover:bg-gray-50">
+                            {isFullscreen ? <Minimize className="size-6 md:size-7" /> : <Maximize className="size-6 md:size-7" />}
                         </button>
                     </div>
                 </div>
 
                 {/* Character & Ambience */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
-                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 p-10 rounded-[48px] flex items-center gap-8">
-                        <div className="relative">
-                            <img src={profileImage} alt="Companion" className="w-40 h-40 object-contain animate-float" style={{ filter: 'brightness(80%)' }} />
-                            <div className="absolute -top-2 -right-2 bg-yellow-400 p-2 rounded-full shadow-lg"><Sparkles className="text-white" size={18} /></div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 w-full">
+                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 p-6 md:p-8 rounded-[40px] md:rounded-[48px] flex items-center gap-6">
+                        <div className="relative shrink-0">
+                            <img src={profileImage} alt="Companion" className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-float" style={{ filter: 'brightness(80%)' }} />
+                            <div className="absolute -top-1 -right-1 bg-yellow-400 p-1.5 rounded-full shadow-lg"><Sparkles className="text-white" size={14} /></div>
                         </div>
                         <div className="text-left">
-                            <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                {companionName} ให้กำลังใจอยู่! <Heart size={24} className="fill-pink-500 text-pink-500" />
+                            <h3 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                                {companionName} <Heart size={20} className="fill-pink-500 text-pink-500" />
                             </h3>
-                            <div className="text-gray-500 dark:text-gray-400 font-bold italic text-sm sm:text-lg">
+                            <div className="text-gray-500 dark:text-gray-400 font-bold italic text-xs sm:text-base">
                                 {currentMode === 'Focus'
-                                    ? <span>"ตั้งใจอ่านน้าเพื่อนจ๋า! วางมือถือแล้วโฟกัสกันเถอะ <Sparkles size={18} className="text-yellow-500 inline" />"</span>
-                                    : <span>"พักผ่อนให้เต็มที่นะ เดี๋ยวเราค่อยกลับไปลุยกันต่อ! <Sun size={20} className="text-orange-400 inline" />"</span>}
+                                    ? <span>"ตั้งใจอ่านน้าเพื่อนจ๋า! <Sparkles size={14} className="text-yellow-500 inline" />"</span>
+                                    : <span>"พักผ่อนให้เต็มที่นะ! <Sun size={14} className="text-orange-400 inline" />"</span>}
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 p-10 rounded-[48px] flex flex-col justify-center">
+                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 p-6 md:p-8 rounded-[40px] md:rounded-[48px] flex flex-col justify-center">
                         <div className="flex items-center gap-3 mb-6">
                             <Music className="text-primary" size={24} />
                             <h3 className="text-xl font-black text-gray-800 dark:text-white">Study Ambience</h3>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                        <div className="flex md:grid md:grid-cols-5 items-center gap-3 md:gap-4 overflow-x-auto md:overflow-x-visible no-scrollbar pb-4 md:pb-0 snap-x relative">
                             {ambiences.map(amb => (
                                 <button
                                     key={amb.id}
@@ -359,14 +356,14 @@ const ReadingSystem = () => {
                                             setYoutubeUrl("")
                                         }
                                     }}
-                                    className={`flex flex-col items-center gap-3 p-5 rounded-[32px] border transition-all ${selectedAmbience === amb.id ? 'bg-primary/10 border-primary text-primary scale-105 shadow-lg' : 'bg-white/40 dark:bg-white/10 border-transparent hover:bg-white'}`}
+                                    className={`flex flex-col items-center shrink-0 md:shrink-1 snap-start gap-2 md:gap-3 p-3 md:p-5 rounded-[24px] md:rounded-[32px] border transition-all min-w-[80px] md:min-w-[0] ${selectedAmbience === amb.id ? 'bg-primary/10 border-primary text-primary scale-105 shadow-lg' : 'bg-white/40 dark:bg-white/10 border-transparent hover:bg-white'}`}
                                 >
-                                    <div className={`p-4 rounded-2xl ${amb.color} text-white`}><amb.icon size={24} /></div>
-                                    <span className="text-xs font-black uppercase">{amb.id}</span>
+                                    <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl ${amb.color} text-white shadow-sm`}><amb.icon size={20} className="md:size-6" /></div>
+                                    <span className="text-[8px] md:text-xs font-black uppercase tracking-widest">{amb.id}</span>
                                 </button>
                             ))}
                         </div>
-                        <div className="mt-8 pt-6 border-t border-gray-100 dark:border-white/10">
+                        <div className="mt-4 md:mt-8 pt-4 md:pt-6 border-t border-gray-100 dark:border-white/10">
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <div className="relative flex-1">
                                     <Youtube size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -404,6 +401,60 @@ const ReadingSystem = () => {
                         </h3>
                         <div className="text-gray-500 dark:text-gray-400 font-bold mb-8">{customAlert.message}</div>
                         <button onClick={() => setCustomAlert({ ...customAlert, isOpen: false })} className="w-full py-4 rounded-2xl bg-primary text-white font-black text-lg shadow-xl active:scale-95">ตกลงจ้า!</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Time Adjustment Modal */}
+            {isTimeModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
+                    <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-[48px] overflow-hidden shadow-2xl border border-white/20 p-10 animate-in fade-in zoom-in duration-300">
+                        <div className="flex justify-between items-center mb-8">
+                            <h3 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+                                <Timer className="text-primary" size={32}/> Set Time
+                            </h3>
+                            <button onClick={() => setIsTimeModalOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-all">
+                                <HiOutlineX size={24} className="text-gray-400" />
+                            </button>
+                        </div>
+                        
+                        <div className="flex flex-col items-center gap-8 mb-10">
+                            <div className="relative group">
+                                <input 
+                                    type="number"
+                                    value={tempMinutes}
+                                    onChange={(e) => setTempMinutes(parseInt(e.target.value) || 0)}
+                                    className="w-40 bg-gray-50 dark:bg-white/5 border-4 border-gray-100 dark:border-white/10 rounded-[32px] py-8 text-center text-5xl font-black text-primary focus:outline-none focus:border-primary transition-all shadow-inner"
+                                />
+                                <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-800 px-4 py-1 rounded-full text-[10px] font-black text-gray-400 border border-gray-100 dark:border-white/10 uppercase tracking-widest shadow-sm">Minutes</span>
+                            </div>
+                            <p className="text-gray-500 dark:text-gray-400 font-bold text-center text-sm px-4">
+                                อยากจะโฟกัสกี่นาทีดีจ๊ะเพื่อนรัก? <br/>
+                                <span className="text-xs opacity-70">ใส่เป็นตัวเลขนาทีนะ (เช่น 25, 45, 60)</span>
+                            </p>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button 
+                                onClick={() => setIsTimeModalOpen(false)}
+                                className="flex-1 py-5 rounded-3xl bg-gray-100 dark:bg-white/10 text-gray-400 font-black text-lg hover:bg-gray-200 transition-all border border-transparent"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    if (tempMinutes > 0) {
+                                        setManualTime(tempMinutes * 60);
+                                        setIsTimeModalOpen(false);
+                                    } else {
+                                        alert("ใส่เวลาหน่อยนะจ๊ะ!");
+                                    }
+                                }}
+                                className="flex-1 py-5 rounded-3xl bg-primary text-white font-black text-lg shadow-xl shadow-primary/20 active:scale-95 transition-all"
+                            >
+                                ตั้งค่าเวลา
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from pydantic import BaseModel
-from app.services.ai_service import get_ai_response, get_ai_response_with_image
+from app.services.ai_service import get_ai_response, get_ai_response_with_image, get_ai_response_with_pdf
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ async def chat(req: ChatRequest):
 # ---------- 2. ระบบแชทพร้อมรูปภาพ ----------
 @router.post("/chat-with-image")
 async def chat_with_image(
-    prompt: str = Form(""),
+    prompt: str = Form(...),
     mode: str = Form("bro"),
     file: UploadFile = File(None)
 ):
@@ -36,3 +36,23 @@ async def chat_with_image(
     if isinstance(result, dict) and "reply" in result:
         return {"reply": str(result["reply"])}
     return {"reply": str(result)}
+
+
+# ---------- 3. ระบบแชทพร้อม PDF ----------
+@router.post("/chat-with-pdf")
+async def chat_with_pdf(
+    prompt: str = Form(...),
+    mode: str = Form("bro"),
+    file: UploadFile = File(...)
+):
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="ไฟล์ที่ส่งมาไม่ใช่ PDF")
+    
+    pdf_data = await file.read()
+    result = await get_ai_response_with_pdf(prompt, mode, pdf_data)
+
+    if isinstance(result, dict) and "reply" in result:
+        return {"reply": str(result["reply"])}
+    return {"reply": str(result)}
+
+

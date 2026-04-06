@@ -1,6 +1,8 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
+import { Sparkles } from "lucide-react"
+
 import Navbar from "../components/Layout/Navbar"
 import ModeCard from "../components/UI/ModeCard"
 import Middlesection from "../components/Layout/Middlesection"
@@ -10,6 +12,7 @@ import HomeworkSummary from "../components/Course/HomeworkSummary"
 import NotificationBell from "../components/UI/NotificationBell"
 import CoinBadge from "../components/UI/CoinBadge"
 import { ASSETS } from "../config/assets"
+import { useCoins } from "../hooks/useCoins"
 
 const Logo = ASSETS.BRANDING.LOGO
 const BroIcon = ASSETS.AVATARS.BRO
@@ -18,8 +21,52 @@ const CuteGirlIcon = ASSETS.AVATARS.GIRL
 
 const Home = () => {
   const navigate = useNavigate()
+  const { coins, exp } = useCoins()
+
+  // Level calculation logic (simplified for hero)
+  const getLevelInfo = (totalExp) => {
+    const thresholds = [0, 50, 150, 300, 500, 800, 1200];
+    let level = 1;
+    for (let i = 0; i < thresholds.length; i++) {
+      if (totalExp >= thresholds[i]) level = i + 1;
+      else break;
+    }
+    return level;
+  };
+
+  const getRankImg = (lvl) => {
+    const imgs = {
+      1: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368522/Broze_xwm5gg.png",
+      2: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368517/Sliver_ea2lid.png",
+      3: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368525/Gold_bglivb.png",
+      4: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368536/Plat_rakik4.png",
+      5: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368517/Diamond_gjekkx.png",
+      6: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368537/Master_ypfzxo.png",
+      7: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368533/Legen_vts5jo.png",
+    };
+    return imgs[lvl] || imgs[1];
+  };
+
+  const getLevelTheme = (lvl) => {
+    const themes = {
+      1: { from: "#92400e", to: "#d97706", name: "Bronze" },
+      2: { from: "#475569", to: "#cbd5e1", name: "Silver" },
+      3: { from: "#b45309", to: "#fbbf24", name: "Gold" },
+      4: { from: "#0f172a", to: "#94a3b8", name: "Platinum" },
+      5: { from: "#0e7490", to: "#67e8f9", name: "Diamond" },
+      6: { from: "#5b21b6", to: "#c084fc", name: "Master" },
+      7: { from: "#7f1d1d", to: "#f87171", name: "Legend" },
+    };
+    return themes[lvl] || themes[1];
+  };
+
+  const userLevel = getLevelInfo(exp);
+  const theme = getLevelTheme(userLevel);
+  const rankImage = getRankImg(userLevel);
+  const isLoggedIn = !!localStorage.getItem("token");
+
   const [profileImage] = useState(() => {
-    if (!localStorage.getItem("token")) return Logo
+    if (!isLoggedIn) return Logo
     const savedImage = localStorage.getItem("avatarImage")
     if (savedImage) return savedImage
     const savedAvatar = localStorage.getItem("avatar") || "bro"
@@ -117,13 +164,13 @@ const Home = () => {
             animate={{ x: 0, opacity: 1 }}
             className="flex items-center gap-1.5 md:gap-3"
           >
-            <div className="scale-[0.7] md:scale-90 origin-right">
+            <div className="hidden md:block scale-90 origin-right">
               <CoinBadge />
             </div>
             <NotificationBell />
             <button
               type="button"
-              onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
+              onClick={() => navigate(isLoggedIn ? "/account" : "/login")}
               className="size-8 md:size-10 rounded-2xl bg-white dark:bg-white/10 border-2 border-white dark:border-white/20 cursor-pointer shadow-lg hover:rotate-6 active:scale-95 transition-all overflow-hidden shrink-0"
             >
               <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
@@ -140,10 +187,99 @@ const Home = () => {
             animate={{ y: 0, opacity: 1 }}
             className="text-center mb-12 md:mb-16"
           >
-            {/* Minimalist Badge from Photo 2 */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white font-black text-[9px] md:text-[11px] uppercase tracking-[0.2em] border border-black/5 dark:border-white/10">
-              Welcome bestie
-            </div>
+            {/* Hero Rank Badge - Mobile Only */}
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
+              className="relative mb-8 md:mb-12 group cursor-pointer md:hidden"
+              onClick={() => navigate(isLoggedIn ? "/account" : "/login")}
+            >
+              {/* Glass Capsule */}
+              <div className="inline-flex flex-col items-center px-8 py-3 md:px-14 md:py-7 rounded-[40px] md:rounded-[60px] bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-2xl transition-all duration-500 hover:shadow-primary/20 hover:scale-[1.02] active:scale-95">
+                
+                {/* Float label */}
+                <div className="flex items-center gap-3 mb-3 md:mb-4">
+                  <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 dark:text-gray-500">
+                    WELCOME {localStorage.getItem("username") ? localStorage.getItem("username").toUpperCase() : "BESTIE"}
+                  </span>
+                  {isLoggedIn && (
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 text-[8px] md:text-[10px] font-black">
+                       <span className="material-symbols-outlined text-[10px] md:text-[12px]">monetization_on</span>
+                       {coins.toLocaleString()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Shield / Progress Ring */}
+                <div className="relative size-16 md:size-24 flex items-center justify-center">
+                   {/* Ring Background */}
+                   <div className="absolute inset-0 rounded-full border-4 border-gray-100 dark:border-white/5 shadow-inner" />
+                   
+                   {/* Progress Ring (Gradient) */}
+                   <svg className="absolute inset-0 size-full -rotate-90">
+                      <defs>
+                        <linearGradient id="hero-exp-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor={isLoggedIn ? theme.from : "#e5e7eb"} />
+                          <stop offset="100%" stopColor={isLoggedIn ? theme.to : "#d1d5db"} />
+                        </linearGradient>
+                      </defs>
+                      <circle
+                        cx="50%"
+                        cy="50%"
+                        r="44%"
+                        fill="none"
+                        stroke="url(#hero-exp-gradient)"
+                        strokeWidth="4"
+                        strokeDasharray="100 100"
+                        strokeDashoffset={100 - (isLoggedIn ? Math.min((exp % 200) / 2, 100) : 0)} 
+                        className="transition-all duration-1000"
+                        strokeLinecap="round"
+                      />
+                   </svg>
+
+                   {/* Rank Image / Shield Icon */}
+                   <div className="relative z-10 size-10 md:size-16 drop-shadow-xl transform group-hover:scale-110 transition-transform duration-500">
+                      <img 
+                        src={rankImage} 
+                        alt="Rank" 
+                        className="w-full h-full object-contain"
+                      />
+                   </div>
+
+                   {/* Particles / Sparkles Icon */}
+                   {isLoggedIn && (
+                      <div className="absolute -top-1 -right-1">
+                        <motion.div
+                          animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                           <Sparkles size={16} className="text-primary" />
+                        </motion.div>
+                      </div>
+                   )}
+                </div>
+
+                {/* Sub-label (Logged in vs Guest) */}
+                <div className="mt-3 md:mt-4 flex flex-col items-center gap-1">
+                   {isLoggedIn ? (
+                     <div className="flex items-center gap-2">
+                        <div className="size-1.5 md:size-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+                        <span className="text-[10px] md:text-[12px] font-black text-gray-700 dark:text-gray-300">
+                           {exp.toLocaleString()} EXP EARNED
+                        </span>
+                     </div>
+                   ) : (
+                     <span className="text-[10px] md:text-[12px] font-black text-primary animate-pulse">
+                        LOG IN TO START LEVELING!
+                     </span>
+                   )}
+                </div>
+              </div>
+
+              {/* Decorative Blur */}
+              <div className="absolute inset-0 -z-10 blur-3xl opacity-20 mix-blend-overlay bg-gradient-to-tr from-primary to-pink-400 rounded-full" />
+            </motion.div>
 
             {/* Headline from Photo 2 */}
             <h2 className="text-4xl md:text-[84px] font-black tracking-tight leading-[1.05] text-gray-900 dark:text-white mb-6">

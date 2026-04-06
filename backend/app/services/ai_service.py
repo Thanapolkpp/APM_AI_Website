@@ -1,12 +1,12 @@
 import base64
-import requests
+import httpx
 import os
 import tempfile
 from typing import Optional
 
 # ─── Config ──────────────────────────────────────────────────
 # ใช้ OLLAMA_URL จาก env ถ้ามี หรือใช้ localhost:11434 เป็นค่าเริ่มต้น
-OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_URL = os.getenv("OLLAMA_URL", "https://unexplorative-unpalatable-lisha.ngrok-free.dev")
 MODEL_NAME = os.getenv("MODEL_NAME", "gemma3:12b") # ตามที่ระบุใน README.md
 
 # ─── Persona ─────────────────────────────────────────────────
@@ -42,9 +42,9 @@ def _build_persona(mode: str) -> str:
 
 
 # ─── Ollama API Caller ───────────────────────────────────────
-def _call_ollama(message: str, mode: str, image_bytes: Optional[bytes] = None) -> str:
+async def _call_ollama(message: str, mode: str, image_bytes: Optional[bytes] = None) -> str:
     """
-    เรียกใช้ Ollama Chat API โดยตรงผ่าน requests (ไม่ต้องมี gradio-client)
+    เรียกใช้ Ollama Chat API ผ่าน httpx (Async)
     """
     url = f"{OLLAMA_URL}/api/chat"
     persona = _build_persona(mode)
@@ -67,10 +67,11 @@ def _call_ollama(message: str, mode: str, image_bytes: Optional[bytes] = None) -
     }
 
     try:
-        response = requests.post(url, json=payload, timeout=30)
-        response.raise_for_status()
-        result = response.json()
-        return result.get("message", {}).get("content", "").strip()
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=payload, timeout=60)
+            response.raise_for_status()
+            result = response.json()
+            return result.get("message", {}).get("content", "").strip()
     except Exception as e:
         print(f"❌ Ollama Error: {e}")
         raise Exception(f"ไม่สามารถติดต่อ Ollama ได้ ({str(e)})")
@@ -80,7 +81,7 @@ def _call_ollama(message: str, mode: str, image_bytes: Optional[bytes] = None) -
 
 async def get_ai_response(prompt: str, mode: str):
     try:
-        reply = _call_ollama(message=prompt, mode=mode)
+        reply = await _call_ollama(message=prompt, mode=mode)
         return {"reply": reply}
     except Exception as e:
         print(f"❌ get_ai_response Error: {e}")
@@ -88,7 +89,7 @@ async def get_ai_response(prompt: str, mode: str):
 
 async def get_ai_response_with_image(prompt: str, mode: str, image_data: Optional[bytes]):
     try:
-        reply = _call_ollama(message=prompt, mode=mode, image_bytes=image_data)
+        reply = await _call_ollama(message=prompt, mode=mode, image_bytes=image_data)
         return {"reply": reply}
     except Exception as e:
         print(f"❌ Image Error: {e}")
@@ -112,7 +113,7 @@ async def get_ai_response_with_pdf(prompt: str, mode: str, pdf_data: Optional[by
         doc.close()
 
         final_prompt = f"{prompt}\n\n[เนื้อหาจาก PDF]\n{pdf_text}"
-        reply = _call_ollama(message=final_prompt, mode=mode)
+        reply = await _call_ollama(message=final_prompt, mode=mode)
         return {"reply": reply}
 
     except ImportError:

@@ -12,14 +12,22 @@ export default function Navbar() {
     return () => (document.body.style.overflow = "auto")
   }, [isOpen])
 
-  const navLinks = [
-    { name: "Home", to: "/" },
-    { name: "Mall", to: "/avatar" },
-    { name: "Summaries", to: "/summaries" },
-    { name: "ToDo List", to: "/todo" },
-    { name: "Reading", to: "/reading" },
-    { name: "Events", to: "/event" },
-  ]
+  const isLoggedIn = !!localStorage.getItem("token")
+
+  const navLinks = isLoggedIn 
+    ? [
+        { name: "Home", to: "/" },
+        { name: "Mall", to: "/avatar" },
+        { name: "Summaries", to: "/summaries" },
+        { name: "ToDo List", to: "/todo" },
+        { name: "Reading", to: "/reading" },
+        { name: "Events", to: "/event" },
+      ]
+    : [
+        { name: "Home", to: "/" },
+        { name: "About", to: "/about" },
+        { name: "Contact", to: "/contact" },
+      ]
 
   return (
     <>
@@ -83,9 +91,6 @@ export default function Navbar() {
 
               {/* Links */}
               <div className="flex-1 flex flex-col gap-2 px-6 pb-12">
-                <div className="mb-6 bg-gray-50/50 dark:bg-black/20 p-4 rounded-3xl border border-gray-100 dark:border-white/5 flex justify-center">
-                   <CoinBadge className="scale-110" />
-                </div>
                 
                 {navLinks.map((link, i) => (
                   <motion.div
@@ -111,6 +116,22 @@ export default function Navbar() {
                     </NavLink>
                   </motion.div>
                 ))}
+
+                {isLoggedIn && (
+                   <motion.button
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: navLinks.length * 0.05 + 0.1 }}
+                    onClick={() => {
+                        localStorage.clear();
+                        window.location.href = "/";
+                    }}
+                    className="flex items-center justify-center gap-2 w-full mt-6 px-7 py-4 rounded-2xl font-black text-red-500 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 active:scale-95 transition-all shadow-sm"
+                   >
+                     <span className="material-symbols-outlined">logout</span>
+                     <span className="uppercase">Logout</span>
+                   </motion.button>
+                )}
               </div>
             </motion.div>
           </div>

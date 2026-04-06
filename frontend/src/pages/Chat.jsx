@@ -13,14 +13,14 @@ const Chat = () => {
 
 
             {/* --- ส่วนที่ 1: Chat Window (อยู่ตรงกลาง) --- */}
-            <main className="flex-1 flex justify-center items-center p-2 md:p-10 relative overflow-hidden">
+            <main className="flex-1 flex justify-center items-center p-0 md:p-10 relative overflow-hidden">
                 {/* ตกแต่งพื้นหลังให้นุ่มนวล */}
                 <div className="absolute inset-0 overflow-hidden -z-10">
                     <div className="absolute -top-[10%] -left-[10%] size-[400px] bg-pink-200/20 blur-[100px] rounded-full" />
                     <div className="absolute -bottom-[10%] -right-[10%] size-[400px] bg-purple-200/20 blur-[100px] rounded-full" />
                 </div>
 
-                <div className="w-full max-w-4xl h-full flex flex-col">
+                <div className="w-full max-w-4xl h-full flex flex-col md:h-[90vh]">
                     <ChatWindow mode={mode} />
                 </div>
             </main>

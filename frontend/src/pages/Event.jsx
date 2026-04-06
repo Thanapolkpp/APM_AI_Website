@@ -4,6 +4,7 @@ import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/footer";
 import CoinBadge from "../components/UI/CoinBadge";
 import { ASSETS } from "../config/assets";
+import { Sparkles, Trophy, ExternalLink, ClipboardCheck } from "lucide-react";
 
 const Logo = ASSETS.BRANDING.LOGO;
 const BroIcon = ASSETS.AVATARS.BRO;
@@ -29,7 +30,7 @@ const Event = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const RAW_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com";
+            const RAW_URL = import.meta.env.VITE_API_URL || "https://apm-ai-website.onrender.com";
             const API_BASE_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
             try {
                 const response = await fetch(`${API_BASE_URL}/api/v1/user/me`, {
@@ -54,7 +55,7 @@ const Event = () => {
         }
 
         setIsLoading(true);
-        const RAW_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com";
+        const RAW_URL = import.meta.env.VITE_API_URL || "https://apm-ai-website.onrender.com";
         const API_BASE_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
         try {
             const response = await fetch(`${API_BASE_URL}/api/v1/user/claim-test-reward`, {
@@ -64,8 +65,7 @@ const Event = () => {
 
             if (response.ok) {
                 setIsClaimed(true);
-                // สั่งเปิดลิ้งแบบประเมิน
-                window.open("https://docs.google.com/forms/d/e/1FAIpQLSegQ66d04YKhqMBLo6X946tg_cokeUwgbAwJZ2ngdocyvZ9_w/viewform?usp=publish-editor", "_blank");
+                alert("เย้! รับรางวัลสำเร็จแล้วครับ อย่าลืมทำแบบประเมินข้างล่างน้าา 🌷");
             } else {
                 const errorData = await response.json();
                 alert(errorData.detail || "เกิดข้อผิดพลาดในการรับรางวัล");
@@ -79,155 +79,138 @@ const Event = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex flex-col">
-            {/* ✅ Header */}
-            <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
-                <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-4 py-4 sm:px-6">
-                    {/* ✅ Left */}
-                    <div className="flex items-center gap-3 shrink-0" onClick={() => navigate("/")}>
-                        <div className="relative size-11 sm:size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-2 ring-pink-300/50 shadow-md">
-                            <img
-                                src={Logo}
-                                alt="Logo"
-                                className="h-full w-full object-cover transition duration-300 hover:scale-110"
-                            />
-                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
-                        </div>
+        <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex flex-col transition-colors duration-300">
+            {/* Ambient Background */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-40 -right-40 size-[500px] rounded-full bg-primary/10 blur-[120px] opacity-60" />
+                <div className="absolute top-1/2 -left-40 size-[500px] rounded-full bg-pink-400/10 blur-[120px] opacity-60" />
+            </div>
 
-                        <div className="min-w-0 hidden sm:block">
-                            <h1 className="truncate text-xl font-extrabold tracking-tight leading-none text-black dark:text-white">
-                                APM AI
-                            </h1>
-                            <p className="truncate text-[10px] sm:text-[11px] font-semibold text-black/70 dark:text-white/60">
-                                🌷 ผู้ช่วยที่เป็นเพื่อนที่ดีสำหรับคุณ
-                            </p>
+            <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-white/60 dark:bg-black/20 backdrop-blur-xl transition-all">
+                <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
+                    <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate("/")}>
+                        <div className="relative size-12 rounded-2xl bg-white shadow-xl ring-2 ring-pink-100 flex items-center justify-center overflow-hidden">
+                            <img src={Logo} alt="Logo" className="size-8 object-contain transition duration-500 hover:scale-110" />
+                        </div>
+                        <div className="hidden sm:block text-left">
+                            <h1 className="text-xl font-black text-gray-900 dark:text-white leading-tight">APM AI</h1>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Special Events 🎉</p>
                         </div>
                     </div>
-
-                    {/* ✅ Center: Navbar (Desktop Only) */}
-                    <div className="hidden lg:flex flex-1 justify-center px-4">
-                        <Navbar />
-                    </div>
-
-                    {/* ✅ Right */}
-                    <div className="flex justify-end items-center gap-3 shrink-0">
+                    {/* Desktop Navbar Hidden for this page per request "ในคอมไม่ต้องเจอ" */}
+                    <div className="hidden lg:flex flex-1" />
+                    <div className="flex justify-end items-center gap-4 shrink-0">
                         <CoinBadge className="scale-90" />
-                        
-                        {/* Notification */}
-                        <button className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95">
-
-                            <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
-                                notifications
-                            </span>
-                            <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
-                        </button>
-
-                        {/* ✅ Avatar */}
                         <button
                             type="button"
                             onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
-                            className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
-                            style={{
-                                backgroundImage: `url("${profileImage}")`,
-                                backgroundColor: "white"
-                            }}
-                            title="Account"
-                            aria-label="Account"
+                            className="size-10 rounded-2xl border-2 border-white dark:border-white/10 shadow-lg bg-white/20 bg-cover bg-center cursor-pointer hover:scale-110 active:scale-95 transition-all"
+                            style={{ backgroundImage: `url("${profileImage}")`, backgroundColor: "white" }}
                         />
-
-                        {/* Mobile Navbar */}
-                        <div className="lg:hidden">
-                            <Navbar />
-                        </div>
+                        <div className="lg:hidden"><Navbar /></div>
                     </div>
                 </div>
             </header>
 
-            <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
-                {/* Section Header */}
-                <div className="text-center mb-10 max-w-2xl px-6">
-                    <h2 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white mb-4 tracking-tight leading-tight">
-                        กิจกรรมพิเศษ 🎉
+            <main className="flex-1 w-full max-w-5xl mx-auto py-8 md:py-16 px-4 md:px-6 relative z-10">
+                <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-black text-xs uppercase tracking-widest border border-primary/20 shadow-sm animate-bounce-slow">
+                        <Trophy size={14}/> Reward Program
+                    </div>
+                    <h2 className="text-3xl md:text-7xl font-black text-gray-900 dark:text-white tracking-tighter leading-tight md:leading-none">
+                        ฉลองเปิดตัว <br />
+                        <span className="bg-gradient-to-r from-primary via-pink-400 to-indigo-500 bg-clip-text text-transparent">APM Beta Test! 🚀</span>
                     </h2>
-                    <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg font-bold">
-                        ร่วมสนุกกับกิจกรรมในระบบ เพื่อรับรางวัลสุดพรีเมียม!
+                    <p className="max-w-2xl mx-auto text-sm md:text-xl font-bold text-gray-500 dark:text-gray-400 leading-relaxed pt-2 md:pt-4">
+                        ร่วมพัฒนาแอปให้ดีขึ้น พร้อมรับของรางวัลสุดพิเศษเพียงทำ 2 ขั้นตอนง่ายๆ นะครับเพื่อนๆ 💖
                     </p>
                 </div>
 
-                {/* Event Card */}
-                <div className="w-full max-w-2xl bg-white/40 dark:bg-white/5 backdrop-blur-3xl border border-white/60 dark:border-white/10 rounded-[48px] p-8 sm:p-12 shadow-2xl transition-all hover:scale-[1.02] duration-500">
-                    <div className="flex flex-col sm:flex-row items-center gap-8">
-                        {/* Event Icon/Graphic */}
-                        <div className="relative shrink-0">
-                            <div className="size-32 sm:size-40 rounded-[40px] bg-gradient-to-br from-primary/30 to-pink-300/30 flex items-center justify-center p-8 backdrop-blur-sm shadow-inner group">
-                                <span className="material-symbols-outlined text-6xl sm:text-7xl text-primary animate-pulse">
-                                    rocket_launch
-                                </span>
-                            </div>
-                            {/* Floating Badges */}
-                            <div className="absolute -top-4 -right-4 bg-yellow-400 text-white text-[12px] font-black px-4 py-1.5 rounded-full shadow-lg border-2 border-white animate-bounce">
-                                NEW!
-                            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
+                    {/* Step 1: Claim Reward */}
+                    <div className="group bg-white/60 dark:bg-white/5 backdrop-blur-3xl border border-white/60 dark:border-white/10 rounded-[32px] md:rounded-[48px] p-6 md:p-10 shadow-2xl flex flex-col items-center text-center hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 text-primary/10 group-hover:scale-150 transition-transform duration-700 hidden md:block">
+                             <Trophy size={120} />
                         </div>
-
-                        {/* Content */}
-                        <div className="flex-1 text-center sm:text-left">
-                            <h3 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mb-3">
-                                เข้าร่วมทดสอบเว็บไซต์ 🚀
-                            </h3>
-                            <p className="text-gray-500 dark:text-gray-300 font-bold mb-6 italic sm:text-lg">
-                                สำหรับผู้ใช้ใหม่ที่เข้าร่วมทดสอบระบบ Beta Test วันนี้!
+                        
+                        <div className="size-16 md:size-20 rounded-[24px] md:rounded-[32px] bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center text-white shadow-xl shadow-amber-500/20 mb-6 md:mb-8 z-10">
+                            <Sparkles size={32} className="md:size-10 animate-pulse" />
+                        </div>
+                        
+                        <div className="z-10 space-y-3 md:space-y-4">
+                            <span className="text-[8px] md:text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Step 01</span>
+                            <h3 className="text-xl md:text-3xl font-black text-gray-900 dark:text-white">รับรางวัลเข้าคลัง 🪙</h3>
+                            <p className="text-xs md:text-gray-500 md:dark:text-gray-400 font-bold leading-relaxed mb-6 md:mb-8">
+                                รับเหรียญและ EXP ทันทีสำหรับผู้ที่เข้ามาลองร่วมทดสอบระบบของเราจ้า
                             </p>
 
-                            {/* Rewards Box */}
-                            <div className="flex flex-wrap justify-center sm:justify-start gap-4 mb-8">
-                                <div className="bg-yellow-100/80 dark:bg-yellow-500/20 px-5 py-3 rounded-2xl flex items-center gap-3 border border-yellow-200/50">
-                                    <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 font-black">
-                                        database
-                                    </span>
-                                    <span className="text-yellow-700 dark:text-yellow-300 font-black text-lg">
-                                        50 Coins
-                                    </span>
+                            <div className="flex flex-wrap justify-center gap-3 mb-10">
+                                <div className="px-4 py-2 bg-yellow-400/10 rounded-2xl border border-yellow-400/20 flex items-center gap-2">
+                                    <span className="text-yellow-600 font-black text-sm">50 COINS 🪙</span>
                                 </div>
-                                <div className="bg-primary/10 px-5 py-3 rounded-2xl flex items-center gap-3 border border-primary/20">
-                                    <span className="material-symbols-outlined text-primary font-black">
-                                        temp_preferences_custom
-                                    </span>
-                                    <span className="text-primary font-black text-lg">
-                                        30 EXP
-                                    </span>
+                                <div className="px-4 py-2 bg-primary/10 rounded-2xl border border-primary/20 flex items-center gap-2">
+                                    <span className="text-primary font-black text-sm">30 EXP ✨</span>
                                 </div>
                             </div>
 
-                            {/* Status Button */}
-                            <div className="w-full">
-                                <button
-                                    onClick={handleClaim}
-                                    disabled={isClaimed || isLoading}
-                                    className={`w-full sm:w-auto px-10 py-4 font-black text-lg rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95 ${isClaimed
-                                        ? 'bg-gray-400 text-white cursor-not-allowed shadow-none'
-                                        : 'bg-primary text-white shadow-primary/30 hover:bg-primary/90'
-                                        }`}
-                                >
-                                    <span className="material-symbols-outlined">
-                                        {isLoading ? 'autorenew' : (isClaimed ? 'check_circle' : 'redeem')}
-                                    </span>
-                                    {isLoading ? 'กำลังโหลด...' : (isClaimed ? 'รับรางวัลแล้ว' : 'รับของรางวัล')}
-                                </button>
-                                <p className="mt-3 text-xs font-bold text-gray-400 dark:text-gray-500 italic">
-                                    * รางวัลจะถูกเพิ่มเข้าบัญชีของคุณโดยอัตโนมัติ และจะเปิดแบบประเมินให้ทำจ้า
-                                </p>
+                            <button
+                                onClick={handleClaim}
+                                disabled={isClaimed || isLoading}
+                                className={`w-full py-4 md:py-5 rounded-[22px] md:rounded-[28px] font-black text-sm md:text-lg uppercase tracking-widest shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3 ${isClaimed
+                                    ? 'bg-gray-100 dark:bg-white/5 text-gray-400 shadow-none cursor-not-allowed border border-gray-100 dark:border-white/5'
+                                    : 'bg-primary text-white shadow-primary/30 hover:brightness-110'
+                                    }`}
+                            >
+                                {isLoading ? (
+                                    <div className="size-5 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                ) : isClaimed ? (
+                                    <><span>✓ รับรางวัลแล้ว</span></>
+                                ) : (
+                                    <><span>รับของรางวัล</span> <ExternalLink size={16}/></>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Step 2: Evaluation Form */}
+                    <div className="group bg-white/60 dark:bg-white/5 backdrop-blur-3xl border border-white/60 dark:border-white/10 rounded-[32px] md:rounded-[48px] p-6 md:p-10 shadow-2xl flex flex-col items-center text-center hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 text-indigo-500/10 group-hover:scale-150 transition-transform duration-700 hidden md:block">
+                             <ClipboardCheck size={120} />
+                        </div>
+
+                        <div className="size-16 md:size-20 rounded-[24px] md:rounded-[32px] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/20 mb-6 md:mb-8 z-10">
+                            <ClipboardCheck size={32} className="md:size-10 group-hover:rotate-12 transition-transform" />
+                        </div>
+
+                        <div className="z-10 space-y-3 md:space-y-4">
+                            <span className="text-[8px] md:text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em]">Step 02</span>
+                            <h3 className="text-xl md:text-3xl font-black text-gray-900 dark:text-white">ทำแบบประเมินแอป 📝</h3>
+                            <p className="text-xs md:text-gray-500 md:dark:text-gray-400 font-bold leading-relaxed mb-6 md:mb-8">
+                                ช่วยเราติชมระบบ เพื่อให้ทีมงานนำไปปรับปรุงให้ดีขึ้นในอนาคตครับเพื่อนๆ
+                            </p>
+
+                            <div className="py-2 mb-10">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Google Form Link</p>
+                                <p className="text-xs font-bold text-gray-300 dark:text-gray-500 italic mt-1">ใช้เวลาเพียง 1-2 นาทีเท่านั้น</p>
                             </div>
+
+                            <a
+                                href="https://docs.google.com/forms/d/e/1FAIpQLSegQ66d04YKhqMBLo6X946tg_cokeUwgbAwJZ2ngdocyvZ9_w/viewform?usp=sf_link"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-4 md:py-5 rounded-[22px] md:rounded-[28px] bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-sm md:text-lg uppercase tracking-widest shadow-2xl shadow-indigo-500/30 hover:brightness-110 active:scale-95 flex items-center justify-center gap-2 md:gap-3 transition-all"
+                            >
+                                ไปทำแบบประเมิน <ExternalLink size={16}/>
+                            </a>
                         </div>
                     </div>
                 </div>
 
-                <div className="mt-12 text-center text-gray-400 dark:text-gray-600 font-bold text-sm italic">
-                    ติดตามกิจกรรมใหม่ๆ ได้ที่นี่เร็วๆ นี้... 🌸
+                <div className="text-center space-y-6">
+                    <p className="text-gray-400 dark:text-gray-600 font-bold text-sm uppercase tracking-[0.3em]">Next Events Coming Soon...</p>
+                    <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-gray-300 dark:via-white/10 to-transparent mx-auto" />
                 </div>
             </main>
-
-
 
             <Footer />
         </div>

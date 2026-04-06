@@ -77,15 +77,15 @@ const Login = () => {
                 </div>
 
                 {/* Right Side - Login Form */}
-                <div className="p-8 md:p-14 flex flex-col justify-center">
-                    <div className="md:hidden flex justify-center mb-8">
-                        <div className="w-24 h-24 rounded-3xl bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-white/80 dark:border-white/20 shadow-md overflow-hidden">
-                            <img src={Logo} alt="Logo" className="w-full h-full object-cover" />
+                <div className="p-6 sm:p-8 md:p-14 flex flex-col justify-center">
+                    <div className="md:hidden flex justify-center mb-6">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[28px] bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-white/80 dark:border-white/20 shadow-md overflow-hidden">
+                            <img src={Logo} alt="Logo" className="w-full h-full object-cover p-2" />
                         </div>
                     </div>
 
-                    <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">เข้าสู่ระบบ</h1>
-                    <p className="text-gray-500 dark:text-gray-400 font-bold mb-8">กรอกข้อมูลบัญชีเพื่อเข้าใช้งาน APM AI</p>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-2 text-center md:text-left">เข้าสู่ระบบ</h1>
+                    <p className="text-gray-500 dark:text-gray-400 font-bold mb-6 md:mb-8 text-center md:text-left text-sm md:text-base px-4 md:px-0">กรอกข้อมูลบัญชีเพื่อเข้าใช้งาน APM AI</p>
 
                     {error && (
                         <div className="mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-bold flex items-center gap-2 shadow-sm animate-shake">
@@ -94,23 +94,23 @@ const Login = () => {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 px-2 md:px-0">
                         <div>
-                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
                                 ชื่อผู้ใช้ หรือ อีเมล
                             </label>
                             <input
                                 type="text"
                                 value={identifier}
                                 onChange={(e) => setIdentifier(e.target.value)}
-                                placeholder="Enter username or email"
+                                placeholder="Username or Email"
                                 required
-                                className="w-full px-6 py-4 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 focus:bg-white dark:focus:bg-white/10 transition-all text-gray-800 dark:text-white font-bold"
+                                className="w-full px-5 py-3.5 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 transition-all text-gray-800 dark:text-white font-bold text-sm md:text-base"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
                                 รหัสผ่าน
                             </label>
                             <input
@@ -119,7 +119,7 @@ const Login = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 required
-                                className="w-full px-6 py-4 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 focus:bg-white dark:focus:bg-white/10 transition-all text-gray-800 dark:text-white font-bold"
+                                className="w-full px-5 py-3.5 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 transition-all text-gray-800 dark:text-white font-bold text-sm md:text-base"
                             />
                         </div>
 
@@ -127,7 +127,7 @@ const Login = () => {
                             <button 
                                 type="button" 
                                 onClick={() => navigate("/forgot-password")}
-                                className="text-sm font-bold text-primary hover:text-pink-600 transition"
+                                className="text-xs md:text-sm font-bold text-primary hover:text-pink-600 transition"
                             >
                                 ลืมรหัสผ่าน?
                             </button>
@@ -136,13 +136,13 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-5 mt-2 rounded-2xl bg-gradient-to-r from-primary to-purple-600 text-white font-black text-lg shadow-xl hover:shadow-primary/30 hover:-translate-y-1 active:scale-[0.98] transition-all disabled:opacity-70 disabled:hover:translate-y-0"
+                            className="w-full py-4 md:py-5 mt-2 rounded-2xl bg-gradient-to-r from-primary to-purple-600 text-white font-black text-base md:text-lg shadow-xl hover:shadow-primary/30 hover:-translate-y-1 active:scale-[0.98] transition-all disabled:opacity-70 disabled:hover:translate-y-0"
                         >
                             {isLoading ? "กำลังเข้าสู่ระบบ..." : "LOGIN"}
                         </button>
                     </form>
 
-                    <div className="mt-10 text-center text-gray-500 font-bold">
+                    <div className="mt-8 md:mt-10 text-center text-gray-500 font-bold text-sm md:text-base">
                         ยังไม่มีบัญชีใช่ไหม?{" "}
                         <button
                             onClick={() => navigate("/register")}
@@ -156,9 +156,9 @@ const Login = () => {
 
             <button
                 onClick={() => navigate("/")}
-                className="absolute top-8 left-8 flex items-center gap-2 px-6 py-3 rounded-full bg-white/50 dark:bg-white/10 backdrop-blur-md border border-white/50 dark:border-white/10 text-gray-700 dark:text-white font-black shadow-sm hover:bg-white dark:hover:bg-white/20 transition z-20 active:scale-95"
+                className="absolute top-4 left-4 sm:top-8 sm:left-8 flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-full bg-white/50 dark:bg-white/10 backdrop-blur-md border border-white/50 dark:border-white/10 text-gray-700 dark:text-white font-black text-xs sm:text-sm shadow-sm hover:bg-white dark:hover:bg-white/20 transition z-20 active:scale-95"
             >
-                <span className="material-symbols-outlined text-lg">arrow_back</span> กลับหน้าแรก
+                <span className="material-symbols-outlined text-base">arrow_back</span> กลับหน้าแรก
             </button>
         </div>
     );

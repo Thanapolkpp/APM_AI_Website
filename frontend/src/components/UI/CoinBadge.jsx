@@ -5,6 +5,9 @@ import { useCoins } from "../../hooks/useCoins";
 const LEVEL_THRESHOLDS = [0, 50, 150, 300, 500, 800, 1200];
 
 const CoinBadge = ({ className = "", isVibrant = false }) => {
+    const isLoggedIn = !!localStorage.getItem("token");
+    if (!isLoggedIn) return null;
+
     const { coins, exp } = useCoins();
 
     // Level calculation logic
@@ -107,11 +110,11 @@ const CoinBadge = ({ className = "", isVibrant = false }) => {
                 </div>
             </div>
 
-            {/* Circular Level & EXP Badge - Minimized on mobile */}
-            <div className={`group relative flex items-center gap-2 rounded-full md:px-4 md:py-2 transition-all duration-300 hover:scale-105 active:scale-95 
+            {/* Circular Level & EXP Badge - Hidden on mobile per request */}
+            <div className={`hidden md:flex group relative items-center gap-2 rounded-full md:px-4 md:py-2 transition-all duration-300 hover:scale-105 active:scale-95 
                 ${isVibrant ? "" : "md:bg-white/60 md:dark:bg-white/5 md:backdrop-blur-xl md:border md:border-white/60 md:dark:border-white/10 md:shadow-lg md:rounded-2xl"}
                 `}
-                style={{ boxShadow: (isVibrant || !window.innerWidth || window.innerWidth < 768) ? "none" : `0 10px 15px -3px ${theme.shadow}` }}>
+                style={{ boxShadow: (isVibrant) ? "none" : `0 10px 15px -3px ${theme.shadow}` }}>
                 {/* Ring Container */}
                 <div className="relative size-[34px] sm:size-[42px] flex items-center justify-center shrink-0">
                     <svg width={size} height={size} className="transform -rotate-90 scale-[0.8] sm:scale-100">

@@ -169,8 +169,22 @@ const TodoList = () => {
     const [pendingTasks, setPendingTasks] = useState([])
     
     const [proofPhotos, setProofPhotos] = useState({})
-    const RAW_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com"
+    const RAW_URL = import.meta.env.VITE_API_URL || "https://apm-ai-website.onrender.com"
     const API_BASE_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
+
+    const formatDocUrl = (path) => {
+        if (!path) return "";
+        let cleanPath = path;
+        if (cleanPath.includes("localhost:8000") || cleanPath.includes("127.0.0.1:8000")) {
+            cleanPath = cleanPath.replace(/^https?:\/\/[^/]+/, API_BASE_URL);
+        }
+        if (cleanPath.startsWith("http")) return cleanPath;
+        const normalizedPath = cleanPath.startsWith('/') ? cleanPath.slice(1) : cleanPath;
+        if (normalizedPath.startsWith('uploads/')) {
+            return `${API_BASE_URL}/${normalizedPath}`;
+        }
+        return `${API_BASE_URL}/uploads/sheets/${normalizedPath}`;
+    };
 
     // logic for proof photo mapping
     useEffect(() => {
@@ -178,13 +192,13 @@ const TodoList = () => {
         // map from tasks
         tasks.forEach(todo => {
             if (todo.proof_image) {
-                photos[todo.id] = `${API_BASE_URL}${todo.proof_image}`
+                photos[todo.id] = formatDocUrl(todo.proof_image)
             }
         })
         // map from pendingTasks
         pendingTasks.forEach(todo => {
             if (todo.proof_image) {
-                photos[todo.id] = `${API_BASE_URL}${todo.proof_image}`
+                photos[todo.id] = formatDocUrl(todo.proof_image)
             }
         })
         setProofPhotos(photos)
@@ -363,7 +377,7 @@ const TodoList = () => {
                 </div>
             </header>
 
-            <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-12 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-12">
+            <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-12 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 md:gap-12">
                 {/* Left Side: Tasks or Admin View */}
                 <div className="space-y-10">
                     {isAdminView ? (
@@ -466,12 +480,12 @@ const TodoList = () => {
                         </div>
                     ) : (
                         <div className="space-y-10">
-                            <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center justify-between mb-4 md:mb-8">
                                 <div>
-                                    <h2 className="text-4xl font-black text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-                                        Checklists <Trophy className="text-yellow-500" size={32}/>
+                                    <h2 className="text-xl md:text-4xl font-black text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+                                        Checklists <Trophy className="text-yellow-500 size-6 md:size-8" />
                                     </h2>
-                                    <p className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest text-[10px]">ทำเควสให้สำเร็จเพื่อรับ Coins และเพิ่มค่าความหนิท!</p>
+                                    <p className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest text-[8px] md:text-[10px]">เคลียร์เควสเพื่อรับรางวัลจ้า!</p>
                                 </div>
                                 
                                 {userProfile?.is_admin && (
@@ -485,15 +499,15 @@ const TodoList = () => {
                                 )}
                             </div>
 
-                    <form onSubmit={addTask} className="relative group">
+                    <form onSubmit={addTask} className="relative group mb-6">
                         <input
                             type="text"
                             value={newTask}
                             onChange={(e) => setNewTask(e.target.value)}
                             placeholder="เพิ่มภารกิจใหม่..."
-                            className="w-full bg-white/40 dark:bg-white/5 backdrop-blur-xl border-2 border-white/60 dark:border-white/10 rounded-[32px] px-8 py-6 text-lg font-bold focus:outline-none focus:border-primary transition-all pr-24 shadow-xl"
+                            className="w-full bg-white/40 dark:bg-white/5 backdrop-blur-xl border-2 border-white/60 dark:border-white/10 rounded-[22px] md:rounded-[32px] px-5 md:px-8 py-3 md:py-6 text-sm md:text-lg font-bold focus:outline-none focus:border-primary transition-all pr-20 md:pr-24 shadow-xl"
                         />
-                        <button type="submit" className="absolute right-3 top-3 bottom-3 px-6 rounded-2xl bg-primary text-white font-black hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20">
+                        <button type="submit" className="absolute right-2 md:right-3 top-2 md:top-3 bottom-2 md:bottom-3 px-4 md:px-6 rounded-xl md:rounded-2xl bg-primary text-white font-black text-xs md:text-sm hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20">
                             เพิ่ม
                         </button>
                     </form>
@@ -505,17 +519,17 @@ const TodoList = () => {
                             </div>
                         )}
                         {tasks.map(task => (
-                            <div key={task.id} className={`group flex items-center gap-5 p-6 bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 rounded-[32px] transition-all hover:shadow-xl hover:scale-[1.01] ${task.is_completed ? 'opacity-60' : ''}`}>
+                            <div key={task.id} className={`group flex items-center gap-3 md:gap-5 p-3.5 md:p-6 bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 rounded-[24px] md:rounded-[32px] transition-all hover:shadow-xl ${task.is_completed ? 'opacity-60' : ''}`}>
                                 <button onClick={() => handleToggle(task.id)} className={`shrink-0 text-primary transition-all hover:scale-110`}>
-                                    {task.is_completed ? <CheckCircle2 size={32} className="fill-primary text-white" /> : <Circle size={32} className="text-gray-300 group-hover:text-primary" />}
+                                    {task.is_completed ? <CheckCircle2 className="size-6 md:size-8 fill-primary text-white" /> : <Circle className="size-6 md:size-8 text-gray-300 group-hover:text-primary" />}
                                 </button>
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        {task.status === "pending" && <span className="px-2 py-0.5 bg-yellow-400/20 text-yellow-600 dark:text-yellow-400 text-[8px] font-black uppercase rounded-full">Pending Verification</span>}
-                                        {task.status === "accepted" && <span className="px-2 py-0.5 bg-green-400/20 text-green-600 dark:text-green-400 text-[8px] font-black uppercase rounded-full">Verified</span>}
-                                        {task.status === "rejected" && <span className="px-2 py-0.5 bg-red-400/20 text-red-600 dark:text-red-400 text-[8px] font-black uppercase rounded-full">Rejected</span>}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                        {task.status === "pending" && <span className="px-1.5 py-0.5 bg-yellow-400/20 text-yellow-600 dark:text-yellow-400 text-[6px] md:text-[8px] font-black uppercase rounded-full">Pending</span>}
+                                        {task.status === "accepted" && <span className="px-1.5 py-0.5 bg-green-400/20 text-green-600 dark:text-green-400 text-[6px] md:text-[8px] font-black uppercase rounded-full">Verified</span>}
+                                        {task.status === "rejected" && <span className="px-1.5 py-0.5 bg-red-400/20 text-red-600 dark:text-red-400 text-[6px] md:text-[8px] font-black uppercase rounded-full">Rejected</span>}
                                     </div>
-                                    <span className={`text-xl font-bold dark:text-white ${task.is_completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                                    <span className={`text-sm md:text-xl font-bold dark:text-white line-clamp-1 ${task.is_completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                                         {task.task_text}
                                     </span>
                                 </div>
@@ -566,7 +580,7 @@ const TodoList = () => {
 
                 {/* Right Side: Companion Sidebox */}
                 <div className="flex flex-col gap-6">
-                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-3xl rounded-[64px] border border-white/60 dark:border-white/10 shadow-2xl p-8 flex flex-col h-[700px] sticky top-32">
+                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] md:rounded-[64px] border border-white/60 dark:border-white/10 shadow-2xl p-6 md:p-8 flex flex-col h-[400px] md:h-[700px] sticky top-32 overflow-hidden">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="font-black text-2xl text-gray-800 dark:text-white flex items-center gap-2">
                                 <Star className="text-primary fill-primary" size={24}/> Companion

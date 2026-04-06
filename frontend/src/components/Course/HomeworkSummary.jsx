@@ -5,8 +5,22 @@ import { useNavigate } from "react-router-dom"
 import jsPDF from "jspdf"
 import { fetchMarketSheets } from "../../services/aiService"
 
-const RAW_URL = import.meta.env.VITE_API_BASE_URL || "https://apm-ai-website.onrender.com"
+const RAW_URL = import.meta.env.VITE_API_URL || "https://apm-ai-website.onrender.com"
 const API_BASE_URL = RAW_URL.endsWith('/') ? RAW_URL.slice(0, -1) : RAW_URL;
+
+const formatDocUrl = (path) => {
+    if (!path) return "";
+    let cleanPath = path;
+    if (cleanPath.includes("localhost:8000") || cleanPath.includes("127.0.0.1:8000")) {
+        cleanPath = cleanPath.replace(/^https?:\/\/[^/]+/, API_BASE_URL);
+    }
+    if (cleanPath.startsWith("http")) return cleanPath;
+    const normalizedPath = cleanPath.startsWith('/') ? cleanPath.slice(1) : cleanPath;
+    if (normalizedPath.startsWith('uploads/')) {
+        return `${API_BASE_URL}/${normalizedPath}`;
+    }
+    return `${API_BASE_URL}/uploads/sheets/${normalizedPath}`;
+};
 
 const ICON_MAP = {
     BookText,
@@ -146,7 +160,7 @@ const HomeworkSummary = () => {
                                     handleAIGenerate(item); // On mobile, click icon starts AI
                                 } else {
                                     if (!checkAuth()) return;
-                                    const pdfUrl = item.file_path ? `${API_BASE_URL}${item.file_path}` : "";
+                                    const pdfUrl = formatDocUrl(item.file_path);
                                     setSelectedItem({ ...item, pdfUrl });
                                     setIsPdfModalOpen(true);
                                 }

@@ -199,9 +199,9 @@ const EditAvatar = () => {
     }
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex flex-col transition-colors duration-300 relative">
+        <div className="min-h-screen w-full bg-background-light dark:bg-background-dark font-display flex flex-col transition-colors duration-300 relative overflow-x-hidden">
             <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
-                <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-4 py-4 sm:px-6">
+                <div className="w-full flex items-center justify-between px-4 py-4 sm:px-10">
                     <div className="flex items-center gap-3 cursor-pointer shrink-0" onClick={() => navigate("/")}>
                         <ArrowLeft className="text-gray-400 mr-2" />
                         <div className="relative size-11 shrink-0 overflow-hidden rounded-2xl bg-white/20 ring-2 ring-pink-300/50 shadow-md">
@@ -216,20 +216,23 @@ const EditAvatar = () => {
 
                     <div className="flex justify-end gap-3 items-center shrink-0">
                         <div className="flex bg-white/40 dark:bg-white/10 p-1 rounded-xl border border-white/60 dark:border-white/10">
-                            <button onClick={() => setCurrentTab("avatar")} className={`px-6 py-2 rounded-xl font-black text-sm transition-all flex items-center gap-2 ${currentTab === 'avatar' ? 'bg-primary text-white shadow-lg' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}>
-                                <User size={18} /> Avatars
+                            <button onClick={() => setCurrentTab("avatar")} className={`px-4 md:px-8 py-2 rounded-xl font-black text-xs md:text-sm transition-all flex items-center gap-2 ${currentTab === 'avatar' ? 'bg-primary text-white shadow-lg' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}>
+                                <User size={18} /> <span className="hidden xs:inline">Avatars</span>
                             </button>
-                            <button onClick={() => setCurrentTab("scene")} className={`px-6 py-2 rounded-xl font-black text-sm transition-all flex items-center gap-2 ${currentTab === 'scene' ? 'bg-primary text-white shadow-lg' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}>
-                                <ImageIcon size={18} /> Scenes
+                            <button onClick={() => setCurrentTab("scene")} className={`px-4 md:px-8 py-2 rounded-xl font-black text-xs md:text-sm transition-all flex items-center gap-2 ${currentTab === 'scene' ? 'bg-primary text-white shadow-lg' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}>
+                                <ImageIcon size={18} /> <span className="hidden xs:inline">Scenes</span>
                             </button>
                         </div>
-                        <CoinBadge />
+                        <div className="hidden sm:block">
+                            <CoinBadge />
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <main className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8 max-w-7xl w-full mx-auto px-6 py-10 relative z-10">
-                <div className="relative flex flex-col items-center justify-center min-h-[550px] rounded-[64px] border border-white/60 dark:border-white/10 shadow-2xl overflow-hidden transition-all duration-700" style={{ backgroundColor: activeScene.color }}>
+            <main className="flex-1 flex flex-col gap-6 md:gap-10 w-full px-4 md:px-10 py-6 md:py-10 relative z-10">
+                {/* Preview Section - Full Width top */}
+                <div className="relative flex flex-col items-center justify-center min-h-[400px] md:min-h-[650px] rounded-[40px] md:rounded-[64px] border border-white/60 dark:border-white/10 shadow-2xl overflow-hidden transition-all duration-700 bg-white/5" style={{ backgroundColor: activeScene.color }}>
                     <div className="absolute inset-0">
                         {activeScene.image && <img src={activeScene.image} className="absolute inset-0 w-full h-full object-cover opacity-80" alt="background" />}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
@@ -250,53 +253,78 @@ const EditAvatar = () => {
                         </Canvas>
                     </div>
 
-                    <div className="mt-auto p-12 z-20 text-center w-full">
-                        <span className="inline-block px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+                    <div className="mt-auto p-6 md:p-12 z-20 text-center w-full">
+                        <span className="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] mb-3 md:mb-4">
                             {currentTab === 'avatar' ? 'Character Preview' : 'Scene Preview'}
                         </span>
-                        <h2 className="text-4xl font-black text-white drop-shadow-lg mb-2">{currentItem.name}</h2>
-                        <p className="text-white/80 font-bold mb-8 italic drop-shadow-md text-lg">{currentItem.description}</p>
-                        <div className="flex gap-4 justify-center">
+                        <h2 className="text-2xl md:text-5xl font-black text-white drop-shadow-lg mb-1 md:mb-3">{currentItem.name}</h2>
+                        <p className="text-white/80 font-bold mb-6 md:mb-10 italic drop-shadow-md text-sm md:text-xl max-w-2xl mx-auto">{currentItem.description}</p>
+                        <div className="flex gap-3 md:gap-6 justify-center">
                             {isOwned(currentItem.id) ? (
-                                <button onClick={handleSave} className="px-12 py-5 rounded-[28px] bg-white text-gray-900 font-black text-xl shadow-2xl hover:scale-105 active:scale-95 transition-all border-4 border-transparent hover:border-white/50">
-                                    <CheckCircle2 size={24} className="text-emerald-500" /> {currentTab === 'avatar' ? 'สวมใส่ตัวละคร ✨' : 'ใช้ฉากนี้จ้า 🌸'}
+                                <button onClick={handleSave} className="px-10 py-3.5 md:px-16 md:py-6 rounded-[22px] md:rounded-[32px] bg-white text-gray-900 font-black text-sm md:text-2xl shadow-2xl hover:scale-105 active:scale-95 transition-all border-2 md:border-4 border-transparent hover:border-white/50 flex items-center gap-3">
+                                    <CheckCircle2 size={24} className="text-emerald-500" /> {currentTab === 'avatar' ? 'สวมใส่ ✨' : 'ใช้ฉากนี้ 🌸'}
                                 </button>
                             ) : (
-                                <button onClick={() => handleBuy(currentItem)} className="px-12 py-5 rounded-[28px] bg-yellow-400 text-yellow-900 font-black text-xl shadow-2xl hover:scale-105 active:scale-95 transition-all border-4 border-yellow-200/50">
-                                    <ShoppingCart size={24} /> ปลดล็อก {currentItem.price} Coins 🪙
+                                <button onClick={() => handleBuy(currentItem)} className="px-10 py-3.5 md:px-16 md:py-6 rounded-[22px] md:rounded-[32px] bg-yellow-400 text-yellow-900 font-black text-sm md:text-2xl shadow-2xl hover:scale-105 active:scale-95 transition-all border-2 md:border-4 border-yellow-200/50 flex items-center gap-3">
+                                    <ShoppingCart size={24} /> {currentItem.price} Coins 🪙
                                 </button>
                             )}
                         </div>
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-6">
-                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-3xl rounded-[48px] p-10 border border-white/60 dark:border-white/10 shadow-xl flex flex-col h-[550px]">
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="font-black text-2xl text-gray-800 dark:text-white flex items-center gap-2">
-                                <Sparkles className="text-primary" size={28} /> {currentTab === 'avatar' ? 'Character Mall' : 'Scene Mall'}
+                {/* Catalog Section - Horizontal Full Width at bottom */}
+                <div className="w-full">
+                    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-3xl rounded-[32px] md:rounded-[48px] p-5 md:p-8 border border-white/60 dark:border-white/10 shadow-xl flex flex-col">
+                        <div className="flex items-center justify-between mb-4 md:mb-6">
+                            <h3 className="font-black text-lg md:text-2xl text-gray-800 dark:text-white flex items-center gap-3">
+                                <Sparkles className="text-primary" size={24} /> {currentTab === 'avatar' ? 'Characters Library' : 'Scenes Collection'}
                             </h3>
-                            <button onClick={handleResetToDefault} className="p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-red-500 group">
-                                <Trash2 size={20} className="group-hover:animate-bounce" />
+                            <button onClick={handleResetToDefault} className="p-2 md:p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-red-500 transition-all active:scale-90 shadow-sm border border-transparent hover:border-red-200">
+                                <Trash2 size={20} />
                             </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                        
+                        <div className="flex flex-row gap-4 md:gap-6 overflow-x-auto pb-4 custom-scrollbar-horizontal scroll-smooth snap-x touch-pan-x">
                             {(currentTab === 'avatar' ? visualAvatars : visualScenes).map(item => {
                                 const active = currentTab === 'avatar' ? item.id === selectedId : item.id === selectedSceneId;
                                 const owned = isOwned(item.id);
                                 return (
-                                    <button key={item.id} onClick={() => currentTab === 'avatar' ? setSelectedId(item.id) : setSelectedSceneId(item.id)} className={`w-full group relative flex items-center gap-5 p-5 rounded-[32px] border-2 transition-all ${active ? 'bg-white dark:bg-white/10 border-primary shadow-xl scale-[1.02]' : 'bg-white/20 hover:bg-white/40 border-transparent hover:scale-[1.01]'}`}>
-                                        <div className="relative shrink-0">
-                                            {item.image ? <img src={item.image} className={`w-16 h-16 shadow-lg ${currentTab === 'avatar' ? 'rounded-full' : 'rounded-2xl object-cover'}`} alt={item.name} /> : <div className="w-16 h-16 rounded-2xl" style={{ backgroundColor: item.color }} />}
-                                            {!owned && <div className={`absolute inset-0 bg-black/60 flex items-center justify-center ${currentTab === 'avatar' ? 'rounded-full' : 'rounded-2xl'}`}><Lock size={20} className="text-white" /></div>}
+                                    <button 
+                                        key={item.id} 
+                                        onClick={() => currentTab === 'avatar' ? setSelectedId(item.id) : setSelectedSceneId(item.id)} 
+                                        className={`flex-shrink-0 w-28 md:w-44 snap-start group relative flex flex-col items-center gap-3 p-3 md:p-5 rounded-[24px] md:rounded-[36px] border-2 transition-all duration-300
+                                            ${active 
+                                                ? 'bg-white dark:bg-white/10 border-primary shadow-2xl ring-4 ring-primary/10 scale-[1.05] z-10' 
+                                                : 'bg-white/20 hover:bg-white/40 border-transparent hover:scale-[1.02]'}
+                                        `}
+                                    >
+                                        <div className="relative size-14 md:size-24 shrink-0">
+                                            {item.image ? (
+                                                <img src={item.image} className={`w-full h-full shadow-lg transition-transform duration-500 group-hover:rotate-3 ${currentTab === 'avatar' ? 'rounded-full' : 'rounded-2xl object-cover'}`} alt={item.name} />
+                                            ) : (
+                                                <div className="w-full h-full rounded-2xl" style={{ backgroundColor: item.color }} />
+                                            )}
+                                            {!owned && (
+                                                <div className={`absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center ${currentTab === 'avatar' ? 'rounded-full' : 'rounded-2xl'}`}>
+                                                    <Lock size={20} className="text-white drop-shadow-md" />
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="flex flex-col items-start text-left">
-                                            <span className="font-black text-gray-900 dark:text-white text-lg">{item.name.split(' - ')[0]}</span>
-                                            <div className="text-xs font-bold uppercase tracking-widest mt-1">
+                                        
+                                        <div className="flex flex-col items-center text-center w-full min-w-0">
+                                            <span className={`font-black text-[10px] md:text-base truncate w-full ${active ? 'text-primary' : 'text-gray-900 dark:text-white'}`}>
+                                                {item.name.split(' - ')[0]}
+                                            </span>
+                                            <div className="flex items-center gap-1.5 mt-1">
                                                 {owned ? (
-                                                    <span className="text-emerald-500 flex items-center gap-1.5"><CheckCircle2 size={14} /> Owned</span>
+                                                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 text-[8px] md:text-[10px] font-black uppercase">
+                                                       <CheckCircle2 size={12} /> Owned
+                                                    </div>
                                                 ) : (
-                                                    <span className="text-yellow-600 dark:text-yellow-400 flex items-center gap-1.5"><Coins size={14} /> {item.price} Coins</span>
+                                                    <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 text-[9px] md:text-[12px] font-black">
+                                                        <Coins size={12} /> {item.price}
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

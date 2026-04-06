@@ -1,110 +1,118 @@
 import React from "react"
 import Navbar from "../Layout/Navbar"
 import { ASSETS } from "../../config/assets";
+import { User, Bell } from "lucide-react";
+import CoinBadge from "../UI/CoinBadge"
 
 const Logo = ASSETS.BRANDING.LOGO;
 const GirlIcon = ASSETS.AVATARS.GIRL;
 const BroIcon = ASSETS.AVATARS.BRO;
-const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
-import CoinBadge from "../UI/CoinBadge"
-
+const NerdIcon = ASSETS.AVATARS.NERD2;
 
 const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, isLoggedIn }) => {
     const [profileImage] = React.useState(() => {
-        if (!localStorage.getItem("token")) return Logo;
         const savedImage = localStorage.getItem("avatarImage");
         if (savedImage) return savedImage;
         const savedAvatar = localStorage.getItem("avatar") || "bro";
         const map = { girl: GirlIcon, nerd: NerdIcon, bro: BroIcon };
-        return map[savedAvatar.toLowerCase()] || BroIcon;
+        const mapped = map[savedAvatar.toLowerCase()];
+        if (mapped) return mapped;
+        return null;
     });
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl">
-            <div className="mx-auto grid w-full grid-cols-2 items-center px-4 py-4 sm:px-6 md:grid-cols-3">
-                {/* LEFT */}
-                <div className="flex min-w-0 items-center gap-3">
-                    <div
-                        className={`relative size-11 sm:size-12 shrink-0 overflow-hidden rounded-2xl bg-white/20 shadow-md ring-2 ${headerTheme.ring}`}
-                    >
+        <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-white/5 bg-white/80 dark:bg-black/40 backdrop-blur-xl">
+            <div className="mx-auto flex items-center justify-between px-3 py-2 sm:px-6 sm:py-4">
+                {/* LEFT: Branding */}
+                <div className="flex items-center gap-1.5 xs:gap-2 group cursor-pointer shrink-0" onClick={() => navigate("/")}>
+                    <div className={`relative size-8 sm:size-11 rounded-xl bg-white shadow-sm ring-1 sm:ring-2 ${headerTheme.ring} overflow-hidden`}>
                         <img
                             src={Logo}
                             alt="Logo"
-                            className="h-full w-full object-cover transition duration-300 hover:scale-110"
+                            className="h-full w-full object-cover"
                         />
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-pink-200/30 via-transparent to-blue-200/20" />
+                    </div>
+                    <div className="flex flex-col leading-none">
+                        <h1 className="text-[10px] sm:text-sm font-black text-gray-900 dark:text-white tracking-tighter">APM AI</h1>
+                        <p className="text-[7px] sm:text-[9px] font-bold text-gray-400 uppercase tracking-widest">Assistant</p>
                     </div>
                 </div>
 
-                {/* CENTER */}
-                <div className="hidden md:flex justify-center">
-                    <div className="rounded-full border border-white/20 bg-white/15 px-6 py-2 shadow-sm">
+                {/* CENTER: Navbar (Desktop) */}
+                <div className="hidden md:flex justify-center flex-1 mx-4">
+                    <div className="rounded-full border border-white/20 bg-white/10 px-6 py-2 shadow-sm">
                         <Navbar />
                     </div>
                 </div>
          
-                {/* RIGHT */}
-                <div className="flex justify-end items-center gap-3">
-
-                    <button className="relative size-9 sm:size-10 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-105 active:scale-95">
-                        <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-gray-700 dark:text-gray-200">
-                            notifications
-                        </span>
-                        <span className="absolute top-2 right-2 size-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
+                {/* RIGHT: Actions */}
+                <div className="flex justify-end items-center gap-1.5 sm:gap-3 shrink-0">
+                    <button className="relative size-8 sm:size-10 rounded-full flex items-center justify-center bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 shadow-sm text-gray-500 transition-all active:scale-95">
+                        <Bell size={16} className="sm:hidden" />
+                        <Bell size={20} className="hidden sm:block" />
+                        <span className="absolute top-2 right-2 size-1.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
                     </button>
-
 
                     <button
                         type="button"
-                        onClick={() => navigate(localStorage.getItem("token") ? "/account" : "/login")}
-                        className="size-9 sm:size-10 rounded-full bg-cover bg-center border-2 border-primary/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-sm"
-                        style={{ backgroundImage: `url("${profileImage}")`, backgroundColor: "white" }}
-                        title="Go to Login"
-                        aria-label="Go to login"
-                    />
+                        onClick={() => navigate(isLoggedIn ? "/account" : "/login")}
+                        className="size-8 sm:size-10 rounded-full flex items-center justify-center border border-gray-200 dark:border-white/10 cursor-pointer overflow-hidden transition-all shadow-sm bg-gray-50"
+                    >
+                        {isLoggedIn && profileImage ? (
+                            <img src={profileImage} alt="profile" className="w-full h-full object-cover" />
+                        ) : (
+                            <User size={16} className="text-gray-400" />
+                        )}
+                    </button>
 
-                    {/* Mobile Navbar */}
                     <div className="md:hidden">
                         <Navbar />
                     </div>
                 </div>
             </div>
 
-            {/* Mode Pill */}
-            <div className="px-4 pb-4">
+            {/* Mode Pill: Ultra Compact for Mobile */}
+            <div className="px-2 pb-2">
                 <div
-                    className={`w-full rounded-2xl p-4 font-bold capitalize shadow-md transition-all duration-500 flex items-center justify-between bg-gradient-to-r ${headerTheme.pill} text-white`}
+                    className={`w-full rounded-2xl px-3 py-2.5 font-bold shadow-md transition-all duration-500 flex items-center justify-between bg-gradient-to-r ${headerTheme.pill} text-white`}
                 >
-                    <div className="flex items-center gap-2">
-                        <img
-                            src={mode === "bro" ? BroIcon : mode === "girl" ? GirlIcon : NerdIcon}
-                            alt="mode icon"
-                            className="w-8 h-8 rounded-full object-cover ring-2 ring-white/60"
-                        />
-
-                        <span>{mode} Mode Online</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                        <div className="size-7 sm:size-9 rounded-full bg-white/20 p-0.5 shrink-0 ring-1 ring-white/40">
+                             <img
+                                src={mode === "bro" ? BroIcon : mode === "girl" ? GirlIcon : NerdIcon}
+                                alt="mode icon"
+                                className="w-full h-full rounded-full object-cover"
+                            />
+                        </div>
+                        <div className="min-w-0 flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                            <span className="text-[11px] sm:text-sm font-black truncate">{mode.toUpperCase()} MODE</span>
+                            <div className="flex items-center gap-1.5 sm:hidden">
+                                <div className="size-1.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+                                <span className="text-[8px] font-bold opacity-80 uppercase tracking-widest">Active</span>
+                            </div>
+                            <span className="text-[10px] font-bold opacity-80 tracking-widest hidden sm:block">Online Now</span>
+                        </div>
                     </div>
 
-                    <CoinBadge isVibrant={true} className="scale-75 sm:scale-90" />
+                    <div className="flex items-center gap-2 shrink-0">
+                        {/* Status elements are mutually exclusive now to save space */}
+                        {isLoggedIn ? (
+                             <CoinBadge isVibrant={true} className="hidden sm:block scale-90 origin-right transition-transform" />
+                        ) : (
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-black/10 backdrop-blur-md border border-white/20 text-[9px] font-black shadow-inner whitespace-nowrap">
+                                <span className="material-symbols-outlined text-[12px] sm:text-[14px]">bolt</span>
+                                <span className="opacity-90">{5 - guestChatCount} LFT</span>
+                            </div>
+                        )}
 
-
-                    {!isLoggedIn && (
-
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-xs font-bold shadow-sm">
-                            <span className="material-symbols-outlined text-[14px]">bolt</span>
-                            <div>เหลือ {5 - guestChatCount} ครั้ง</div>
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-3">
                         <button
                             onClick={onClearChat}
-                            className="px-3 py-1 rounded-xl bg-white/20 hover:bg-white/30 transition-all text-sm"
+                            className="px-2.5 py-1 sm:px-4 rounded-xl bg-white/20 hover:bg-white/30 transition-all text-[9px] sm:text-xs font-black uppercase tracking-wider border border-white/10 active:scale-95"
                         >
-                            ล้างแชท
+                            Reset
                         </button>
-
-                        <div className="size-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+                        
+                        <div className="hidden sm:block size-2.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
                     </div>
                 </div>
             </div>

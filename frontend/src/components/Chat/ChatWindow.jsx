@@ -8,7 +8,6 @@ import ChatHeader from "../chat-window/ChatHeader"
 import MessageList from "../chat-window/MessageList"
 import ChatInput from "../chat-window/ChatInput"
 import ImagePreview from "../chat-window/ImagePreview"
-import CoinBadge from "../UI/CoinBadge"
 import { getSystemMessage, buildPlannerSystemPrompt, plannerPrompt } from "../../data/aiPrompts"
 
 const ChatWindow = ({ mode: propsMode }) => {
@@ -29,9 +28,7 @@ const ChatWindow = ({ mode: propsMode }) => {
   const fileInputRef = useRef(null)
   const pdfInputRef = useRef(null)
 
-
-
-  // Safe text util (also used in MessageItem, but needed here for setting initial state if needed, mostly for error handling)
+  // Safe text util
   const safeText = (value) => {
     if (typeof value === "string") return value
     if (value === null || value === undefined) return ""
@@ -41,10 +38,6 @@ const ChatWindow = ({ mode: propsMode }) => {
       return String(value)
     }
   }
-
-
-
-
 
   // Preview URL effect
   useEffect(() => {
@@ -107,12 +100,10 @@ const ChatWindow = ({ mode: propsMode }) => {
   const handleImageChange = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-
     if (!file.type.startsWith("image/")) {
       alert("กรุณาเลือกไฟล์รูปภาพเท่านั้น")
       return
     }
-
     setSelectedImage(file)
   }
 
@@ -128,12 +119,10 @@ const ChatWindow = ({ mode: propsMode }) => {
   const handlePdfChange = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-
     if (file.type !== "application/pdf") {
       alert("กรุณาเลือกไฟล์ PDF เท่านั้น")
       return
     }
-
     setIsLoading(true)
     pdfToText(file)
       .then((text) => {
@@ -187,8 +176,6 @@ const ChatWindow = ({ mode: propsMode }) => {
   const handleSend = async (e) => {
     e.preventDefault()
     if ((!input.trim() && !selectedImage) || isLoading) return
-
-    // Guest Limit Check
     if (isLimitReached) {
       alert("คุณใช้งานครบจำนวนจำกัด 5 ครั้งแล้ว กรุณาเข้าสู่ระบบเพื่อใช้งานต่อครับ")
       navigate("/login")
@@ -196,7 +183,6 @@ const ChatWindow = ({ mode: propsMode }) => {
     }
 
     const textToSend = input.trim()
-
     const userMsg = {
       text: textToSend || "(แนบรูปภาพ)",
       sender: "user",
@@ -207,7 +193,6 @@ const ChatWindow = ({ mode: propsMode }) => {
     setInput("")
     setIsLoading(true)
 
-    // Increment guest count if not logged in
     if (!isLoggedIn) {
       const newCount = guestChatCount + 1
       setGuestChatCount(newCount)
@@ -215,9 +200,7 @@ const ChatWindow = ({ mode: propsMode }) => {
     }
 
     try {
-      const shouldPlannerMode = /ตาราง|อ่านหนังสือ|สอบ|midterm|final|to-do|todo|เตือนงาน/i.test(
-        textToSend
-      )
+      const shouldPlannerMode = /ตาราง|อ่านหนังสือ|สอบ|midterm|final|to-do|todo|เตือนงาน/i.test(textToSend)
 
       const finalPrompt = shouldPlannerMode
         ? buildPlannerSystemPrompt(textToSend)
@@ -233,10 +216,7 @@ const ChatWindow = ({ mode: propsMode }) => {
         : await sendMessageToAI(finalPrompt, mode, [], activeHistoryContextId, conversationHistory)
 
       setMessages((prev) => [...prev, { text: safeText(reply), sender: "ai" }])
-
-      // Reset active history to null so subsequent messages use standard recent history logic
       setActiveHistoryContextId(null)
-
       removeSelectedImage()
     } catch (error) {
       setMessages((prev) => [
@@ -252,11 +232,9 @@ const ChatWindow = ({ mode: propsMode }) => {
   }
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto p-2 md:p-4 bg-gray-50 rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+    <div className="flex flex-col h-full w-full max-w-4xl mx-auto bg-white md:bg-gray-50 md:rounded-[40px] md:shadow-2xl border-none md:border md:border-gray-100 overflow-hidden relative">
 
       <ChatHeader
-
-
         mode={mode}
         headerTheme={headerTheme}
         onClearChat={handleClearChat}
@@ -272,56 +250,72 @@ const ChatWindow = ({ mode: propsMode }) => {
         mode={mode}
       />
 
-      {/* Quick Action Button - kept in main file as it interacts with setInput directly */}
-      <div className="px-4 pb-2 bg-white border-t border-gray-100">
-        <button
-          type="button"
-          disabled={isLoading || isLimitReached}
-          onClick={() => setInput(plannerPrompt)}
-          className={`w-full px-4 py-3 rounded-2xl font-semibold transition-all ${isLoading || isLimitReached
-            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-        >
-          📅 ช่วยจัดตาราง + To-do + เตือนงาน
-        </button>
-      </div>
-
-      <ImagePreview
-        selectedImage={selectedImage}
-        imagePreviewUrl={imagePreviewUrl}
-        onRemove={removeSelectedImage}
-      />
-
-      {isLimitReached && (
-        <div className="mx-4 mb-2 p-3 rounded-xl bg-red-50 border border-red-100 flex items-center justify-between text-sm text-red-600 font-bold animate-bounce shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-lg">error</span>
-            <span>คุณใช้งานครบ 5 ครั้งแล้ว กรุณาเข้าสู่ระบบนะครับ 🌷</span>
+      {/* Footer Area with Fixed Height on Mobile to ensure visibility */}
+      <div className="flex flex-col shrink-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-white/5 pb-safe">
+        
+        {/* Quick Action Buttons: Compact Scrollable Row for Mobile */}
+        <div className="px-2 py-2 overflow-x-auto custom-scrollbar">
+          <div className="flex gap-2 min-w-min px-2">
+            <button
+              onClick={() => setInput(plannerPrompt)}
+              disabled={isLoading || isLimitReached}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 text-xs font-black text-gray-700 dark:text-gray-300 hover:border-primary/50 transition-all shadow-sm shrink-0"
+            >
+              <span>📅</span>
+              <span className="whitespace-nowrap">จัดตารางเรียน</span>
+            </button>
+            <button
+              onClick={() => setInput("เหงาจัง ชวนคุยหน่อยสิ ชวนคุยเรื่องอะไรก็ได้ที่สนุกๆ หรือเล่าเรื่องตลกให้ฟังหน่อย 🌷")}
+              disabled={isLoading || isLimitReached}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 text-xs font-black text-gray-700 dark:text-gray-300 hover:border-pink-400/50 transition-all shadow-sm shrink-0"
+            >
+              <span>🐥</span>
+              <span className="whitespace-nowrap">คุยแก้เหงา</span>
+            </button>
+            <button
+              onClick={() => setInput("มีเรื่องอยากปรึกษาหน่อย พอดีช่วงนี้ [ระบุเรื่องที่กังวล] อยากได้คำแนะนำหรือแนวทางแก้ไขปัญหาหน่อยครับ ✨")}
+              disabled={isLoading || isLimitReached}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 text-xs font-black text-gray-700 dark:text-gray-300 hover:border-indigo-400/50 transition-all shadow-sm shrink-0"
+            >
+              <span>🤝</span>
+              <span className="whitespace-nowrap">ปรึกษา</span>
+            </button>
           </div>
-          <button
-            onClick={() => navigate("/login")}
-            className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            ไปหน้า Login
-          </button>
         </div>
-      )}
 
-      <ChatInput
-        input={input}
-        setInput={setInput}
-        isLoading={isLoading}
-        handleSend={handleSend}
-        handlePickImage={handlePickImage}
-        fileInputRef={fileInputRef}
-        handleImageChange={handleImageChange}
-        pdfInputRef={pdfInputRef}
-        handlePickPdf={handlePickPdf}
-        handlePdfChange={handlePdfChange}
-        headerTheme={headerTheme}
-        disabled={isLimitReached}
-      />
+        <ImagePreview
+          selectedImage={selectedImage}
+          imagePreviewUrl={imagePreviewUrl}
+          onRemove={removeSelectedImage}
+        />
+
+        {isLimitReached && (
+          <div className="mx-4 my-1 p-2 rounded-xl bg-red-50 border border-red-100 flex items-center justify-between text-[10px] text-red-600 font-bold shadow-sm shrink-0">
+            <div className="flex items-center gap-2 truncate">
+              <span className="material-symbols-outlined text-base">error</span>
+              <span className="truncate">ใช้งานครบ 5 ครั้งแล้ว กรุณา Login นะครับ 🌷</span>
+            </div>
+            <button onClick={() => navigate("/login")} className="px-3 py-1 bg-red-600 text-white rounded-lg text-[10px] shrink-0 font-black">
+              LOGIN
+            </button>
+          </div>
+        )}
+
+        <ChatInput
+          input={input}
+          setInput={setInput}
+          isLoading={isLoading}
+          handleSend={handleSend}
+          handlePickImage={handlePickImage}
+          fileInputRef={fileInputRef}
+          handleImageChange={handleImageChange}
+          pdfInputRef={pdfInputRef}
+          handlePickPdf={handlePickPdf}
+          handlePdfChange={handlePdfChange}
+          headerTheme={headerTheme}
+          disabled={isLimitReached}
+        />
+      </div>
     </div>
   )
 }
