@@ -1,6 +1,6 @@
 import secrets
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.utils.db import get_db
 from app.utils.security import verify_password, create_access_token, hash_password
@@ -8,7 +8,7 @@ from app.services.auth_service import get_user_by_email, get_user_by_username, c
 from app.models.password_reset_token import PasswordResetToken
 from app.services.mail_service import send_reset_password_email
 from pydantic import BaseModel, EmailStr
-from typing import Optional, Union
+from typing import Optional
 from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter()
@@ -50,32 +50,44 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return {"message": "สมัครสมาชิกสำเร็จ", "user_id": new_user.id}
 
 @router.post("/login")
-def login(
+async def login(
+    request: Request,
     login_data: Optional[UserLogin] = None, 
-    form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
     user = None
-    
-    # 1. ค้นหา User จาก Email หรือ Username โดยรองรับทั้ง JSON (Frontend) และ Form (Swagger)
     input_identifier = None
     input_password = None
     
-    # เช็คว่ามาจาก JSON หรือ Form
-    if login_data:
-        input_password = login_data.password
-        if login_data.email:
-            user = get_user_by_email(db, email=login_data.email)
-        elif login_data.username:
-            user = get_user_by_username(db, username=login_data.username)
-    else:
-        input_identifier = form_data.username
-        input_password = form_data.password
-        # สำหรับ Form data (Swagger) ให้ลองเช็คว่าเป็นอีเมลหรือชื่อผู้ใช้
-        if "@" in input_identifier:
-            user = get_user_by_email(db, email=input_identifier)
+    # เช็คก่อนว่ามี JSON หรือไม่
+    try:
+        content_type = request.headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            data = await request.json()
+            input_identifier = data.get("email") or data.get("username")
+            input_password = data.get("password")
         else:
-            user = get_user_by_username(db, username=input_identifier)
+            # ถ้าเป็นฟอร์ม (Swagger)
+            form_data = await request.form()
+            input_identifier = form_data.get("username")
+            input_password = form_data.get("password")
+    except Exception:
+        pass
+
+    # จัดการกรณีพิเศษสำหรับ Swagger UI Authorize
+    if not input_identifier or not input_password:
+        # ลองดึงจาก form_data อีกครั้ง (FastAPI support)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="ข้อมูลล็อกอินไม่ครบถ้วน",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
+    # ค้นหา User โดยเช็คว่าเป็นอีเมลหรือชื่อผู้ใช้
+    if "@" in input_identifier:
+        user = get_user_by_email(db, email=input_identifier)
+    else:
+        user = get_user_by_username(db, username=input_identifier)
     
     # 2. ตรวจสอบว่ามี User ไหม และรหัสผ่านถูกต้องไหม
     if not user or not verify_password(input_password, user.hashed_password):
