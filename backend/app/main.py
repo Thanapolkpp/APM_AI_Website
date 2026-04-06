@@ -31,7 +31,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "*", 
-        "https://apm-ai-website-j4pyorb1c-thanapolkpps-projects.vercel.app", # Vercel ของคุณ
+        "https://apm-ai-website.vercel.app", # Vercel ของคุณ
         "http://localhost:5173" # สำหรับรันเครื่องตัวเอง
     ],
     allow_credentials=True,
