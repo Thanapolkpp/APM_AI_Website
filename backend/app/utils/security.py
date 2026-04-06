@@ -15,7 +15,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 วัน
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/user/login")
 
 def hash_password(password: str):
     return pwd_context.hash(password)
