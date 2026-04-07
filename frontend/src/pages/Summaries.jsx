@@ -774,11 +774,12 @@ const Summaries = () => {
                                 </div>
                             )}
 
-                            {/* ใช้ iframe แสดง PDF ตรงๆ → Browser จัดสีถูกต้องทุกกรณี (รวมถึง PDF สีดำจาก Supabase) */}
+                            {/* Google Docs Viewer → แก้ปัญหา Supabase X-Frame-Options + สีถูกต้องทุกกรณี */}
                             <iframe
-                                src={`${selectedItem.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                                src={`https://docs.google.com/gview?url=${encodeURIComponent(selectedItem.pdfUrl)}&embedded=true`}
                                 className={`w-full h-full border-none ${(selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased) ? 'pointer-events-none' : ''}`}
                                 title="PDF Viewer"
+                                allow="autoplay"
                             />
                         </div>
                         <div className="p-6 bg-white dark:bg-gray-900 border-t dark:border-white/10 flex justify-between items-center px-10">
