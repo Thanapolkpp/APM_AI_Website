@@ -9,6 +9,7 @@ const API_TODOS_URL = `${BASE_URL}/api/v1/todos`;
 const API_SHEETS_URL = `${BASE_URL}/api/v1/study-sheets`;
 const API_INVENTORY_URL = `${BASE_URL}/api/v1/inventory`;
 const API_NOTIFICATIONS_URL = `${BASE_URL}/api/v1/notifications`;
+const API_PDF_URL = `${BASE_URL}/api/v1/ai/chat-with-pdf`;
 
 // Helper สำหรับดึง Token และจัดการ Header
 const authHeader = () => ({
@@ -78,6 +79,28 @@ export const sendMessageToAIWithImage = async (prompt, mode, imageFile, context_
         },
     });
     return String(response.data?.reply ?? response.data?.response ?? "");
+};
+
+/**
+ * Chat with PDF content
+ * @param {string} prompt - User message or summary instruction
+ * @param {string} mode - AI personality (bro, nerd, etc.)
+ * @param {File|Blob} pdfFile - PDF file or Blob data
+ * @returns {Promise<string>} AI reply
+ */
+export const sendMessageToAIWithPDF = async (prompt, mode, pdfFile) => {
+    const formData = new FormData();
+    formData.append("prompt", prompt || "");
+    formData.append("mode", mode || "bro");
+    formData.append("file", pdfFile);
+
+    const response = await axios.post(API_PDF_URL, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+            ...authHeader()
+        },
+    });
+    return String(response.data?.reply ?? "");
 };
 
 // ---------- User ----------

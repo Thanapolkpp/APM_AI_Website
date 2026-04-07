@@ -13,7 +13,11 @@ const GirlIcon = ASSETS.AVATARS.GIRL;
 const BroIcon = ASSETS.AVATARS.BRO;
 const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
 import { jsPDF } from "jspdf"
-import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice, deleteSheet, updateExp, sendMessageToAI } from "../services/aiService"
+import { pdfjs, Document, Page } from 'react-pdf';
+import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice, deleteSheet, updateExp, sendMessageToAI, sendMessageToAIWithPDF } from "../services/aiService"
+
+// Configure pdfjs worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 
 // แมพชื่อ string เข้ากับ Component จริงๆ เพื่อป้องกัน Error: Element type is invalid
@@ -169,22 +173,43 @@ const Summaries = () => {
                     clearInterval(timer)
 
                     // --- [REAL AI CALL] หลังจากนับถอยหลังเสร็จ ---
-                    const contentToSummarize = item.extracted_text || item.title || "ไม่มีเนื้อหาที่จะสรุป";
+                    const pdfUrl = formatDocUrl(item.file_path);
+                    const prompt = `ช่วยสรุปใจความสำคัญจากเนื้อหาชีทติวเรื่อง "${item.title}" นี้ให้หน่อยเพื่อน โดยเน้นที่ประเด็นสำคัญ 3-5 ข้อ และสรุปให้สั้นกระชับเข้าใจง่ายสำหรับนักศึกษา:`;
 
-                    sendMessageToAI(
-                        `ช่วยสรุปใจความสำคัญจากเนื้อหาชีทติวเรื่อง "${item.title}" นี้ให้หน่อยเพื่อน โดยเน้นที่ประเด็นสำคัญ 3-5 ข้อ และสรุปให้สั้นกระชับเข้าใจง่ายสำหรับนักศึกษา:\n\n${contentToSummarize.substring(0, 5000)}`,
-                        "nerd" // ใช้โหมด Nerd เพื่อความแม่นยำของเนื้อหา
-                    ).then((aiReply) => {
-                        const finalSummary = `✨ สรุปโดย APM AI (สดใหม่!) ✨\n\nหัวข้อ: ${item.title}\n\n${aiReply}`;
-                        setSummaryText(finalSummary);
-                        setIsGenerating(false);
-                    }).catch((error) => {
-                        console.error("AI Error:", error);
-                        setSummaryText("ขออภัยครับเพื่อน พอดี AI ติดขัดนิดหน่อย ลองใหม่อีกรอบนะ! 🌷");
-                        setIsGenerating(false);
-                    });
+                    if (item.file_path) {
+                        // ถ้ามีไฟล์ PDF ให้ส่งไปที่ chat-with-pdf เพื่อความแม่นยำสูงสุด
+                        fetch(pdfUrl)
+                            .then(res => res.blob())
+                            .then(async (blob) => {
+                                const file = new File([blob], "sheet.pdf", { type: "application/pdf" });
+                                const aiReply = await sendMessageToAIWithPDF(prompt, "nerd", file);
+                                const finalSummary = `✨ สรุปโดย APM AI (สดใหม่!) ✨\n\nหัวข้อ: ${item.title}\n\n${aiReply}`;
+                                setSummaryText(finalSummary);
+                                setIsGenerating(false);
+                            })
+                            .catch((error) => {
+                                console.error("AI PDF Error:", error);
+                                setSummaryText("ขออภัยครับเพื่อน พอดี AI อ่านไฟล์ PDF นี้ขัดข้องนิดหน่อย ลองใหม่อีกรอบนะ! 🌷");
+                                setIsGenerating(false);
+                            });
+                    } else {
+                        // ถ้าไม่มีไฟล์ (เผื่อไว้) ใช้ส่ง Text ปกติ
+                        const contentToSummarize = item.extracted_text || item.title || "ไม่มีเนื้อหาที่จะสรุป";
+                        sendMessageToAI(
+                            `${prompt}\n\n${contentToSummarize.substring(0, 5000)}`,
+                            "nerd"
+                        ).then((aiReply) => {
+                            const finalSummary = `✨ สรุปโดย APM AI (สดใหม่!) ✨\n\nหัวข้อ: ${item.title}\n\n${aiReply}`;
+                            setSummaryText(finalSummary);
+                            setIsGenerating(false);
+                        }).catch((error) => {
+                            console.error("AI Text Error:", error);
+                            setSummaryText("ขออภัยครับเพื่อน พอดี AI ติดขัดนิดหน่อย ลองใหม่อีกรอบนะ! 🌷");
+                            setIsGenerating(false);
+                        });
+                    }
 
-                    return 0
+                    return 0;
                 }
                 return prev - 1
             })
@@ -421,12 +446,20 @@ const Summaries = () => {
                                         }}
                                     >
                                         {item.file_path ? (
-                                            <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-                                                <iframe
-                                                    src={`${formatDocUrl(item.file_path)}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
-                                                    className="w-full h-full border-none pointer-events-none scale-[1.2] md:scale-[1.2] origin-top"
-                                                    title="Preview"
-                                                />
+                                            <div className="absolute inset-0 pointer-events-none select-none overflow-hidden flex items-center justify-center p-2 bg-gray-50/50">
+                                                <Document
+                                                    file={formatDocUrl(item.file_path)}
+                                                    loading={<div className="size-4 border-2 border-primary/40 border-t-transparent rounded-full animate-spin" />}
+                                                >
+                                                    <Page 
+                                                        pageNumber={1} 
+                                                        renderTextLayer={false} 
+                                                        renderAnnotationLayer={false}
+                                                        scale={0.5} 
+                                                        width={300}
+                                                        className="shadow-md rounded-md overflow-hidden"
+                                                    />
+                                                </Document>
                                             </div>
                                         ) : (
                                             <>
@@ -515,12 +548,20 @@ const Summaries = () => {
                                 <div key={item.id} className="group h-[200px] md:h-[320px] bg-white dark:bg-gray-800/40 border border-gray-100 dark:border-white/10 rounded-[32px] md:rounded-[48px] overflow-hidden flex shadow-xl hover:-translate-y-2 transition-all duration-500">
                                     <div className="w-1/3 bg-gray-100 dark:bg-black/40 flex items-center justify-center relative overflow-hidden group">
                                         {item.file_path ? (
-                                            <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-                                                <iframe
-                                                    src={`${formatDocUrl(item.file_path)}#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
-                                                    className="w-full h-full border-none pointer-events-none scale-[1.5] origin-top"
-                                                    title="My Preview"
-                                                />
+                                            <div className="absolute inset-0 pointer-events-none select-none overflow-hidden flex items-center justify-center p-2 bg-gray-50/50">
+                                                <Document
+                                                    file={formatDocUrl(item.file_path)}
+                                                    loading={<div className="size-4 border-2 border-primary/40 border-t-transparent rounded-full animate-spin" />}
+                                                >
+                                                    <Page 
+                                                        pageNumber={1} 
+                                                        renderTextLayer={false} 
+                                                        renderAnnotationLayer={false}
+                                                        scale={0.6} 
+                                                        width={200}
+                                                        className="shadow-md rounded-md overflow-hidden"
+                                                    />
+                                                </Document>
                                             </div>
                                         ) : (
                                             <>
@@ -703,7 +744,7 @@ const Summaries = () => {
                             </div>
                             <button onClick={() => setIsPdfModalOpen(false)} className="size-12 rounded-2xl bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all active:scale-90"><HiOutlineX size={28} /></button>
                         </div>
-                        <div className={`flex-1 bg-gray-100 dark:bg-black/60 overflow-hidden relative select-none print:hidden group/pdf-container`}
+                        <div className={`flex-1 bg-gray-100 dark:bg-black/60 overflow-y-auto overflow-x-hidden relative select-none print:hidden group/pdf-container custom-scrollbar`}
                             onMouseLeave={(e) => {
                                 const isProtected = selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased;
                                 if (isProtected) {
@@ -733,11 +774,32 @@ const Summaries = () => {
                                 </div>
                             )}
 
-                            <iframe
-                                src={`${selectedItem.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                                className={`w-full h-full border-none ${(selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased) ? 'pointer-events-none' : ''}`}
-                                title="PDF Viewer"
-                            />
+                            <div className="flex justify-center p-4 md:p-10 min-h-full">
+                                <Document
+                                    file={selectedItem.pdfUrl}
+                                    loading={
+                                        <div className="flex flex-col items-center justify-center p-20 space-y-4">
+                                            <div className="size-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                                            <p className="text-gray-400 font-black animate-pulse">กำลังวาดหน้ากระดาษให้เพื่อน... 🎨</p>
+                                        </div>
+                                    }
+                                    error={
+                                        <div className="text-red-500 font-black p-20 text-center">
+                                            ❌ โหลดหน้าสรุปไม่ได้ <br/> (ไฟล์อาจมีปัญหา หรือเน็ตหลุด)
+                                        </div>
+                                    }
+                                    className="shadow-2xl shadow-black/30 rounded-lg overflow-hidden border border-white/10"
+                                >
+                                    <Page 
+                                        pageNumber={1} 
+                                        renderTextLayer={false} 
+                                        renderAnnotationLayer={false}
+                                        scale={1.5}
+                                        width={Math.min(window.innerWidth * 0.9, 1000)}
+                                        className="max-w-full"
+                                    />
+                                </Document>
+                            </div>
                         </div>
                         <div className="p-6 bg-white dark:bg-gray-900 border-t dark:border-white/10 flex justify-between items-center px-10">
                             <div className="flex flex-col"><span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{selectedItem.category}</span><span className="text-emerald-500 font-black text-sm tracking-tighter">FREE DOCUMENT</span></div>
