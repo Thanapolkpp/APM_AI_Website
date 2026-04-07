@@ -744,7 +744,7 @@ const Summaries = () => {
                             </div>
                             <button onClick={() => setIsPdfModalOpen(false)} className="size-12 rounded-2xl bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all active:scale-90"><HiOutlineX size={28} /></button>
                         </div>
-                        <div className={`flex-1 bg-gray-100 dark:bg-black/60 overflow-y-auto overflow-x-hidden relative select-none print:hidden group/pdf-container custom-scrollbar`}
+                        <div className={`flex-1 overflow-hidden relative select-none print:hidden`}
                             onMouseLeave={(e) => {
                                 const isProtected = selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased;
                                 if (isProtected) {
@@ -774,32 +774,12 @@ const Summaries = () => {
                                 </div>
                             )}
 
-                            <div className="flex justify-center p-4 md:p-10 min-h-full">
-                                <Document
-                                    file={selectedItem.pdfUrl}
-                                    loading={
-                                        <div className="flex flex-col items-center justify-center p-20 space-y-4">
-                                            <div className="size-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                                            <p className="text-gray-400 font-black animate-pulse">กำลังวาดหน้ากระดาษให้เพื่อน... 🎨</p>
-                                        </div>
-                                    }
-                                    error={
-                                        <div className="text-red-500 font-black p-20 text-center">
-                                            ❌ โหลดหน้าสรุปไม่ได้ <br/> (ไฟล์อาจมีปัญหา หรือเน็ตหลุด)
-                                        </div>
-                                    }
-                                    className="shadow-2xl shadow-black/30 rounded-lg overflow-hidden border border-white/10"
-                                >
-                                    <Page 
-                                        pageNumber={1} 
-                                        renderTextLayer={false} 
-                                        renderAnnotationLayer={false}
-                                        scale={1.5}
-                                        width={Math.min(window.innerWidth * 0.9, 1000)}
-                                        className="max-w-full"
-                                    />
-                                </Document>
-                            </div>
+                            {/* ใช้ iframe แสดง PDF ตรงๆ → Browser จัดสีถูกต้องทุกกรณี (รวมถึง PDF สีดำจาก Supabase) */}
+                            <iframe
+                                src={`${selectedItem.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                                className={`w-full h-full border-none ${(selectedItem?.price > 0 && !selectedItem?.is_mine && !selectedItem?.already_purchased) ? 'pointer-events-none' : ''}`}
+                                title="PDF Viewer"
+                            />
                         </div>
                         <div className="p-6 bg-white dark:bg-gray-900 border-t dark:border-white/10 flex justify-between items-center px-10">
                             <div className="flex flex-col"><span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{selectedItem.category}</span><span className="text-emerald-500 font-black text-sm tracking-tighter">FREE DOCUMENT</span></div>
