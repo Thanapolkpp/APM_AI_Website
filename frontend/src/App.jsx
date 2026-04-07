@@ -13,25 +13,31 @@ import Summaries from "./pages/Summaries";
 import TodoList from "./pages/TodoList";
 import ReadingSystem from "./pages/ReadingSystem";
 import EditAvatar from "./components/Profile/EditAvatar";
+import SessionTimer from "./components/UI/SessionTimer";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/account" element={<Account />} />
-      <Route path="/event" element={<Event />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/summaries" element={<Summaries />} />
-      <Route path="/todo" element={<TodoList />} />
-      <Route path="/reading" element={<ReadingSystem />} />
-      <Route path="/avatar" element={<EditAvatar />} />
-      <Route path="/chat/:mode" element={<Chat />} />
-    </Routes>
+    <>
+      {/* Session countdown timer - fixed bottom-left, visible only when logged in */}
+      <SessionTimer />
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/account" element={<Account />} />
+        <Route path="/event" element={<Event />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/summaries" element={<Summaries />} />
+        <Route path="/todo" element={<TodoList />} />
+        <Route path="/reading" element={<ReadingSystem />} />
+        <Route path="/avatar" element={<EditAvatar />} />
+        <Route path="/chat/:mode" element={<Chat />} />
+      </Routes>
+    </>
   );
 }
 

@@ -12,9 +12,11 @@ const API_NOTIFICATIONS_URL = `${BASE_URL}/api/v1/notifications`;
 const API_PDF_URL = `${BASE_URL}/api/v1/ai/chat-with-pdf`;
 
 // Helper สำหรับดึง Token และจัดการ Header
-const authHeader = () => ({
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-});
+// ถ้าไม่มี token (Guest) จะไม่ส่ง Authorization header เพื่อให้แชทได้โดยไม่ต้อง Login
+const authHeader = () => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 // ---------- Auth ----------
 export const login = async (identifier, password) => {
@@ -52,6 +54,7 @@ export const sendMessageToAI = async (message, mode, sheet_ids = [], context_his
     if (conversation_history) {
         payload.conversation_history = conversation_history;
     }
+    // ทั้ง Guest และ User ที่ Login แล้ว สามารถแชทได้ (authHeader จะส่ง token ถ้ามี)
     const response = await axios.post(
         API_TEXT_URL,
         payload,
@@ -94,6 +97,7 @@ export const sendMessageToAIWithPDF = async (prompt, mode, pdfFile) => {
     formData.append("mode", mode || "bro");
     formData.append("file", pdfFile);
 
+    // Guest สามารถใช้ฟีเจอร์ PDF ได้เช่นกัน
     const response = await axios.post(API_PDF_URL, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
