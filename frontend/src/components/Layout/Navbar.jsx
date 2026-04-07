@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from "react"
-import { NavLink } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { PiAtomBold, PiBackspaceBold } from "react-icons/pi"
+import { useTranslation } from "react-i18next"
+import { PiAtomBold, PiBackspaceBold, PiTranslateBold } from "react-icons/pi"
 import CoinBadge from "../UI/CoinBadge"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "th" ? "en" : "th"
+    i18n.changeLanguage(newLang)
+  }
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto"
@@ -16,17 +24,17 @@ export default function Navbar() {
 
   const navLinks = isLoggedIn 
     ? [
-        { name: "Home", to: "/" },
-        { name: "Mall", to: "/avatar" },
-        { name: "Summaries", to: "/summaries" },
-        { name: "ToDo List", to: "/todo" },
-        { name: "Reading", to: "/reading" },
-        { name: "Events", to: "/event" },
+        { name: t("nav.home"), to: "/" },
+        { name: t("nav.mall"), to: "/avatar" },
+        { name: t("nav.summaries"), to: "/summaries" },
+        { name: t("nav.todo"), to: "/todo" },
+        { name: t("nav.reading"), to: "/reading" },
+        { name: t("nav.events"), to: "/event" },
       ]
     : [
-        { name: "Home", to: "/" },
-        { name: "About", to: "/about" },
-        { name: "Contact", to: "/contact" },
+        { name: t("nav.home"), to: "/" },
+        { name: t("nav.about"), to: "/about" },
+        { name: t("nav.contact"), to: "/contact" },
       ]
 
   return (
@@ -48,15 +56,32 @@ export default function Navbar() {
             {link.name}
           </NavLink>
         ))}
+        
+        {/* Language Switcher Desktop */}
+        <button
+          onClick={toggleLanguage}
+          className="ml-2 px-3 py-2 text-xs font-black rounded-xl border border-transparent hover:bg-white/50 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all flex items-center gap-2"
+        >
+          <PiTranslateBold size={18} className="text-primary" />
+          <span className="uppercase">{i18n.language === "th" ? "TH" : "EN"}</span>
+        </button>
       </nav>
 
       {/* MOBILE TRIGGER - Small & Compact to avoid header crowding */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="md:hidden p-2 rounded-xl bg-white/90 dark:bg-white/5 border border-white/60 dark:border-white/10 text-primary active:scale-90 transition-all shadow-sm"
-      >
-        <PiAtomBold size={24} />
-      </button>
+      <div className="flex items-center gap-2 md:hidden">
+        <button
+          onClick={toggleLanguage}
+          className="size-10 rounded-xl bg-white/90 dark:bg-white/5 border border-white/60 dark:border-white/10 text-primary active:scale-90 transition-all shadow-sm flex items-center justify-center font-black text-[10px]"
+        >
+          {i18n.language.toUpperCase()}
+        </button>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="p-2 rounded-xl bg-white/90 dark:bg-white/5 border border-white/60 dark:border-white/10 text-primary active:scale-90 transition-all shadow-sm"
+        >
+          <PiAtomBold size={24} />
+        </button>
+      </div>
 
       {/* MOBILE OVERLAY */}
       <AnimatePresence>
@@ -81,12 +106,20 @@ export default function Navbar() {
               {/* Header */}
               <div className="flex justify-between items-center p-8 pb-4">
                 <h3 className="font-black text-2xl text-primary italic">MENU</h3>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="size-12 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-400 active:scale-90"
-                >
-                  <PiBackspaceBold size={28} />
-                </button>
+                <div className="flex gap-2">
+                   <button
+                    onClick={toggleLanguage}
+                    className="size-12 rounded-2xl bg-gray-100 dark:bg-white/5 text-primary active:scale-90 flex items-center justify-center font-black"
+                  >
+                    {i18n.language.toUpperCase()}
+                  </button>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="size-12 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-400 active:scale-90 flex items-center justify-center"
+                  >
+                    <PiBackspaceBold size={28} />
+                  </button>
+                </div>
               </div>
 
               {/* Links */}
@@ -129,7 +162,7 @@ export default function Navbar() {
                     className="flex items-center justify-center gap-2 w-full mt-6 px-7 py-4 rounded-2xl font-black text-red-500 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 active:scale-95 transition-all shadow-sm"
                    >
                      <span className="material-symbols-outlined">logout</span>
-                     <span className="uppercase">Logout</span>
+                     <span className="uppercase">{t("nav.logout")}</span>
                    </motion.button>
                 )}
               </div>

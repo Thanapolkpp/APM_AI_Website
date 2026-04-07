@@ -1,5 +1,6 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { motion, AnimatePresence } from "framer-motion"
 import { Sparkles } from "lucide-react"
 
@@ -21,18 +22,31 @@ const CuteGirlIcon = ASSETS.AVATARS.GIRL
 
 const Home = () => {
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation()
   const { coins, exp } = useCoins()
   const [showSupportAlert, setShowSupportAlert] = useState(false)
 
-  React.useEffect(() => {
-    // ให้เด้งโชว์ทุกครั้งที่โหลดหน้า (ตามที่เจ้านายต้องการ)
-    const timer = setTimeout(() => {
-      setShowSupportAlert(true)
-    }, 1500)
-    return () => clearTimeout(timer)
+  // Logic: เช็คว่าวันนี้เคยแสดง Alert ไปหรือยัง
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0]; // ตัวอย่าง: "2026-04-07"
+    const lastAlertDate = localStorage.getItem("last_alert_view_date");
+
+    if (lastAlertDate !== today) {
+      const timer = setTimeout(() => {
+        setShowSupportAlert(true)
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
   }, [])
 
-  // Level calculation logic (simplified for hero)
+  // ฟังก์ชันสำหรับปิด Alert และบันทึกวันที่ปัจจุบันลงเครื่อง
+  const handleCloseAlert = () => {
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem("last_alert_view_date", today);
+    setShowSupportAlert(false);
+  };
+
+  // Level calculation logic
   const getLevelInfo = (totalExp) => {
     const thresholds = [0, 50, 150, 300, 500, 800, 1200];
     let level = 1;
@@ -86,9 +100,9 @@ const Home = () => {
   const modes = [
     {
       id: "bro",
-      title: "Bro Mode",
+      title: t("home.modes.bro.title"),
       icon: BroIcon,
-      description: "Chill vibes only. Let’s tackle that assignment without the stress. We got this, man 😎",
+      description: t("home.modes.bro.description"),
       buttonIcon: "arrow_forward",
       colors: {
         bg: "bg-bro-blue dark:bg-blue-900/40",
@@ -101,9 +115,9 @@ const Home = () => {
     },
     {
       id: "girl",
-      title: "Cute Girl Mode",
+      title: t("home.modes.girl.title"),
       icon: CuteGirlIcon,
-      description: "Hey bestie ✨ Ready to smash those goals? You’re doing amazing! Let’s do this 💕",
+      description: t("home.modes.girl.description"),
       buttonIcon: "favorite",
       colors: {
         bg: "bg-girl-pink dark:bg-pink-900/40",
@@ -116,9 +130,9 @@ const Home = () => {
     },
     {
       id: "nerd",
-      title: "Nerd Mode",
+      title: t("home.modes.nerd.title"),
       icon: NerdIcon,
-      description: "Let’s dive deep into the data. Optimization is the key to academic excellence 🤓📚",
+      description: t("home.modes.nerd.description"),
       buttonIcon: "calculate",
       colors: {
         bg: "bg-nerd-purple dark:bg-purple-900/40",
@@ -143,7 +157,6 @@ const Home = () => {
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen text-[#333333] dark:text-gray-100 transition-colors duration-300 font-display relative overflow-hidden">
-      {/* Background Blobs - Better optimized for mobile */}
       <div className="pointer-events-none absolute -top-40 -left-40 size-[400px] md:size-[600px] rounded-full bg-primary/10 blur-[80px] md:blur-[120px]" />
       <div className="pointer-events-none absolute top-40 -right-40 size-[400px] md:size-[600px] rounded-full bg-pink-300/10 blur-[100px] md:blur-[150px]" />
 
@@ -196,7 +209,6 @@ const Home = () => {
             animate={{ y: 0, opacity: 1 }}
             className="text-center mb-12 md:mb-16"
           >
-            {/* Hero Rank Badge - Mobile Only */}
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -204,13 +216,10 @@ const Home = () => {
               className="relative mb-8 md:mb-12 group cursor-pointer md:hidden"
               onClick={() => navigate(isLoggedIn ? "/account" : "/login")}
             >
-              {/* Glass Capsule */}
               <div className="inline-flex flex-col items-center px-8 py-3 md:px-14 md:py-7 rounded-[40px] md:rounded-[60px] bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-2xl transition-all duration-500 hover:shadow-primary/20 hover:scale-[1.02] active:scale-95">
-
-                {/* Float label */}
                 <div className="flex items-center gap-3 mb-3 md:mb-4">
                   <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 dark:text-gray-500">
-                    WELCOME {localStorage.getItem("username") ? localStorage.getItem("username").toUpperCase() : "BESTIE"}
+                    {t("home.welcome", { username: (localStorage.getItem("username") || "BESTIE").toUpperCase() })}
                   </span>
                   {isLoggedIn && (
                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 text-[8px] md:text-[10px] font-black">
@@ -220,12 +229,8 @@ const Home = () => {
                   )}
                 </div>
 
-                {/* Shield / Progress Ring */}
                 <div className="relative size-16 md:size-24 flex items-center justify-center">
-                  {/* Ring Background */}
                   <div className="absolute inset-0 rounded-full border-4 border-gray-100 dark:border-white/5 shadow-inner" />
-
-                  {/* Progress Ring (Gradient) */}
                   <svg className="absolute inset-0 size-full -rotate-90">
                     <defs>
                       <linearGradient id="hero-exp-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -246,17 +251,9 @@ const Home = () => {
                       strokeLinecap="round"
                     />
                   </svg>
-
-                  {/* Rank Image / Shield Icon */}
                   <div className="relative z-10 size-10 md:size-16 drop-shadow-xl transform group-hover:scale-110 transition-transform duration-500">
-                    <img
-                      src={rankImage}
-                      alt="Rank"
-                      className="w-full h-full object-contain"
-                    />
+                    <img src={rankImage} alt="Rank" className="w-full h-full object-contain" />
                   </div>
-
-                  {/* Particles / Sparkles Icon */}
                   {isLoggedIn && (
                     <div className="absolute -top-1 -right-1">
                       <motion.div
@@ -269,48 +266,40 @@ const Home = () => {
                   )}
                 </div>
 
-                {/* Sub-label (Logged in vs Guest) */}
                 <div className="mt-3 md:mt-4 flex flex-col items-center gap-1">
                   {isLoggedIn ? (
                     <div className="flex items-center gap-2">
-                      <div className="size-1.5 md:size-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
-                      <span className="text-[10px] md:text-[12px] font-black text-gray-700 dark:text-gray-300">
-                        {exp.toLocaleString()} EXP EARNED
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-[10px] md:text-[12px] font-black text-primary animate-pulse">
-                      LOG IN TO START LEVELING!
-                    </span>
-                  )}
+                       <div className="size-1.5 md:size-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+                       <span className="text-[10px] md:text-[12px] font-black text-gray-700 dark:text-gray-300">
+                         {t("home.exp_earned", { exp: exp.toLocaleString() })}
+                       </span>
+                     </div>
+                   ) : (
+                     <span className="text-[10px] md:text-[12px] font-black text-primary animate-pulse">
+                       {t("home.login_to_start")}
+                     </span>
+                   )}
                 </div>
               </div>
-
-              {/* Decorative Blur */}
               <div className="absolute inset-0 -z-10 blur-3xl opacity-20 mix-blend-overlay bg-gradient-to-tr from-primary to-pink-400 rounded-full" />
             </motion.div>
 
-            {/* Headline from Photo 2 */}
             <h2 className="text-4xl md:text-[84px] font-black tracking-tight leading-[1.05] text-gray-900 dark:text-white mb-6">
-              Your <span className="bg-gradient-to-r from-[#97d8c9] via-[#ae97d8] to-[#d897c5] bg-clip-text text-transparent">AI friend</span> for Uni Life
+              {t("home.hero_title_uni_life", { aiFriend: "" })}
+              <span className="bg-gradient-to-r from-[#97d8c9] via-[#ae97d8] to-[#d897c5] bg-clip-text text-transparent">
+                {t("home.hero_title_ai_friend")}
+              </span>
+              {i18n.language === 'en' ? " for Uni Life" : ""}
               <motion.span
-                animate={{
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 10, -10, 0]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
+                animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 className="inline-block ml-2"
               >
                 ❤️
               </motion.span>
             </h2>
-
             <p className="text-sm md:text-xl font-bold text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-              How can I help you today, Bestie? 🌷
+              {t("home.hero_subtitle")}
             </p>
           </motion.div>
 
@@ -335,7 +324,6 @@ const Home = () => {
             ))}
           </motion.div>
 
-          {/* Secondary Sections */}
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -343,7 +331,6 @@ const Home = () => {
             className="w-full space-y-16 md:space-y-40 scale-95 md:scale-100 origin-top"
           >
             <LessonTabs />
-            <HomeworkSummary />
             <div className="hidden md:block">
               <Middlesection />
             </div>
@@ -352,7 +339,6 @@ const Home = () => {
 
         <Footer />
 
-        {/* AI Support Alert Popup */}
         <AnimatePresence>
           {showSupportAlert && (
             <motion.div
@@ -360,7 +346,7 @@ const Home = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[9999] flex items-center justify-center px-6 bg-black/40 backdrop-blur-sm"
-              onClick={() => setShowSupportAlert(false)}
+              onClick={handleCloseAlert}
             >
               <motion.div
                 initial={{ scale: 0.8, y: 20, opacity: 0 }}
@@ -369,36 +355,30 @@ const Home = () => {
                 className="bg-white dark:bg-gray-900 rounded-[32px] p-8 md:p-10 shadow-2xl max-w-sm md:max-w-md w-full border border-white/20 relative overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Decorative background blob */}
                 <div className="absolute top-0 right-0 -mr-10 -mt-10 size-32 bg-primary/10 blur-3xl rounded-full" />
-
                 <div className="relative z-10 text-center">
                   <div className="size-16 md:size-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6 text-primary">
                     <span className="material-symbols-outlined text-3xl md:text-4xl">warning</span>
                   </div>
-
                   <h3 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white mb-3">
-                    ขออภัยเป็นอย่างสูงครับ
+                    {t("home.alert.title")}
                   </h3>
-                  
                   <p className="text-gray-500 dark:text-gray-400 font-bold text-sm md:text-base leading-relaxed mb-8">
-                    เนื่องจากตัวเว็บไซต์อยู่ในช่วง <span className="text-red-500">Beta</span> และรันบน <span className="text-red-500">Server FREE</span> <br className="hidden md:block" />
-                    จึงอาจเกิดปัญหาการเชื่อมต่อหรือติดขัดของ AI ได้ครับ
+                    {t("home.alert.p1")} <span className="text-red-500">{t("home.alert.beta")}</span> {t("home.alert.p2")} <span className="text-red-500">{t("home.alert.server_free")}</span> <br className="hidden md:block" />
+                    {t("home.alert.p3")}
                   </p>
-
-                  <a 
+                  <a
                     href="mailto:apmaiservice@gmail.com?subject=แจ้งปัญหาการใช้งาน AI&body=พบปัญหา Ai กรุณาเปิด server ให้ฉัน ด่วน ๆ"
                     className="w-full py-4 px-6 bg-primary hover:bg-primary-dark text-white rounded-2xl font-black text-sm md:text-base shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-2 group mb-3"
                   >
                     <span className="material-symbols-outlined text-xl group-hover:rotate-12 transition-transform">mail</span>
-                    apmaiservice@gmail.com
+                    {t("home.alert.report_problem")}
                   </a>
-
                   <button
-                    onClick={() => setShowSupportAlert(false)}
+                    onClick={handleCloseAlert}
                     className="w-full py-4 text-gray-400 dark:text-gray-500 font-black text-xs md:text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors uppercase tracking-widest"
                   >
-                    รับทราบและปิดหน้าต่างนี้
+                    {t("home.alert.close")}
                   </button>
                 </div>
               </motion.div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense, useMemo, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { Trash2, CheckCircle2, Circle, Trophy, Sparkles, User, Heart, Star, Layout, X, Info } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { Canvas } from "@react-three/fiber"
@@ -50,6 +51,7 @@ const LEVEL_THEMES = {
 };
 
 const LevelBar = ({ exp = 0, onInfoClick }) => {
+    const { t } = useTranslation();
     let level = 1;
     let nextThreshold = LEVEL_THRESHOLDS[1];
     let currentThreshold = 0;
@@ -84,7 +86,7 @@ const LevelBar = ({ exp = 0, onInfoClick }) => {
                     onClick={onInfoClick}
                     className="flex items-center gap-1 text-[10px] font-black text-gray-400 hover:text-primary transition-colors uppercase tracking-widest"
                 >
-                    <Info size={12}/> Rank Info
+                    <Info size={12}/> {t("todo.rank_info")}
                 </button>
             </div>
             <div className="h-2.5 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden border border-white/50 dark:border-white/10 shadow-inner">
@@ -99,7 +101,7 @@ const LevelBar = ({ exp = 0, onInfoClick }) => {
             </div>
             <div className="flex justify-end">
                 <span className="text-[9px] font-black" style={{ color: theme.from }}>
-                    {nextThreshold ? `${expInLevel}/${expNeeded} XP TO NEXT RANK` : "MAX RANK REACHED"}
+                    {nextThreshold ? t("todo.xp_to_next", { current: expInLevel, needed: expNeeded }) : t("todo.max_rank")}
                 </span>
             </div>
         </div>
@@ -153,6 +155,7 @@ const RankInfoModal = ({ isOpen, onClose }) => {
 const TodoList = () => {
     
     const navigate = useNavigate()
+    const { t } = useTranslation()
     const { addCoins } = useCoins()
     
     const [isRankModalOpen, setIsRankModalOpen] = useState(false)
@@ -385,9 +388,9 @@ const TodoList = () => {
                             <div className="mb-10 flex justify-between items-center">
                                 <div>
                                     <h2 className="text-4xl font-black text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-                                        Admin Verification <Sparkles className="text-primary" size={32}/>
+                                        {t("todo.admin_verif")} <Sparkles className="text-primary" size={32}/>
                                     </h2>
-                                    <p className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest text-xs">ตรวจสอบหลักฐานภารกิจและสถานะทั้งหมด</p>
+                                    <p className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest text-xs">{t("todo.admin_desc")}</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="px-6 py-3 bg-primary/10 rounded-2xl border border-primary/20">
@@ -483,9 +486,9 @@ const TodoList = () => {
                             <div className="flex items-center justify-between mb-4 md:mb-8">
                                 <div>
                                     <h2 className="text-xl md:text-4xl font-black text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-                                        Checklists <Trophy className="text-yellow-500 size-6 md:size-8" />
+                                        {t("todo.checklists")} <Trophy className="text-yellow-500 size-6 md:size-8" />
                                     </h2>
-                                    <p className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest text-[8px] md:text-[10px]">เคลียร์เควสเพื่อรับรางวัลจ้า!</p>
+                                    <p className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest text-[8px] md:text-[10px]">{t("todo.quests_desc")}</p>
                                 </div>
                                 
                                 {userProfile?.is_admin && (
@@ -504,18 +507,18 @@ const TodoList = () => {
                             type="text"
                             value={newTask}
                             onChange={(e) => setNewTask(e.target.value)}
-                            placeholder="เพิ่มภารกิจใหม่..."
+                            placeholder={t("todo.add_task")}
                             className="w-full bg-white/40 dark:bg-white/5 backdrop-blur-xl border-2 border-white/60 dark:border-white/10 rounded-[22px] md:rounded-[32px] px-5 md:px-8 py-3 md:py-6 text-sm md:text-lg font-bold focus:outline-none focus:border-primary transition-all pr-20 md:pr-24 shadow-xl"
                         />
                         <button type="submit" className="absolute right-2 md:right-3 top-2 md:top-3 bottom-2 md:bottom-3 px-4 md:px-6 rounded-xl md:rounded-2xl bg-primary text-white font-black text-xs md:text-sm hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20">
-                            เพิ่ม
+                            {t("todo.add_btn")}
                         </button>
                     </form>
 
                     <div className="space-y-4">
                         {tasks.length === 0 && !isLoading && (
                             <div className="py-20 text-center bg-white/20 dark:bg-white/5 rounded-[48px] border-4 border-dashed border-gray-100 dark:border-white/5">
-                                <p className="text-gray-400 font-black text-xl">ยังไม่มีภารกิจเลยเพื่อน...</p>
+                                <p className="text-gray-400 font-black text-xl">{t("todo.no_tasks")}</p>
                             </div>
                         )}
                         {tasks.map(task => (
@@ -583,7 +586,7 @@ const TodoList = () => {
                     <div className="bg-white/40 dark:bg-white/5 backdrop-blur-3xl rounded-[40px] md:rounded-[64px] border border-white/60 dark:border-white/10 shadow-2xl p-6 md:p-8 flex flex-col h-[400px] md:h-[700px] sticky top-32 overflow-hidden">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="font-black text-2xl text-gray-800 dark:text-white flex items-center gap-2">
-                                <Star className="text-primary fill-primary" size={24}/> Companion
+                                <Star className="text-primary fill-primary" size={24}/> {t("todo.companion")}
                             </h3>
                             <button onClick={() => navigate("/reading")} className="p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-400 hover:text-primary transition-all">
                                 <Layout size={20}/>
@@ -599,7 +602,7 @@ const TodoList = () => {
                             
                             <div className="absolute inset-x-0 bottom-8 z-50 text-center px-6 drop-shadow-2xl">
                                 <p className="text-white font-black text-2xl mb-1 tracking-tight">{equippedAvatar?.name || "Buddy"}</p>
-                                <p className="text-white/80 text-[10px] font-black uppercase tracking-[.4em] font-mono bg-black/30 backdrop-blur-sm inline-block px-3 py-1 rounded-full">Status: Watching You</p>
+                                <p className="text-white/80 text-[10px] font-black uppercase tracking-[.4em] font-mono bg-black/30 backdrop-blur-sm inline-block px-3 py-1 rounded-full">{t("todo.status_waiting")}</p>
                             </div>
 
                             <Canvas 
@@ -631,11 +634,11 @@ const TodoList = () => {
                             
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="p-4 rounded-[24px] bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 text-center">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Coins Earned</p>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t("todo.coins_earned")}</p>
                                     <p className="text-xl font-black text-gray-800 dark:text-white">{userProfile?.coins || 0}</p>
                                 </div>
                                 <div className="p-4 rounded-[24px] bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 text-center">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Tasks Done</p>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t("todo.tasks_done")}</p>
                                     <p className="text-xl font-black text-gray-800 dark:text-white">{tasks.filter(t => t.is_completed).length}</p>
                                 </div>
                             </div>

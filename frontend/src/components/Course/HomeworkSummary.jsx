@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { HiOutlineBookOpen, HiOutlineDownload, HiOutlineEye, HiOutlineSparkles, HiOutlineX, HiOutlinePlus } from "react-icons/hi"
 import { BookText, FileText, Code2, Calculator, Atom, Palette, PlusCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
@@ -33,6 +34,7 @@ const ICON_MAP = {
 }
 
 const HomeworkSummary = () => {
+    const { t } = useTranslation()
     const navigate = useNavigate()
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false)
@@ -125,20 +127,20 @@ const HomeworkSummary = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 md:mb-12">
                 <div className="text-center md:text-left">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-black text-[10px] md:text-[12px] tracking-wider uppercase mb-3 md:mb-4 border border-primary/20">
-                        Homework Archive
+                        {t("homework.archive")}
                     </div>
                     <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white tracking-tight">
-                        คลังสรุปการบ้านตัวทึง ✨
+                        {t("homework.title")}
                     </h2>
                     <p className="hidden md:block text-gray-500 dark:text-gray-400 font-medium mt-3 text-lg">
-                        ไม่ใช่แค่สรุปไฟล์เดิมไปวันๆ แต่ให้ AI ช่วยติวให้เข้าใจง่ายขึ้น 💗
+                        {t("homework.desc")}
                     </p>
                 </div>
                 <button
                     onClick={() => navigate("/summaries")}
                     className="hidden md:block h-fit px-8 py-3 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 font-black text-gray-700 dark:text-gray-200 hover:bg-white transition-all shadow-sm hover:shadow-lg active:scale-95"
                 >
-                    ดูทั้งหมด
+                    {t("homework.view_all")}
                 </button>
             </div>
 
@@ -178,7 +180,7 @@ const HomeworkSummary = () => {
                             </div>
 
                             <div className="absolute bottom-2 text-[8px] font-black text-white/80 uppercase tracking-tighter md:hidden">
-                                AI TUTOR
+                                {t("homework.ai_tutor")}
                             </div>
                         </div>
 
@@ -202,7 +204,7 @@ const HomeworkSummary = () => {
                                     onClick={() => handleAIGenerate(item)}
                                     className="w-full py-3.5 rounded-[20px] bg-gradient-to-r from-purple-500 to-pink-500 text-white font-black text-[13px] flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
                                 >
-                                    <HiOutlineSparkles size={18} /> สรุปด้วย AI
+                                    <HiOutlineSparkles size={18} /> {t("homework.ai_summary")}
                                 </button>
 
                                 <div className="flex items-center justify-between px-1">
@@ -228,7 +230,7 @@ const HomeworkSummary = () => {
                         className="flex-1 flex flex-col items-center gap-1 text-gray-500 hover:text-primary transition-colors"
                     >
                         <HiOutlineBookOpen size={22} />
-                        <span className="text-[10px] font-black uppercase tracking-tighter">อ่านหนังสือ</span>
+                        <span className="text-[10px] font-black uppercase tracking-tighter">{t("homework.reading_tab")}</span>
                     </button>
                     
                     {/* BLACK IN THE CENTER */}
@@ -244,7 +246,7 @@ const HomeworkSummary = () => {
                         className="flex-1 flex flex-col items-center gap-1 text-gray-500 hover:text-primary transition-colors"
                     >
                         <PlusCircle size={22} />
-                        <span className="text-[10px] font-black uppercase tracking-tighter">เพิ่มภารกิจ</span>
+                        <span className="text-[10px] font-black uppercase tracking-tighter">{t("homework.add_mission_tab")}</span>
                     </button>
                 </div>
             </div>
@@ -261,7 +263,7 @@ const HomeworkSummary = () => {
                                     <HiOutlineSparkles size={30} />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">AI Summary</h3>
+                                    <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{t("homework.ai_summary")}</h3>
                                     <p className="text-[10px] text-primary font-black uppercase tracking-widest mt-1">Smart Learning 🌷</p>
                                 </div>
                             </div>
@@ -274,7 +276,7 @@ const HomeworkSummary = () => {
                             {isGenerating ? (
                                 <div className="flex flex-col items-center justify-center py-20 gap-6">
                                     <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
-                                    <p className="font-black text-gray-500 dark:text-gray-400 text-xl animate-pulse">กำลังติวสรุปให้เพื่อนอยู่นะ... ✨</p>
+                                    <p className="font-black text-gray-500 dark:text-gray-400 text-xl animate-pulse">{t("homework.gen_desc")}</p>
                                 </div>
                             ) : (
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 font-display">
@@ -289,13 +291,13 @@ const HomeworkSummary = () => {
                                 disabled={isGenerating}
                                 className="flex-1 py-5 rounded-[28px] bg-black dark:bg-white text-white dark:text-black font-black text-lg flex items-center justify-center gap-3 shadow-xl transition-all active:scale-95 disabled:opacity-50"
                             >
-                                <HiOutlineDownload size={22} /> Download PDF
+                                <HiOutlineDownload size={22} /> {t("homework.download")}
                             </button>
                             <button
                                 onClick={() => setIsModalOpen(false)}
                                 className="px-10 py-5 rounded-[28px] bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white font-black text-lg hover:bg-gray-50 transition-all active:scale-95"
                             >
-                                Close
+                                {t("homework.close")}
                             </button>
                         </div>
                     </div>

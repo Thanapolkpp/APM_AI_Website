@@ -1,0 +1,140 @@
+{
+  "home": {
+    "welcome": "WELCOME {{username}}",
+    "login_to_start": "LOG IN TO START LEVELING!",
+    "hero_title_ai_friend": "AI friend",
+    "hero_title_uni_life": "Your {{aiFriend}} for Uni Life",
+    "hero_subtitle": "How can I help you today, Bestie? 🌷",
+    "exp_earned": "{{exp}} EXP EARNED",
+    "modes": {
+      "bro": {
+        "title": "Bro Mode",
+        "description": "Chill vibes only. Let’s tackle that assignment without the stress. We got this, man 😎"
+      },
+      "girl": {
+        "title": "Cute Girl Mode",
+        "description": "Hey bestie ✨ Ready to smash those goals? You’re doing amazing! Let’s do this 💕"
+      },
+      "nerd": {
+        "title": "Nerd Mode",
+        "description": "Let’s dive deep into the data. Optimization is the key to academic excellence 🤓📚"
+      }
+    },
+    "alert": {
+      "title": "Sincere Apology",
+      "p1": "As the website is currently in ",
+      "beta": "Beta",
+      "p2": " and running on a ",
+      "server_free": "FREE Server",
+      "p3": ", there might be connection issues or AI hiccups.",
+      "report_problem": "Report a Problem",
+      "close": "ACKNOWLEDGE AND CLOSE"
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "mall": "Mall",
+    "summaries": "Summaries",
+    "todo": "ToDo List",
+    "reading": "Reading",
+    "events": "Events",
+    "account": "Account",
+    "logout": "Logout",
+    "login": "Login",
+    "about": "About",
+    "contact": "Contact",
+    "go_mission": "GO MISSION",
+    "tier_junior": "Junior",
+    "tier_senior": "Senior",
+    "tier_elite": "Elite",
+    "tier_legendary": "Legendary"
+  },
+  "todo": {
+    "companion": "Companion",
+    "rank_info": "Rank Info",
+    "xp_to_next": "{{current}}/{{needed}} XP TO NEXT RANK",
+    "max_rank": "MAX RANK REACHED",
+    "coins_earned": "Coins Earned",
+    "tasks_done": "Tasks Done",
+    "checklists": "Checklists",
+    "quests_desc": "Clear quests to get rewards!",
+    "add_task": "Add new task...",
+    "add_btn": "Add",
+    "no_tasks": "No tasks yet, buddy...",
+    "status_waiting": "Status: Watching You",
+    "admin_verif": "Admin Verification",
+    "admin_desc": "Verify mission evidence and all statuses"
+  },
+  "homework": {
+    "archive": "Homework Archive",
+    "title": "Elite Homework Archive ✨",
+    "desc": "Not just summarizing, but letting AI tutor you to understand easier 💗",
+    "view_all": "View All",
+    "ai_summary": "AI Summary",
+    "ai_tutor": "AI TUTOR",
+    "gen_desc": "Generating summary for you... ✨",
+    "success": "Success!",
+    "notice": "Notice, dear friend!",
+    "ok": "OK!",
+    "close": "Close",
+    "download": "Download PDF",
+    "reading_tab": "Reading",
+    "add_mission_tab": "Add Mission"
+  },
+  "focus": {
+    "focus_time": "Focus Time",
+    "short_break": "Short Break",
+    "reward_desc": "Focus for 25 mins to get 5 Coins and 10 EXP!",
+    "break_desc": "Enjoy your break to the fullest!",
+    "start": "START",
+    "pause": "PAUSE",
+    "study_ambience": "Study Ambience",
+    "youtube_placeholder": "Paste YouTube link here...",
+    "play_music": "PLAY MUSIC",
+    "set_time": "Set Time",
+    "minutes": "Minutes",
+    "how_many_mins": "How many minutes do you want to focus, friend?",
+    "input_hint": "Enter minutes (e.g., 25, 45, 60)",
+    "cancel": "Cancel",
+    "set_btn": "Set Time",
+    "focus_quote": "Focus on your reading, buddy!",
+    "break_quote": "Rest well!",
+    "alert_escape_title": "Escaping to play something else?!",
+    "alert_escape_desc": "We stopped the time for you. Come back to focus soon!",
+    "alert_success_title": "Well done, buddy!",
+    "alert_success_desc": "You got 5 Coins and 10 EXP! ✨",
+    "alert_break_title": "Ready to go back to work?",
+    "alert_youtube_error": "Please enter a valid YouTube link!"
+  },
+  "footer": {
+    "brand_desc": "Every progress of yours is our pride 💖 AI ready to be both your friend and smartest assistant.",
+    "quick_links": "Quick Menu",
+    "report": "Report / Feedback",
+    "rights": "© 2024 APM AI. All rights reserved.",
+    "handcrafted": "Handcrafted with 💖 by",
+    "team": "Gen Z Team"
+  },
+  "middle": {
+    "modes_badge": "✨ APM AI MODES",
+    "apm_is": "APM is",
+    "apm_desc": "A student's friend in every situation — comfort for stress, help with heavy workload, and planning when time is short. ✨",
+    "features": {
+      "calm": {
+        "title": "Calm Mode",
+        "desc": "Relieve stress, vent freely without judgment or pressure. Always by your side.",
+        "badge": "Reduce Stress 🌷"
+      },
+      "schedule": {
+        "title": "Schedule Mode",
+        "desc": "AI summarizes schedule, manages study time, organizes To-do lists and systematic reminders.",
+        "badge": "Perfect Timing 📅"
+      },
+      "grade": {
+        "title": "Grade Plan Mode",
+        "desc": "After midterms, AI helps plan grades, calculate possibilities and makes decision-making easier.",
+        "badge": "Grade Plan 📊"
+      }
+    },
+    "cta": "Start using APM AI now 🚀"
+  }
+}

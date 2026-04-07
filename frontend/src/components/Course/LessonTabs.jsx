@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { Trophy, ShieldCheck, Sparkles, Star, ChevronRight } from "lucide-react"
@@ -14,6 +15,7 @@ const ranks = [
 ]
 
 export default function RankingSystem() {
+    const { t } = useTranslation()
     const navigate = useNavigate()
     const [active, setActive] = useState("gold")
     const activeRank = ranks.find(r => r.key === active)
@@ -23,13 +25,13 @@ export default function RankingSystem() {
             {/* Header - Simplified for Mobile */}
             <div className="text-center mb-10 md:mb-16">
                 <div className="hidden md:inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/5 border border-white/10 text-white font-black text-sm tracking-[.3em] uppercase mb-4">
-                    <Trophy className="text-yellow-500" size={16}/> Path of Glory
+                    <Trophy className="text-yellow-500" size={16}/> {t("rank.path_of_glory")}
                 </div>
                 <h2 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white">
-                    Ranking <span className="bg-gradient-to-r from-primary to-pink-500 bg-clip-text text-transparent">LEGEND</span>
+                    {t("rank.title")} <span className="bg-gradient-to-r from-primary to-pink-500 bg-clip-text text-transparent">LEGEND</span>
                 </h2>
                 <p className="hidden md:block text-gray-500 dark:text-gray-400 mt-4 font-bold max-w-2xl mx-auto">
-                    สะสม EXP จากการทำภารกิจเพื่อเลื่อนระดับและรับสิทธิพิเศษมากมาย ✨
+                    {t("rank.subtitle")}
                 </p>
             </div>
 
@@ -83,7 +85,7 @@ export default function RankingSystem() {
                                 />
                                 <div className="text-center -mt-4">
                                     <div className="inline-block px-3 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-black text-white/40 tracking-widest uppercase mb-1">
-                                        LEVEL ACHIEVED
+                                        {t("rank.level_achieved")}
                                     </div>
                                     <h3 className={`text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r ${
                                         active === 'bronze' ? 'from-amber-700 to-amber-500' :
@@ -112,20 +114,20 @@ export default function RankingSystem() {
 
                         <div className="space-y-1">
                             <h2 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white uppercase leading-tight tracking-tight">
-                                NEXT <span className="text-emerald-400 italic">BONUS</span> FOR YOU
+                                NEXT <span className="text-emerald-400 italic">BONUS</span> {t("rank.for_you")}
                             </h2>
                             <p className="hidden md:block text-xs text-gray-500 dark:text-gray-400 font-bold leading-relaxed max-w-xs">
-                                {activeRank.name} Tier คือจุดพิสูจน์ความตั้งใจของคุณ ระบบจะมอบสิทธิพิเศษที่เหนือกว่าให้ผู้ที่สม่ำเสมอ! ✨
+                                {t("rank.bonus_desc", { rank: activeRank.name })}
                             </p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div className="p-4 rounded-[24px] bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10 text-center">
-                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Target</p>
+                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">{t("rank.target")}</p>
                                 <p className="text-lg font-black text-gray-700 dark:text-emerald-400 whitespace-nowrap">{activeRank.exp}</p>
                             </div>
                             <div className="p-4 rounded-[24px] bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10 text-center">
-                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Benefit</p>
+                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">{t("rank.benefit")}</p>
                                 <p className="text-lg font-black text-emerald-500">{activeRank.benefit}</p>
                             </div>
                         </div>
@@ -134,7 +136,7 @@ export default function RankingSystem() {
                             onClick={() => navigate("/todo")}
                             className="w-full p-4 bg-[#99d9ca] hover:bg-[#88c9ba] text-white rounded-[24px] flex items-center justify-between group shadow-lg shadow-emerald-200/20 transition-all active:scale-95"
                         >
-                            <span className="font-black text-xs ml-4 tracking-[0.2em]">GO MISSION</span>
+                            <span className="font-black text-xs ml-4 tracking-[0.2em]">{t("rank.go_mission")}</span>
                             <div className="size-10 rounded-xl bg-white/20 flex items-center justify-center transition-all group-hover:px-2">
                                 <ChevronRight size={18} strokeWidth={4}/>
                             </div>

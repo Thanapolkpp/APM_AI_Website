@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { HiOutlineClock, HiOutlinePlay, HiOutlinePause, HiOutlineX } from "react-icons/hi"
 import { Timer, Music, CloudRain, Coffee, Library, Trees, Sparkles, Play, Pause, RotateCcw, Youtube, Maximize, Minimize, AlertCircle, CheckCircle2, MinusCircle, PlusCircle, Coins, Heart, Sun, EyeOff, Bell, Star } from "lucide-react"
 import { useNavigate } from "react-router-dom"
@@ -27,6 +28,7 @@ const DefaultBackground = ASSETS.READING.BACKGROUND;
 const Chair = ASSETS.READING.CHAIR;
 
 const ReadingSystem = () => {
+    const { t } = useTranslation()
     const navigate = useNavigate()
     const { addCoins } = useCoins()
 
@@ -116,7 +118,7 @@ const ReadingSystem = () => {
             setYoutubeId(id)
             setSelectedAmbience("YouTube")
         } else {
-            showCustomAlert(<span className="flex items-center justify-center gap-2">ใส่ลิ้ง YouTube ให้ถูกต้องหน่อยนะเพื่อน! <AlertCircle size={18} className="text-red-500" /></span>, "error")
+            showCustomAlert(<span className="flex items-center justify-center gap-2">{t("focus.alert_youtube_error")} <AlertCircle size={18} className="text-red-500" /></span>, "error")
         }
     }
 
@@ -132,9 +134,9 @@ const ReadingSystem = () => {
             if (currentMode === "Focus") {
                 addCoins(5)
                 updateExp(10).catch(() => { })
-                showCustomAlert(<span className="flex flex-col items-center gap-1 text-center"><span>เก่งมากกล้ามาก ขอบคุณครับ! <Heart size={18} className="text-pink-500 inline fill-pink-500" /></span> <span className="text-xs opacity-70 font-bold">รับไปเลย 5 เหรียญ และ 10 EXP น้าา <Sparkles size={14} className="text-yellow-500 inline" /></span></span>, "success")
+                showCustomAlert(<span className="flex flex-col items-center gap-2 text-center text-lg font-black text-gray-900 dark:text-white uppercase transition-all scale-110"><span>{t("focus.alert_success_title")}</span> <span className="text-sm opacity-90 text-primary">{t("focus.alert_success_desc")}</span></span>, "success")
             } else {
-                showCustomAlert(<span className="flex items-center justify-center gap-2">พร้อมกลับไปลุยต่อรึยัง?! <Sparkles size={18} className="text-yellow-500" /></span>, "success")
+                showCustomAlert(<span className="flex items-center justify-center gap-2 text-lg font-black text-gray-900 dark:text-white uppercase"><span>{t("focus.alert_break_title")}</span></span>, "success")
             }
             // Auto reset timer to prevent farming
             setTimeout(() => {
@@ -158,7 +160,7 @@ const ReadingSystem = () => {
         const handleVisibilityChange = () => {
             if (document.hidden && isActive && currentMode === "Focus") {
                 setIsActive(false)
-                showCustomAlert(<span className="flex flex-col items-center gap-2 text-center"><span>แอบหนีไปเล่นอย่างอื่นเหรอ?! <EyeOff size={18} className="text-gray-500 inline" /></span> <span>เราหยุดเวลาไว้ให้แล้วนะ กลับมาตั้งใจต่อเร็ว! <Sparkles size={18} className="text-yellow-500 inline" /></span></span>, "info")
+                showCustomAlert(<span className="flex flex-col items-center gap-2 text-center text-lg font-black text-gray-900 dark:text-white uppercase"><span>{t("focus.alert_escape_title")}</span> <span className="text-sm opacity-70">{t("focus.alert_escape_desc")}</span></span>, "info")
             }
         }
         document.addEventListener("visibilitychange", handleVisibilityChange)
@@ -223,9 +225,9 @@ const ReadingSystem = () => {
                         <div className="hidden sm:block">
                             <CoinBadge className="scale-90" />
                         </div>
-                        <img 
-                            src={profileImage} 
-                            className="size-10 rounded-2xl border-2 border-white dark:border-white/10 shadow-lg cursor-pointer hover:scale-110 transition-transform" 
+                        <img
+                            src={profileImage}
+                            className="size-10 rounded-2xl border-2 border-white dark:border-white/10 shadow-lg cursor-pointer hover:scale-110 transition-transform"
                             onClick={() => navigate("/account")}
                             alt="Profile"
                         />
@@ -244,24 +246,24 @@ const ReadingSystem = () => {
                                 onClick={() => switchMode("Focus")}
                                 className={`px-8 py-3 rounded-2xl font-black text-sm transition-all ${currentMode === 'Focus' ? 'bg-primary text-white shadow-xl translate-y-[-2px]' : 'text-gray-500 hover:text-gray-900'}`}
                             >
-                                Focus Time
+                                {t("focus.focus_time")}
                             </button>
                             <button
                                 onClick={() => switchMode("Break")}
                                 className={`px-8 py-3 rounded-2xl font-black text-sm transition-all ${currentMode === 'Break' ? 'bg-emerald-500 text-white shadow-xl translate-y-[-2px]' : 'text-gray-500 hover:text-gray-900'}`}
                             >
-                                Short Break
+                                {t("focus.short_break")}
                             </button>
                         </div>
+                        {/* Reward Message - แก้ให้เด่นแบบตะโกน (High Contrast) */}
                         {currentMode === 'Focus' && (
-                            <div className="bg-primary/10 text-primary px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2">
-                                <Sparkles size={16} className="text-yellow-500" />
-                                โฟกัสครบ 25 นาทีตามที่ตั้งไว้ รับไปเลย <span className="text-yellow-600">5 เหรียญ</span> และ <span className="text-pink-500">10 EXP</span>! <Star size={16} className="fill-yellow-500" />
+                            <div className="bg-gradient-to-br from-emerald-400 to-primary text-white px-10 py-5 rounded-[28px] text-base md:text-xl font-black shadow-[0_20px_50px_rgba(153,217,202,0.4)] border-4 border-white/30 animate-pulse tracking-wide uppercase text-center mx-4">
+                                {t("focus.reward_desc")}
                             </div>
                         )}
                         {currentMode === 'Break' && (
-                            <div className="bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2">
-                                <Coffee size={16} /> พักสมองให้เต็มที่นะจ๊ะ!
+                            <div className="bg-emerald-500/10 text-emerald-600 px-6 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2">
+                                {t("focus.break_desc")}
                             </div>
                         )}
                     </div>
@@ -286,7 +288,7 @@ const ReadingSystem = () => {
                                 <MinusCircle className="size-8 md:size-12 fill-white" />
                             </button>
                         )}
-                        <div 
+                        <div
                             onClick={() => {
                                 if (!isActive) {
                                     setTempMinutes(Math.floor(timeLeft / 60));
@@ -307,7 +309,7 @@ const ReadingSystem = () => {
                     <div className="flex gap-4 md:gap-6 relative z-10 w-full max-w-sm">
                         <button onClick={() => setIsActive(!isActive)} className={`flex-1 py-4 md:py-6 rounded-[24px] md:rounded-[32px] text-white font-black text-sm md:text-xl flex items-center justify-center gap-2 md:gap-3 shadow-2xl transition-all active:scale-95 ${isActive ? 'bg-gray-400' : 'bg-primary'}`}>
                             {isActive ? <Pause size={20} className="md:size-7" fill="white" /> : <Play size={20} className="md:size-7" fill="white" />}
-                            {isActive ? "PAUSE" : "START"}
+                            {isActive ? t("focus.pause") : t("focus.start")}
                         </button>
                         <button onClick={resetTimer} className="size-14 md:w-20 md:h-[inherit] rounded-[24px] md:rounded-[32px] bg-white border border-gray-200 text-gray-500 flex items-center justify-center shadow-xl active:scale-95 transition-all hover:bg-gray-50">
                             <RotateCcw className="size-6 md:size-7" />
@@ -329,10 +331,10 @@ const ReadingSystem = () => {
                             <h3 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                                 {companionName} <Heart size={20} className="fill-pink-500 text-pink-500" />
                             </h3>
-                            <div className="text-gray-500 dark:text-gray-400 font-bold italic text-xs sm:text-base">
+                            <div className="text-gray-500 dark:text-gray-400 font-black italic text-xs sm:text-base tracking-wide">
                                 {currentMode === 'Focus'
-                                    ? <span>"ตั้งใจอ่านน้าเพื่อนจ๋า! <Sparkles size={14} className="text-yellow-500 inline" />"</span>
-                                    : <span>"พักผ่อนให้เต็มที่นะ! <Sun size={14} className="text-orange-400 inline" />"</span>}
+                                    ? <span>"{t("focus.focus_quote")}"</span>
+                                    : <span>"{t("focus.break_quote")}"</span>}
                             </div>
                         </div>
                     </div>
@@ -340,7 +342,7 @@ const ReadingSystem = () => {
                     <div className="bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 p-6 md:p-8 rounded-[40px] md:rounded-[48px] flex flex-col justify-center">
                         <div className="flex items-center gap-3 mb-6">
                             <Music className="text-primary" size={24} />
-                            <h3 className="text-xl font-black text-gray-800 dark:text-white">Study Ambience</h3>
+                            <h3 className="text-xl font-black text-gray-800 dark:text-white">{t("focus.study_ambience")}</h3>
                         </div>
                         <div className="flex md:grid md:grid-cols-5 items-center gap-3 md:gap-4 overflow-x-auto md:overflow-x-visible no-scrollbar pb-4 md:pb-0 snap-x relative">
                             {ambiences.map(amb => (
@@ -369,7 +371,7 @@ const ReadingSystem = () => {
                                     <Youtube size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                                     <input
                                         type="text"
-                                        placeholder="วางลิ้ง Youtube ตรงนี้จ้า..."
+                                        placeholder={t("focus.youtube_placeholder")}
                                         className="w-full bg-white/50 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                         value={youtubeUrl}
                                         onChange={(e) => setYoutubeUrl(e.target.value)}
@@ -397,10 +399,10 @@ const ReadingSystem = () => {
                             {customAlert.type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
                         </div>
                         <h3 className="text-xl font-black text-gray-900 dark:text-white mb-4">
-                            {customAlert.type === 'success' ? "สำเร็จแล้วจ้า!" : "แจ้งเตือนเพื่อนรัก!"}
+                            {customAlert.type === 'success' ? t("focus.alert_success_title") : t("focus.alert_escape_title")}
                         </h3>
                         <div className="text-gray-500 dark:text-gray-400 font-bold mb-8">{customAlert.message}</div>
-                        <button onClick={() => setCustomAlert({ ...customAlert, isOpen: false })} className="w-full py-4 rounded-2xl bg-primary text-white font-black text-lg shadow-xl active:scale-95">ตกลงจ้า!</button>
+                        <button onClick={() => setCustomAlert({ ...customAlert, isOpen: false })} className="w-full py-4 rounded-2xl bg-primary text-white font-black text-lg shadow-xl active:scale-95">{t("focus.ok")}</button>
                     </div>
                 </div>
             )}
@@ -411,48 +413,48 @@ const ReadingSystem = () => {
                     <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-[48px] overflow-hidden shadow-2xl border border-white/20 p-10 animate-in fade-in zoom-in duration-300">
                         <div className="flex justify-between items-center mb-8">
                             <h3 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                                <Timer className="text-primary" size={32}/> Set Time
+                                <Timer className="text-primary" size={32} /> {t("focus.set_time")}
                             </h3>
                             <button onClick={() => setIsTimeModalOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-all">
                                 <HiOutlineX size={24} className="text-gray-400" />
                             </button>
                         </div>
-                        
+
                         <div className="flex flex-col items-center gap-8 mb-10">
                             <div className="relative group">
-                                <input 
+                                <input
                                     type="number"
                                     value={tempMinutes}
                                     onChange={(e) => setTempMinutes(parseInt(e.target.value) || 0)}
                                     className="w-40 bg-gray-50 dark:bg-white/5 border-4 border-gray-100 dark:border-white/10 rounded-[32px] py-8 text-center text-5xl font-black text-primary focus:outline-none focus:border-primary transition-all shadow-inner"
                                 />
-                                <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-800 px-4 py-1 rounded-full text-[10px] font-black text-gray-400 border border-gray-100 dark:border-white/10 uppercase tracking-widest shadow-sm">Minutes</span>
+                                <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-800 px-4 py-1 rounded-full text-[10px] font-black text-gray-400 border border-gray-100 dark:border-white/10 uppercase tracking-widest shadow-sm">{t("focus.minutes")}</span>
                             </div>
                             <p className="text-gray-500 dark:text-gray-400 font-bold text-center text-sm px-4">
-                                อยากจะโฟกัสกี่นาทีดีจ๊ะเพื่อนรัก? <br/>
-                                <span className="text-xs opacity-70">ใส่เป็นตัวเลขนาทีนะ (เช่น 25, 45, 60)</span>
+                                {t("focus.how_many_mins")} <br />
+                                <span className="text-xs opacity-70">{t("focus.input_hint")}</span>
                             </p>
                         </div>
 
                         <div className="flex gap-4">
-                            <button 
+                            <button
                                 onClick={() => setIsTimeModalOpen(false)}
                                 className="flex-1 py-5 rounded-3xl bg-gray-100 dark:bg-white/10 text-gray-400 font-black text-lg hover:bg-gray-200 transition-all border border-transparent"
                             >
-                                ยกเลิก
+                                {t("focus.cancel")}
                             </button>
-                            <button 
+                            <button
                                 onClick={() => {
                                     if (tempMinutes > 0) {
                                         setManualTime(tempMinutes * 60);
                                         setIsTimeModalOpen(false);
                                     } else {
-                                        alert("ใส่เวลาหน่อยนะจ๊ะ!");
+                                        alert(t("focus.alert_youtube_error"));
                                     }
                                 }}
                                 className="flex-1 py-5 rounded-3xl bg-primary text-white font-black text-lg shadow-xl shadow-primary/20 active:scale-95 transition-all"
                             >
-                                ตั้งค่าเวลา
+                                {t("focus.set_btn")}
                             </button>
                         </div>
                     </div>

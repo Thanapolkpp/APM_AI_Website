@@ -1,6 +1,8 @@
 import React from "react"
+import { useTranslation } from "react-i18next"
 
 const Middlesection = () => {
+    const { t } = useTranslation()
     return (
         <div className="w-full flex flex-col items-center">
             <section className="w-full max-w-5xl py-14 px-6 md:px-10 bg-white/60 dark:bg-white/5 rounded-[3rem] border border-white/60 dark:border-gray-800 backdrop-blur-md shadow-[0_20px_80px_-30px_rgba(0,0,0,0.25)] relative overflow-hidden">
@@ -12,11 +14,11 @@ const Middlesection = () => {
                 {/* Header */}
                 <div className="text-center mb-12 relative z-10">
                     <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-extrabold tracking-widest uppercase text-[11px]">
-                        ✨ APM AI MODES
+                        {t("middle.modes_badge")}
                     </span>
 
                     <h2 className="text-3xl md:text-4xl font-extrabold mt-4 leading-tight">
-                        APM คือ{" "}
+                        {t("middle.apm_is")}{" "}
                         <span className="bg-gradient-to-r from-primary via-pink-500 to-blue-500 bg-clip-text text-transparent">
                             Assistant for Personal Motivation
                         </span>{" "}
@@ -24,7 +26,7 @@ const Middlesection = () => {
                     </h2>
 
                     <p className="mt-3 text-sm md:text-base text-gray-500 dark:text-gray-400">
-                        เพื่อนช่วยนิสิตในทุกสถานการณ์ — เครียดก็ปลอบ งานเยอะก็ช่วยจัด เวลาไม่พอก็ช่วยวางแผน ✨
+                        {t("middle.apm_desc")}
                     </p>
                 </div>
 
@@ -34,34 +36,34 @@ const Middlesection = () => {
                         icon="self_improvement"
                         color="text-pink-700"
                         bgColor="bg-pink-200/70"
-                        title="Calm Mode"
-                        desc="ช่วยให้หายเครียด คุยระบายได้เต็มที่ ไม่ตัดสิน ไม่กดดัน อยู่ข้าง ๆ เสมอ"
-                        badge="ลดความเครียด 🌷"
+                        title={t("middle.features.calm.title")}
+                        desc={t("middle.features.calm.desc")}
+                        badge={t("middle.features.calm.badge")}
                     />
 
                     <FeatureItem
                         icon="event_note"
                         color="text-blue-700"
                         bgColor="bg-blue-200/70"
-                        title="Schedule Mode"
-                        desc="AI สรุปตารางเวลา แบ่งเวลาจากตารางเรียน ช่วยจัด To-do และเตือนงานแบบเป็นระบบ"
-                        badge="จัดเวลาให้เป๊ะ 📅"
+                        title={t("middle.features.schedule.title")}
+                        desc={t("middle.features.schedule.desc")}
+                        badge={t("middle.features.schedule.badge")}
                     />
 
                     <FeatureItem
                         icon="school"
                         color="text-emerald-700"
                         bgColor="bg-emerald-200/70"
-                        title="Grade Plan Mode"
-                        desc="เมื่อรู้คะแนนกลางภาคแล้ว AI ช่วยวางแผนเกรด คำนวณความเป็นไปได้ และช่วยตัดสินใจง่ายขึ้น"
-                        badge="แพลนเกรด 📊"
+                        title={t("middle.features.grade.title")}
+                        desc={t("middle.features.grade.desc")}
+                        badge={t("middle.features.grade.badge")}
                     />
                 </div>
 
                 {/* CTA */}
                 <div className="mt-12 flex justify-center relative z-10">
                     <button className="group px-7 py-3 rounded-full bg-gradient-to-r from-primary to-pink-500 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition">
-                        เริ่มใช้ APM AI ตอนนี้เลย 🚀
+                        {t("middle.cta")}
                         <span className="ml-2 inline-block group-hover:translate-x-1 transition">
                             →
                         </span>
