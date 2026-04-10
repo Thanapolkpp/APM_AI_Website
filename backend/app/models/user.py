@@ -17,3 +17,4 @@ class User(Base):
     reading_time_minutes = Column(Integer, default=0)
     missions_done = Column(Integer, default=0)
     chat_modes_used = Column(String(50), default="") # e.g. "bro,nerd"
+    claimed_missions = Column(String(500), default="[]") # JSON string of mission IDs

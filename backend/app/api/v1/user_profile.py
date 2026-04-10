@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List
+import json
 
 from app.utils.db import get_db
 from app.utils.security import get_current_user
@@ -74,7 +75,9 @@ def get_special_missions(
     # ในที่นี้ขอนับถ้ามีจำนวนห้องและตัวละครอย่างน้อย 1 คู่ที่พรีเมียม
     match_progress = 100 if (avatar_count >= 2 and room_count >= 2) else 50 if (avatar_count >= 1 and room_count >= 1) else 0
 
-    return [
+    claimed_list = json.loads(current_user.claimed_missions) if current_user.claimed_missions else []
+
+    missions = [
         {
             "id": "reading_50",
             "title": "นักอ่านตัวยง",
@@ -84,7 +87,8 @@ def get_special_missions(
             "target": reading_target,
             "unit": "นาที",
             "reward_coins": 500,
-            "reward_exp": 1000
+            "reward_exp": 1000,
+            "is_claimed": "reading_50" in claimed_list
         },
         {
             "id": "todos_10",
@@ -95,7 +99,8 @@ def get_special_missions(
             "target": todo_target,
             "unit": "งาน",
             "reward_coins": 200,
-            "reward_exp": 500
+            "reward_exp": 500,
+            "is_claimed": "todos_10" in claimed_list
         },
         {
             "id": "chat_master",
@@ -106,7 +111,8 @@ def get_special_missions(
             "target": 3,
             "unit": "โหมด",
             "reward_coins": 150,
-            "reward_exp": 300
+            "reward_exp": 300,
+            "is_claimed": "chat_master" in claimed_list
         },
         {
             "id": "avatar_collector",
@@ -117,7 +123,8 @@ def get_special_missions(
             "target": 3,
             "unit": "ตัว",
             "reward_coins": 300,
-            "reward_exp": 600
+            "reward_exp": 600,
+            "is_claimed": "avatar_collector" in claimed_list
         },
         {
             "id": "room_decorator",
@@ -128,7 +135,8 @@ def get_special_missions(
             "target": 4,
             "unit": "ฉาก",
             "reward_coins": 400,
-            "reward_exp": 800
+            "reward_exp": 800,
+            "is_claimed": "room_decorator" in claimed_list
         },
         {
             "id": "matching_set",
@@ -139,6 +147,46 @@ def get_special_missions(
             "target": 1,
             "unit": "เซ็ต",
             "reward_coins": 600,
-            "reward_exp": 1200
+            "reward_exp": 1200,
+            "is_claimed": "matching_set" in claimed_list
         }
     ]
+    return missions
+
+@router.post("/claim-mission/{mission_id}")
+def claim_mission(
+    mission_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # ดึงรายการที่เคยรับไปแล้ว
+    claimed_list = json.loads(current_user.claimed_missions) if current_user.claimed_missions else []
+    
+    if mission_id in claimed_list:
+        raise HTTPException(status_code=400, detail="คุณรับรางวัลนี้ไปแล้วจ้า")
+
+    # หาภารกิจและเช็ค Progress (จำลอง Logic เดียวกับ get_special_missions)
+    missions = get_special_missions(db, current_user)
+    target_mission = next((m for m in missions if m["id"] == mission_id), None)
+
+    if not target_mission:
+        raise HTTPException(status_code=404, detail="ไม่พบภารกิจนี้")
+    
+    if target_mission["progress"] < 100:
+        raise HTTPException(status_code=400, detail="ภารกิจยังไม่สำเร็จจ้า")
+
+    # ให้รางวัล
+    current_user.coins += target_mission["reward_coins"]
+    current_user.exp += target_mission["reward_exp"]
+    
+    # บันทึกว่ารับแล้ว
+    claimed_list.append(mission_id)
+    current_user.claimed_missions = json.dumps(claimed_list)
+    
+    db.commit()
+    
+    return {
+        "message": f"ยินดีด้วย! คุณได้รับ {target_mission['reward_coins']} Coins และ {target_mission['reward_exp']} EXP",
+        "new_coins": current_user.coins,
+        "new_exp": current_user.exp
+    }
