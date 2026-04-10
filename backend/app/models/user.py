@@ -11,4 +11,9 @@ class User(Base):
     coins = Column(Integer, default=30)
     exp = Column(Integer, default=0)
     has_claimed_test_reward = Column(Boolean, default=False)
-    is_admin = Column(Boolean, default=False)
+    is_admin = Column(Boolean, default=False)
+    
+    # Statistics for Special Missions
+    reading_time_minutes = Column(Integer, default=0)
+    missions_done = Column(Integer, default=0)
+    chat_modes_used = Column(String(50), default="") # e.g. "bro,nerd"

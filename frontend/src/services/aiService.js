@@ -339,3 +339,14 @@ export const summarizeSheet = async (sheetId) => {
     const response = await axios.post(`${API_TEXT_URL}summarize/${sheetId}`, {}, { headers: authHeader() });
     return response.data;
 };
+
+// ---------- Special Missions & Reading Time ----------
+export const fetchSpecialMissions = async () => {
+    const response = await axios.get(`${API_USER_URL}/special-missions`, { headers: authHeader() });
+    return response.data;
+};
+
+export const addReadingTime = async (minutes) => {
+    const response = await axios.post(`${API_USER_URL}/add-reading-time`, { minutes }, { headers: authHeader() });
+    return response.data;
+};

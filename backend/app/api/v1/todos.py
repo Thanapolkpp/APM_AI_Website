@@ -75,6 +75,8 @@ def toggle_todo(
         raise HTTPException(status_code=404, detail="Todo not found")
     
     todo.is_completed = not todo.is_completed
+    if todo.is_completed:
+        current_user.missions_done += 1
     db.commit()
     db.refresh(todo)
     return {
@@ -159,6 +161,7 @@ def verify_todo(
         if user:
             user.exp += 15
             user.coins += 2
+            user.missions_done += 1
     else:
         todo.is_completed = False
 

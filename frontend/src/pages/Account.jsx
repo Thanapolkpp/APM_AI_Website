@@ -12,6 +12,7 @@ import Notification from "../components/UI/Notification";
 import CoinBadge from "../components/UI/CoinBadge";
 import { getUserProfile, fetchOwnedRooms, fetchNotifications, fetchUnreadNotificationCount, markAllNotificationsRead } from "../services/aiService";
 import { motion, AnimatePresence } from "framer-motion";
+import SpecialMissions from "../components/Account/SpecialMissions";
 
 
 
@@ -332,6 +333,11 @@ const Account = () => {
                                     Joined {user.joinedDate}
                                 </p>
                             </div>
+                        </div>
+
+                        {/* Special Missions Section */}
+                        <div className="mb-10">
+                            <SpecialMissions />
                         </div>
 
                         {/* Two Columns Grid */}

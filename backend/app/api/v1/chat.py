@@ -68,6 +68,14 @@ async def chat_stream(
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_user),
 ):
+    # Track used chat modes
+    if current_user:
+        current_modes = set(current_user.chat_modes_used.split(",")) if current_user.chat_modes_used else set()
+        if req.mode not in current_modes:
+            current_modes.add(req.mode)
+            current_user.chat_modes_used = ",".join(filter(None, current_modes))
+            db.commit()
+            
     # Logic เหมือนเดิมในการเตรียม Prompt (ย่อเพื่อประหยัดเนื้อที่)
     pdf_context_block = ""
     if req.sheet_ids and current_user:
@@ -112,6 +120,14 @@ async def chat(
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_user),
 ):
+    # Track used chat modes
+    if current_user:
+        current_modes = set(current_user.chat_modes_used.split(",")) if current_user.chat_modes_used else set()
+        if req.mode not in current_modes:
+            current_modes.add(req.mode)
+            current_user.chat_modes_used = ",".join(filter(None, current_modes))
+            db.commit()
+
     # ดึง extracted_text จาก study sheets ที่เลือก (เฉพาะของ user นี้)
     pdf_context_block = ""
     if req.sheet_ids and current_user:
