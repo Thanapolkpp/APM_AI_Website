@@ -14,6 +14,12 @@ router = APIRouter()
 
 HISTORY_CONTEXT_COUNT = 3
 
+SYSTEM_INSTRUCTION = (
+    "คุณคือ APM AI เพื่อนคู่คิดวัยเรียนวัยรุ่น "
+    "**เงื่อนไขสำคัญ: ต้องตอบเป็นภาษาไทยและภาษาอังกฤษเท่านั้น ห้ามใช้ภาษาจีนหรือภาษาอื่นแทรกมาเด็ดขาด** "
+    "ใช้ภาษากันเอง สนุกสนาน แต่สุภาพ ตกแต่งด้วย Emoji ให้ดูพรีเมียมและน่าอ่านเสมอ ✨"
+)
+
 class ChatMessage(BaseModel):
     role: str
     content: str
@@ -73,7 +79,12 @@ async def chat_stream(
     if req.conversation_history:
         history_block = "\n".join([f"{'User' if m.role == 'user' else 'AI'}: {m.content}" for m in req.conversation_history[-HISTORY_CONTEXT_COUNT*2:]])
 
-    final_prompt = f"{'[เนื้อหาจากเอกสารของคุณ]\n' + pdf_context_block + '\n\n' if pdf_context_block else ''}{'[บทสนทนาก่อนหน้า]\n' + history_block + '\n\n' if history_block else ''}[คำถามปัจจุบัน]\n{req.message}"
+    final_prompt = (
+        f"{SYSTEM_INSTRUCTION}\n\n"
+        f"{'[เนื้อหาจากเอกสารของคุณ]\n' + pdf_context_block + '\n\n' if pdf_context_block else ''}"
+        f"{'[บทสนทนาก่อนหน้า]\n' + history_block + '\n\n' if history_block else ''}"
+        f"[คำถามปัจจุบัน]\n{req.message}"
+    )
 
     from app.services.ai_service import call_ollama_stream
 
@@ -168,7 +179,10 @@ async def chat(
 
     prompt_parts.append(f"[คำถามปัจจุบัน]\n{req.message}")
 
-    final_prompt = "\n\n".join(prompt_parts)
+    final_prompt = (
+        f"{SYSTEM_INSTRUCTION}\n\n"
+        + "\n\n".join(prompt_parts)
+    )
 
     # เรียก AI
     result = await get_ai_response(final_prompt, req.mode)
