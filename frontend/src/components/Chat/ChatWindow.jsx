@@ -66,15 +66,15 @@ const ChatWindow = ({ mode: propsMode }) => {
 
       const username = localStorage.getItem("username");
       const initSystemMessage = { text: getSystemMessage(mode, username), sender: "ai" };
-      
+
       const newMessages = [initSystemMessage];
       if (item.user_message) {
-          newMessages.push({ text: item.user_message, sender: "user", historyId: item.id });
+        newMessages.push({ text: item.user_message, sender: "user", historyId: item.id });
       }
       if (item.ai_response) {
-          newMessages.push({ text: item.ai_response, sender: "ai", historyId: item.id });
+        newMessages.push({ text: item.ai_response, sender: "ai", historyId: item.id });
       }
-      
+
       setMessages(newMessages);
       setActiveHistoryContextId(item.id);
     };
@@ -233,7 +233,9 @@ const ChatWindow = ({ mode: propsMode }) => {
       imagePreview: imagePreviewUrl || null,
     }
 
-    setMessages((prev) => [...prev, userMsg])
+    // สร้างชุดข้อความใหม่ทันทีเพื่อใช้ในประวัติและแสดงผล
+    const updatedMessages = [...messages, userMsg]
+    setMessages(updatedMessages)
     setInput("")
     setIsLoading(true)
 
@@ -250,46 +252,53 @@ const ChatWindow = ({ mode: propsMode }) => {
         ? buildPlannerSystemPrompt(textToSend)
         : textToSend
 
-      const conversationHistory = messages.slice(1).map(m => ({
-          role: m.sender,
-          content: m.text
+      // ใช้ updatedMessages แทน messages เดิม เพื่อให้ AI เห็นคำถามล่าสุด
+      const conversationHistory = updatedMessages.slice(1).map(m => ({
+        role: m.sender === "user" ? "user" : "assistant",
+        content: m.text
       }));
 
       if (selectedImage) {
-          // Optimization: Compress image if large
-          let fileToUpload = selectedImage;
-          if (selectedImage && selectedImage.size > 500 * 1024) {
-            fileToUpload = await compressImage(selectedImage);
-          }
-          const reply = await sendMessageToAIWithImage(finalPrompt, mode, fileToUpload, activeHistoryContextId, conversationHistory)
-          setMessages((prev) => [...prev, { text: safeText(reply), sender: "ai" }])
+        let fileToUpload = selectedImage;
+        if (selectedImage.size > 500 * 1024) {
+          fileToUpload = await compressImage(selectedImage);
+        }
+        const reply = await sendMessageToAIWithImage(finalPrompt, mode, fileToUpload, activeHistoryContextId, conversationHistory)
+        setMessages((prev) => [...prev, { text: safeText(reply), sender: "ai" }])
       } else {
-          // Streaming mode for text
-          let fullReply = ""
-          // Add a temporary AI message that will be updated
-          setMessages((prev) => [...prev, { text: "", sender: "ai", isStreaming: true }])
-          
+        // Streaming mode สำหรับ Text
+        let fullReply = ""
+        // เพิ่ม Bubble ว่างๆ ไว้รอรับข้อความ
+        setMessages((prev) => [...prev, { text: "...", sender: "ai", isStreaming: true }])
+
+        try {
           await sendMessageToAIStreaming(finalPrompt, mode, [], conversationHistory, (chunk) => {
-              fullReply += chunk
-              setMessages((prev) => {
-                  const newMsgs = [...prev]
-                  const last = newMsgs[newMsgs.length - 1]
-                  if (last && last.sender === "ai" && last.isStreaming) {
-                      last.text = fullReply
-                  }
-                  return newMsgs
-              })
-          })
-          
-          // Finalize the message
-          setMessages((prev) => {
+            fullReply += chunk
+            setMessages((prev) => {
               const newMsgs = [...prev]
-              const last = newMsgs[newMsgs.length - 1]
-              if (last && last.sender === "ai") {
-                  delete last.isStreaming
+              const lastMsg = newMsgs[newMsgs.length - 1]
+              if (lastMsg && lastMsg.isStreaming) {
+                return [...newMsgs.slice(0, -1), { ...lastMsg, text: fullReply }]
               }
               return newMsgs
+            })
           })
+        } catch (streamErr) {
+          console.error("Stream failed, falling back to normal:", streamErr)
+          const fallbackReply = await sendMessageToAI(finalPrompt, mode, [], activeHistoryContextId, conversationHistory)
+          fullReply = fallbackReply
+        }
+
+        // เปลี่ยนสถานะจาก Streaming เป็นสำเร็จ
+        setMessages((prev) => {
+          const newMsgs = [...prev]
+          const lastMsg = newMsgs[newMsgs.length - 1]
+          if (lastMsg && lastMsg.sender === "ai") {
+            const { isStreaming, ...rest } = lastMsg
+            return [...newMsgs.slice(0, -1), { ...rest, text: fullReply }]
+          }
+          return newMsgs
+        })
       }
 
       setActiveHistoryContextId(null)
@@ -328,7 +337,7 @@ const ChatWindow = ({ mode: propsMode }) => {
 
       {/* Footer Area with Fixed Height on Mobile to ensure visibility */}
       <div className="flex flex-col shrink-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-white/5 pb-safe">
-        
+
         {/* Quick Action Buttons: Compact Scrollable Row for Mobile */}
         <div className="px-4 py-3 overflow-x-auto no-scrollbar">
           <div className="flex gap-3 min-w-min">

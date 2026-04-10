@@ -58,7 +58,14 @@ async def call_ollama_stream(message: str, mode: str, image_bytes: Optional[byte
     payload = {
         "model": MODEL_NAME,
         "messages": messages,
-        "stream": True
+        "stream": True,
+        "options": {
+            "num_ctx": 1024,    # ลดลงเหลือ 1024 เพื่อความไวสูงสุดบน Render
+            "num_predict": 300, # จำกัดความยาวให้กระชับ เพื่อลดเวลาคิด
+            "temperature": 0.6, # ลดลงนิดหน่อยเพื่อให้คำตอบแม่นยำและไม่เวิ่นเว้อ
+            "top_k": 20,
+            "top_p": 0.8
+        }
     }
 
     try:
@@ -101,7 +108,14 @@ async def _call_ollama(message: str, mode: str, image_bytes: Optional[bytes] = N
     payload = {
         "model": MODEL_NAME,
         "messages": messages,
-        "stream": False 
+        "stream": False,
+        "options": {
+            "num_ctx": 1024,
+            "num_predict": 300,
+            "temperature": 0.6,
+            "top_k": 20,
+            "top_p": 0.8
+        } 
     }
 
     try:
