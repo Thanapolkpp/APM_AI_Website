@@ -119,14 +119,14 @@ const Event = () => {
             <main className="flex-1 w-full max-w-5xl mx-auto py-8 md:py-16 px-4 md:px-6 relative z-10">
                 <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-black text-xs uppercase tracking-widest border border-primary/20 shadow-sm animate-bounce-slow">
-                        <Trophy size={14}/> Reward Program
+                        <Trophy size={14}/> {t("event.reward_program")}
                     </div>
                     <h2 className="text-3xl md:text-7xl font-black text-gray-900 dark:text-white tracking-tighter leading-tight md:leading-none">
-                        ฉลองเปิดตัว <br />
-                        <span className="bg-gradient-to-r from-primary via-pink-400 to-indigo-500 bg-clip-text text-transparent">APM Beta Test! 🚀</span>
+                        {t("event.title_main")} <br />
+                        <span className="bg-gradient-to-r from-primary via-pink-400 to-indigo-500 bg-clip-text text-transparent">{t("event.title_sub")}</span>
                     </h2>
                     <p className="max-w-2xl mx-auto text-sm md:text-xl font-bold text-gray-500 dark:text-gray-400 leading-relaxed pt-2 md:pt-4">
-                        ร่วมพัฒนาแอปให้ดีขึ้น พร้อมรับของรางวัลสุดพิเศษเพียงทำ 2 ขั้นตอนง่ายๆ นะครับเพื่อนๆ 💖
+                        {t("event.subtitle")}
                     </p>
                 </div>
 
