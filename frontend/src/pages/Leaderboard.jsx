@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { fetchLeaderboard } from "../services/aiService";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import Navbar from "../components/Layout/Navbar";
 import { ASSETS } from "../config/assets";
-import { Trophy, Medal, Crown, Star, Flame } from "lucide-react";
+import { Trophy, Crown, Star, Flame, Award } from "lucide-react";
 
 const GirlIcon = ASSETS.AVATARS.GIRL;
 const BroIcon = ASSETS.AVATARS.BRO;
@@ -28,7 +28,7 @@ const Leaderboard = () => {
 
     if (loading) return (
         <div className="flex items-center justify-center min-h-screen bg-background-light dark:bg-background-dark">
-            <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
     );
 
@@ -36,161 +36,164 @@ const Leaderboard = () => {
     const others = leaders.slice(3);
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark font-display relative overflow-hidden transition-colors duration-300">
-             {/* Background blobs */}
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A] font-display relative overflow-hidden transition-colors duration-300">
+             {/* Dynamic Background */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-[20%] left-[10%] size-[30rem] bg-pink-300/20 dark:bg-pink-500/10 rounded-full blur-[110px]" />
-                <div className="absolute bottom-[20%] right-[10%] size-[30rem] bg-indigo-300/20 dark:bg-indigo-500/10 rounded-full blur-[110px]" />
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-400/10 rounded-full blur-[120px]" />
             </div>
 
-            <div className="flex flex-col min-h-screen relative z-10 w-full max-w-7xl mx-auto md:px-6">
-                <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/10 backdrop-blur-xl py-4 px-6 flex items-center justify-between">
+            <div className="flex flex-col min-h-screen relative z-10">
+                <header className="sticky top-0 z-50 w-full border-b border-gray-200/50 dark:border-white/5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl py-4 px-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                         <div className="size-10 rounded-xl bg-gradient-to-tr from-pink-500 to-indigo-500 flex items-center justify-center shadow-lg">
+                         <div className="size-10 rounded-xl bg-gradient-to-tr from-primary to-pink-500 flex items-center justify-center shadow-lg shadow-primary/20">
                             <Trophy className="text-white" size={20} />
                         </div>
-                        <h1 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter">Ranking</h1>
+                        <h1 className="text-xl font-black text-slate-800 dark:text-white uppercase italic tracking-tighter">Ranking</h1>
                     </div>
-                    <div className="hidden md:block">
+                    <div className="hidden lg:block">
                         <Navbar />
                     </div>
-                    <div className="md:hidden">
-                        <Navbar />
-                    </div>
+                    <button onClick={() => window.history.back()} className="lg:hidden text-slate-500 font-bold p-2">
+                         <span className="material-symbols-outlined">arrow_back</span>
+                    </button>
                 </header>
 
-                <main className="flex-1 w-full max-w-4xl mx-auto px-6 py-12">
-                    <div className="text-center mb-16">
+                <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-8 md:py-16">
+                    <div className="text-center mb-20">
                          <motion.div 
                             initial={{ y: -20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
-                            className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/60 dark:bg-white/5 backdrop-blur-md border border-white dark:border-white/10 shadow-sm mb-6"
+                            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 mb-6"
                         >
-                            <Flame className="text-orange-500" size={16} />
-                            <span className="text-[10px] font-black text-gray-600 dark:text-gray-400 tracking-widest uppercase">Hall of Fame</span>
+                            <Flame className="text-primary" size={14} />
+                            <span className="text-[10px] font-black text-primary tracking-widest uppercase">Hall of Fame</span>
                         </motion.div>
-                        <h2 className="text-4xl md:text-6xl font-black text-gray-900 dark:text-white tracking-tighter uppercase italic leading-none">
+                        <h2 className="text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tighter uppercase italic leading-none mb-4">
                             เหล่าคนเทพ <br/>
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 px-2 uppercase">แห่ง APM AI</span>
+                            <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-600 bg-clip-text text-transparent">แห่ง APM AI</span>
                         </h2>
                     </div>
 
-                    {/* Podium for Top 3 */}
-                    <div className="flex flex-wrap justify-center items-end gap-4 md:gap-8 mb-20 px-4">
+                    {/* Podium Area */}
+                    <div className="flex justify-center items-end gap-3 md:gap-12 mb-24 px-2">
                         {/* 2nd Place */}
                         {top3[1] && (
                             <motion.div 
-                                initial={{ y: 50, opacity: 0 }}
+                                initial={{ y: 30, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.2 }}
-                                className="flex flex-col items-center group"
+                                className="flex flex-col items-center flex-1 max-w-[120px] md:max-w-[150px]"
                             >
-                                <div className="relative mb-4">
-                                    <div className="size-20 md:size-24 rounded-3xl bg-white dark:bg-gray-800 border-4 border-slate-300 shadow-xl overflow-hidden">
-                                        <img src={getAvatarIcon(top3[1].equipped_avatar)} className="w-full h-full object-cover" alt="Rank 2" />
+                                <div className="relative mb-6">
+                                    <div className="size-20 md:size-24 rounded-[2rem] bg-white dark:bg-slate-800 border-4 border-slate-300 shadow-xl overflow-hidden group">
+                                        <img src={getAvatarIcon(top3[1].equipped_avatar)} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt="Rank 2" />
                                     </div>
-                                    <div className="absolute -top-3 -right-3 size-10 rounded-full bg-slate-300 flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-900">
-                                        <span className="font-black text-gray-700">2</span>
+                                    <div className="absolute -top-3 -right-3 size-10 rounded-2xl bg-slate-300 flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-800">
+                                        <span className="font-black text-slate-700">2</span>
                                     </div>
                                 </div>
-                                <div className="text-center">
-                                    <p className="font-black text-gray-900 dark:text-white text-sm uppercase tracking-tight">{top3[1].username}</p>
-                                </div>
-                                <div className="h-24 w-28 mt-4 bg-gradient-to-t from-slate-400/20 to-slate-400/10 rounded-t-3xl border-t border-slate-300/30" />
+                                <p className="font-black text-slate-700 dark:text-slate-300 text-sm md:text-base uppercase truncate w-full text-center">{top3[1].username}</p>
+                                <div className="w-full h-20 md:h-28 mt-4 bg-gradient-to-b from-slate-200 dark:from-slate-800 to-transparent rounded-t-2xl opacity-40" />
                             </motion.div>
                         )}
 
                         {/* 1st Place */}
                         {top3[0] && (
                             <motion.div 
-                                initial={{ y: 50, opacity: 0 }}
+                                initial={{ y: 30, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.1 }}
-                                className="flex flex-col items-center z-20 -mb-4 md:-mb-8"
+                                className="flex flex-col items-center z-20 flex-1 max-w-[150px] md:max-w-[200px]"
                             >
-                                <div className="relative mb-6 scale-125 md:scale-150">
-                                    <div className="absolute -top-14 left-1/2 -translate-x-1/2 z-30">
+                                <div className="relative mb-8 pt-8">
+                                    {/* Deity Badge */}
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30">
                                         <motion.div
-                                            animate={{ scale: [1, 1.1, 1], rotate: [-2, 2, -2] }}
-                                            transition={{ duration: 2, repeat: Infinity }}
-                                            className="px-4 py-1.5 bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-600 rounded-full shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-white"
+                                            animate={{ y: [0, -5, 0] }}
+                                            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                            className="px-5 py-1.5 bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 rounded-full shadow-[0_10px_20px_rgba(245,158,11,0.3)] border-2 border-white text-center"
                                         >
-                                            <span className="text-[10px] font-black text-amber-900 uppercase tracking-widest whitespace-nowrap">
-                                                มหาเทพ
-                                            </span>
+                                            <span className="text-[11px] font-black text-amber-900 uppercase tracking-tighter">มหาเทพ</span>
                                         </motion.div>
                                     </div>
-                                    <Crown className="absolute -top-10 left-1/2 -translate-x-1/2 text-yellow-500 size-12 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)] z-20" />
-                                    <div className="size-24 md:size-28 rounded-[2.5rem] bg-white dark:bg-gray-800 border-4 border-yellow-400 shadow-[0_0_40px_rgba(250,204,21,0.4)] overflow-hidden">
-                                        <img src={getAvatarIcon(top3[0].equipped_avatar)} className="w-full h-full object-cover" alt="Rank 1" />
+                                    
+                                    <div className="relative">
+                                        <Crown size={40} className="absolute -top-10 left-1/2 -translate-x-1/2 text-amber-500 drop-shadow-lg z-20 animate-bounce" />
+                                        <div className="size-28 md:size-36 rounded-[3rem] bg-white dark:bg-slate-800 border-4 border-amber-400 shadow-[0_20px_50px_rgba(245,158,11,0.25)] overflow-hidden">
+                                            <img src={getAvatarIcon(top3[0].equipped_avatar)} className="w-full h-full object-cover" alt="Rank 1" />
+                                        </div>
+                                        <div className="absolute -top-4 -right-4 size-12 md:size-14 rounded-3xl bg-amber-400 flex items-center justify-center shadow-xl border-4 border-white dark:border-slate-800 z-30">
+                                            <span className="font-black text-white text-xl">1</span>
+                                        </div>
+                                        {/* Glow Aura */}
+                                        <div className="absolute inset-0 bg-amber-400 blur-3xl opacity-20 -z-10 animate-pulse" />
                                     </div>
-                                    <div className="absolute -top-3 -right-3 size-12 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-900 z-30">
-                                        <span className="font-black text-white text-lg">1</span>
-                                    </div>
-                                    {/* Pulse Effect Aura */}
-                                    <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-yellow-400/20 blur-2xl animate-pulse" />
                                 </div>
-                                <div className="text-center mt-4">
-                                    <p className="font-black text-gray-900 dark:text-white text-xl uppercase tracking-tight italic">{top3[0].username}</p>
-                                </div>
-                                <div className="h-32 w-32 mt-6 bg-gradient-to-t from-yellow-400/40 via-yellow-400/20 to-transparent rounded-t-3xl border-x border-t border-yellow-400/30" />
+                                <p className="font-black text-slate-900 dark:text-white text-lg md:text-2xl uppercase italic tracking-tight truncate w-full text-center">{top3[0].username}</p>
+                                <div className="w-full h-28 md:h-40 mt-4 bg-gradient-to-b from-amber-400 dark:from-amber-600 to-transparent rounded-t-3xl opacity-30 shadow-inner" />
                             </motion.div>
                         )}
 
                         {/* 3rd Place */}
                         {top3[2] && (
                             <motion.div 
-                                initial={{ y: 50, opacity: 0 }}
+                                initial={{ y: 30, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.3 }}
-                                className="flex flex-col items-center group"
+                                className="flex flex-col items-center flex-1 max-w-[120px] md:max-w-[150px]"
                             >
-                                <div className="relative mb-4">
-                                    <div className="size-20 md:size-24 rounded-3xl bg-white dark:bg-gray-800 border-4 border-amber-600/50 shadow-xl overflow-hidden">
+                                <div className="relative mb-6">
+                                    <div className="size-20 md:size-24 rounded-[2rem] bg-white dark:bg-slate-800 border-4 border-amber-700/40 shadow-xl overflow-hidden">
                                         <img src={getAvatarIcon(top3[2].equipped_avatar)} className="w-full h-full object-cover" alt="Rank 3" />
                                     </div>
-                                    <div className="absolute -top-3 -right-3 size-10 rounded-full bg-amber-600 text-white flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-900">
+                                    <div className="absolute -top-3 -right-3 size-10 rounded-2xl bg-amber-700/80 text-white flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-800">
                                         <span className="font-black">3</span>
                                     </div>
                                 </div>
-                                <div className="text-center">
-                                    <p className="font-black text-gray-900 dark:text-white text-sm uppercase tracking-tight">{top3[2].username}</p>
-                                </div>
-                                <div className="h-16 w-28 mt-4 bg-gradient-to-t from-amber-600/20 to-amber-600/10 rounded-t-3xl border-t border-amber-600/20 shadow-sm" />
+                                <p className="font-black text-slate-700 dark:text-slate-300 text-sm md:text-base uppercase truncate w-full text-center">{top3[2].username}</p>
+                                <div className="w-full h-16 md:h-20 mt-4 bg-gradient-to-b from-amber-800/20 dark:from-amber-800/40 to-transparent rounded-t-2xl opacity-40" />
                             </motion.div>
                         )}
                     </div>
 
-                    {/* Rankings List */}
-                    <div className="space-y-3">
+                    {/* Minimalist Rankings List */}
+                    <div className="max-w-2xl mx-auto space-y-4">
                         {others.map((user, idx) => (
                             <motion.div 
                                 key={idx}
-                                initial={{ x: -20, opacity: 0 }}
-                                animate={{ x: 0, opacity: 1 }}
-                                transition={{ delay: 0.4 + (idx * 0.05) }}
-                                className="flex items-center gap-4 bg-white/60 dark:bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white dark:border-white/10 shadow-sm hover:translate-x-2 transition-transform"
+                                initial={{ opacity: 0, x: -10 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="flex items-center gap-5 bg-white dark:bg-slate-800/50 p-4 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group"
                             >
-                                <div className="size-8 font-black text-gray-400 dark:text-gray-500 flex items-center justify-center italic">
-                                    #{idx + 4}
+                                <div className="w-8 font-black text-slate-300 dark:text-slate-600 text-xl italic ml-2">
+                                    {idx + 4}
                                 </div>
-                                <div className="size-12 rounded-2xl overflow-hidden border-2 border-white dark:border-gray-700 bg-white">
-                                    <img src={getAvatarIcon(user.equipped_avatar)} className="w-full h-full object-cover" alt="User" />
+                                <div className="size-14 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-700 shadow-inner bg-slate-50 shrink-0">
+                                    <img src={getAvatarIcon(user.equipped_avatar)} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt="User" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="font-black text-gray-900 dark:text-white uppercase tracking-tight text-lg">{user.username}</p>
+                                    <p className="font-black text-slate-800 dark:text-slate-200 uppercase tracking-tight text-lg">{user.username}</p>
+                                </div>
+                                <div className="px-4 opacity-20 group-hover:opacity-100 transition-opacity">
+                                     <Award size={20} className="text-slate-400" />
                                 </div>
                             </motion.div>
                         ))}
                     </div>
 
-                    <div className="mt-16 text-center border-t border-gray-100 dark:border-white/5 pt-10">
-                        <p className="text-xs font-bold text-gray-400 italic">
-                            ขยันเรียน ขยันแชท แล้วมาติดอันดับกันนะครับเพื่อนๆ !
+                    <div className="mt-24 text-center">
+                        <p className="text-xs font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest">
+                            {t("leaderboard.subtitle")}
                         </p>
                     </div>
                 </main>
             </div>
+            
+            <style jsx>{`
+                .italic { font-style: italic; }
+            `}</style>
         </div>
     );
 };
