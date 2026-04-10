@@ -5,6 +5,7 @@ import Footer from "../components/Layout/footer";
 import CoinBadge from "../components/UI/CoinBadge";
 import { ASSETS } from "../config/assets";
 import { Sparkles, Trophy, ExternalLink, ClipboardCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Logo = ASSETS.BRANDING.LOGO;
 const BroIcon = ASSETS.AVATARS.BRO;
@@ -12,6 +13,7 @@ const NerdIcon = ASSETS.AVATARS.NERD1; // Default Nerd
 const CuteGirlIcon = ASSETS.AVATARS.GIRL;
 
 const Event = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [isClaimed, setIsClaimed] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
@@ -65,14 +67,14 @@ const Event = () => {
 
             if (response.ok) {
                 setIsClaimed(true);
-                alert("เย้! รับรางวัลสำเร็จแล้วครับ อย่าลืมทำแบบประเมินข้างล่างน้าา 🌷");
+                alert(t("event.success_alert"));
             } else {
                 const errorData = await response.json();
-                alert(errorData.detail || "เกิดข้อผิดพลาดในการรับรางวัล");
+                alert(errorData.detail || "Error");
             }
         } catch (error) {
             console.error("Error claiming reward:", error);
-            alert("ไม่สามารถติดต่อเซิร์ฟเวอร์ได้");
+            alert("Connection error");
         } finally {
             setIsLoading(false);
         }
@@ -140,10 +142,10 @@ const Event = () => {
                         </div>
                         
                         <div className="z-10 space-y-3 md:space-y-4">
-                            <span className="text-[8px] md:text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Step 01</span>
-                            <h3 className="text-xl md:text-3xl font-black text-gray-900 dark:text-white">รับรางวัลเข้าคลัง 🪙</h3>
+                            <span className="text-[8px] md:text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">{t("event.step1_tag")}</span>
+                            <h3 className="text-xl md:text-3xl font-black text-gray-900 dark:text-white">{t("event.step1_title")}</h3>
                             <p className="text-xs md:text-gray-500 md:dark:text-gray-400 font-bold leading-relaxed mb-6 md:mb-8">
-                                รับเหรียญและ EXP ทันทีสำหรับผู้ที่เข้ามาลองร่วมทดสอบระบบของเราจ้า
+                                {t("event.step1_desc")}
                             </p>
 
                             <div className="flex flex-wrap justify-center gap-3 mb-10">
@@ -166,9 +168,9 @@ const Event = () => {
                                 {isLoading ? (
                                     <div className="size-5 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
                                 ) : isClaimed ? (
-                                    <><span>✓ รับรางวัลแล้ว</span></>
+                                    <><span>{t("event.claimed_btn")}</span></>
                                 ) : (
-                                    <><span>รับของรางวัล</span> <ExternalLink size={16}/></>
+                                    <><span>{t("event.claim_btn")}</span> <ExternalLink size={16}/></>
                                 )}
                             </button>
                         </div>
@@ -185,15 +187,15 @@ const Event = () => {
                         </div>
 
                         <div className="z-10 space-y-3 md:space-y-4">
-                            <span className="text-[8px] md:text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em]">Step 02</span>
-                            <h3 className="text-xl md:text-3xl font-black text-gray-900 dark:text-white">ทำแบบประเมินแอป 📝</h3>
+                            <span className="text-[8px] md:text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em]">{t("event.step2_tag")}</span>
+                            <h3 className="text-xl md:text-3xl font-black text-gray-900 dark:text-white">{t("event.step2_title")}</h3>
                             <p className="text-xs md:text-gray-500 md:dark:text-gray-400 font-bold leading-relaxed mb-6 md:mb-8">
-                                ช่วยเราติชมระบบ เพื่อให้ทีมงานนำไปปรับปรุงให้ดีขึ้นในอนาคตครับเพื่อนๆ
+                                {t("event.step2_desc")}
                             </p>
 
                             <div className="py-2 mb-10">
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Google Form Link</p>
-                                <p className="text-xs font-bold text-gray-300 dark:text-gray-500 italic mt-1">ใช้เวลาเพียง 1-2 นาทีเท่านั้น</p>
+                                <p className="text-xs font-bold text-gray-300 dark:text-gray-500 italic mt-1">{t("event.form_hint")}</p>
                             </div>
 
                             <a
@@ -202,14 +204,14 @@ const Event = () => {
                                 rel="noopener noreferrer"
                                 className="w-full py-4 md:py-5 rounded-[22px] md:rounded-[28px] bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-sm md:text-lg uppercase tracking-widest shadow-2xl shadow-indigo-500/30 hover:brightness-110 active:scale-95 flex items-center justify-center gap-2 md:gap-3 transition-all"
                             >
-                                ไปทำแบบประเมิน <ExternalLink size={16}/>
+                                {t("event.form_btn")} <ExternalLink size={16}/>
                             </a>
                         </div>
                     </div>
                 </div>
 
                 <div className="text-center space-y-6">
-                    <p className="text-gray-400 dark:text-gray-600 font-bold text-sm uppercase tracking-[0.3em]">Next Events Coming Soon...</p>
+                    <p className="text-gray-400 dark:text-gray-600 font-bold text-sm uppercase tracking-[0.3em]">{t("event.coming_soon")}</p>
                     <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-gray-300 dark:via-white/10 to-transparent mx-auto" />
                 </div>
             </main>

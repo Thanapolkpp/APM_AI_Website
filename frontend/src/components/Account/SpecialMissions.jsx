@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
 import { fetchSpecialMissions } from "../../services/aiService";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 const SpecialMissions = () => {
+    const { t } = useTranslation();
     const [missions, setMissions] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -20,8 +21,8 @@ const SpecialMissions = () => {
 
     return (
         <div className="space-y-6">
-            <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2 mb-4 italic">
-                <span className="material-symbols-outlined text-pink-500">military_tech</span> SPECIAL MISSIONS <span className="text-pink-500 text-2xl font-black">!</span>
+            <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2 mb-4 italic uppercase">
+                <span className="material-symbols-outlined text-pink-500">military_tech</span> {t("missions.title")} <span className="text-pink-500 text-2xl font-black">!</span>
             </h3>
 
             <div className="grid grid-cols-1 gap-4">
@@ -52,7 +53,7 @@ const SpecialMissions = () => {
                         {/* Progress Bar Container */}
                         <div className="relative mt-4">
                             <div className="flex justify-between text-[10px] font-black text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-tighter">
-                                <span>PROGRESS</span>
+                                <span>{t("missions.progress")}</span>
                                 <span>{mission.current} / {mission.target} {mission.unit}</span>
                             </div>
                             
@@ -86,7 +87,7 @@ const SpecialMissions = () => {
             </div>
             
             <p className="text-center text-[10px] font-bold text-gray-400 dark:text-gray-500 italic mt-6">
-                * ภารกิจจะอัปเดตอัตโนมัติเมื่อคุณใช้งานระบบนะเพื่อน 🌷
+                {t("missions.footer")}
             </p>
         </div>
     );

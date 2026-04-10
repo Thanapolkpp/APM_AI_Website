@@ -19,6 +19,7 @@ import SpecialMissions from "../components/Account/SpecialMissions";
 const Account = () => {
     const navigate = useNavigate();
 
+    const { t } = useTranslation()
     const [user, setUser] = useState({
         name: localStorage.getItem("username") || "Unknown User",
         email: localStorage.getItem("email") || "No email",
@@ -161,7 +162,7 @@ const Account = () => {
                         </div>
                         <div>
                             <h1 className="font-extrabold text-[15px] sm:text-xl text-gray-900 dark:text-white tracking-tight">APM AI</h1>
-                            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">🌷 ผู้ช่วยที่เป็นเพื่อนที่ดีสำหรับคุณ</p>
+                            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">🌷 {t("nav.brand_subtitle")}</p>
                         </div>
                     </div>
 
@@ -330,7 +331,7 @@ const Account = () => {
                                     🎓 {user.major}
                                 </p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-2">
-                                    Joined {user.joinedDate}
+                                    {t("account.joined")} {user.joinedDate}
                                 </p>
                             </div>
                         </div>
@@ -346,7 +347,7 @@ const Account = () => {
                             {/* Account Info Panel */}
                             <div className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-3xl p-6 border border-white/60 dark:border-gray-700/50 shadow-sm">
                                 <h3 className="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-6 flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[18px]">account_circle</span> Account Details
+                                    <span className="material-symbols-outlined text-[18px]">account_circle</span> {t("account.details")}
                                 </h3>
 
                                 <div className="space-y-4">
@@ -355,7 +356,7 @@ const Account = () => {
                                             <span className="material-symbols-outlined">mail</span>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 font-medium">Email Address</p>
+                                            <p className="text-xs text-gray-500 font-medium">{t("account.email")}</p>
                                             <p className="font-bold text-gray-800 dark:text-gray-200">{user.email}</p>
                                         </div>
                                     </div>
@@ -365,7 +366,7 @@ const Account = () => {
                                             <span className="material-symbols-outlined">toll</span>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 font-medium">Coins</p>
+                                            <p className="text-xs text-gray-500 font-medium">{t("account.coins")}</p>
                                             <p className="font-bold text-gray-800 dark:text-gray-200">{user.coins} 🪙</p>
                                         </div>
                                     </div>
@@ -375,7 +376,7 @@ const Account = () => {
                                             <span className="material-symbols-outlined">star</span>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 font-medium">EXP</p>
+                                            <p className="text-xs text-gray-500 font-medium">{t("account.exp")}</p>
                                             <p className="font-bold text-gray-800 dark:text-gray-200">{user.exp} XP</p>
                                         </div>
                                     </div>
@@ -385,7 +386,7 @@ const Account = () => {
                                             <span className="material-symbols-outlined">badge</span>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 font-medium">Student ID</p>
+                                            <p className="text-xs text-gray-500 font-medium">{t("account.student_id")}</p>
                                             <p className="font-bold text-gray-800 dark:text-gray-200">{user.studentId}</p>
                                         </div>
                                     </div>
@@ -395,7 +396,7 @@ const Account = () => {
                                             <span className="material-symbols-outlined">school</span>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 font-medium">University / Faculty</p>
+                                            <p className="text-xs text-gray-500 font-medium">{t("account.uni")}</p>
                                             <p className="font-bold text-gray-800 dark:text-gray-200">Kasetsart University</p>
                                         </div>
                                     </div>
@@ -405,7 +406,7 @@ const Account = () => {
                             {/* Settings Panel */}
                             <div className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-3xl p-6 border border-white/60 dark:border-gray-700/50 shadow-sm flex flex-col">
                                 <h3 className="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-6 flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[18px]">settings</span> App Settings
+                                    <span className="material-symbols-outlined text-[18px]">settings</span> {t("account.settings")}
                                 </h3>
 
                                 <div className="space-y-4 flex-1">
@@ -414,7 +415,7 @@ const Account = () => {
                                             <span className="material-symbols-outlined">smart_toy</span>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 font-medium">Current AI Preference</p>
+                                            <p className="text-xs text-gray-500 font-medium">{t("account.preference")}</p>
                                             <p className="font-bold text-gray-800 dark:text-gray-200">{user.preferredMode}</p>
                                         </div>
                                     </div>
@@ -426,8 +427,8 @@ const Account = () => {
                                                 <span className="material-symbols-outlined">{isDark ? "dark_mode" : "light_mode"}</span>
                                             </div>
                                             <div>
-                                                <p className="font-bold text-gray-800 dark:text-gray-200">Dark Theme</p>
-                                                <p className="text-[11px] text-gray-500 font-medium">Switch between Light / Dark</p>
+                                                <p className="font-bold text-gray-800 dark:text-gray-200">{t("account.theme")}</p>
+                                                <p className="text-[11px] text-gray-500 font-medium">{t("account.theme_desc")}</p>
                                             </div>
                                         </div>
 
@@ -446,7 +447,7 @@ const Account = () => {
                                         onClick={handleLogout}
                                         className="w-full py-4 rounded-2xl bg-red-50 dark:bg-red-500/10 text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-500/20 font-black text-lg shadow-sm hover:-translate-y-1 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-red-100 dark:border-red-500/20"
                                     >
-                                        <span className="material-symbols-outlined">logout</span> Log Out Let's Go
+                                        <span className="material-symbols-outlined">logout</span> {t("account.logout_btn")}
                                     </button>
                                 </div>
                             </div>

@@ -43,6 +43,7 @@
     "login": "Login",
     "about": "About",
     "contact": "Contact",
+    "brand_subtitle": "Your AI assistant and best friend",
     "go_mission": "GO MISSION",
     "tier_junior": "Junior",
     "tier_senior": "Senior",
@@ -136,5 +137,44 @@
       }
     },
     "cta": "Start using APM AI now 🚀"
+  },
+  "account": {
+    "title": "Account Info",
+    "details": "Account Details",
+    "email": "Email Address",
+    "coins": "Coins",
+    "exp": "EXP",
+    "student_id": "Student ID",
+    "major": "Major",
+    "uni": "University / Faculty",
+    "joined": "Joined",
+    "settings": "App Settings",
+    "preference": "Current AI Preference",
+    "theme": "Dark Theme",
+    "theme_desc": "Switch between Light / Dark",
+    "logout_btn": "Log Out Let's Go"
+  },
+  "missions": {
+    "title": "SPECIAL MISSIONS",
+    "footer": "* Missions update automatically based on your activity buddy 🌷",
+    "progress": "PROGRESS"
+  },
+  "event": {
+    "reward_program": "Reward Program",
+    "title_main": "Celebrating the launch of",
+    "title_sub": "APM Beta Test! 🚀",
+    "subtitle": "Help us improve the app and get special rewards with 2 simple steps! 💖",
+    "step1_tag": "Step 01",
+    "step1_title": "Claim Rewards 🪙",
+    "step1_desc": "Get instant Coins and EXP for joining our system test.",
+    "claim_btn": "Claim Reward",
+    "claimed_btn": "Claimed ✓",
+    "step2_tag": "Step 02",
+    "step2_title": "App Evaluation 📝",
+    "step2_desc": "Share your feedback to help us build a better experience for everyone.",
+    "form_hint": "Takes only 1-2 minutes",
+    "form_btn": "Go to Form",
+    "coming_soon": "Next Events Coming Soon...",
+    "success_alert": "Yay! Reward claimed successfully! Don't forget to fill the form below 🌷"
   }
 }
