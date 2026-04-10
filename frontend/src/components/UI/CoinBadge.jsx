@@ -94,6 +94,40 @@ const CoinBadge = ({ className = "", isVibrant = false }) => {
     const labelClass = isVibrant ? "text-white/80" : "text-gray-400";
     const valueClass = isVibrant ? "text-white" : "text-gray-900 dark:text-white";
 
+    const isStacked = className.includes("!flex-col");
+
+    if (isStacked) {
+        return (
+            <div className={`flex flex-col gap-2 ${className}`}>
+                 {/* Coins Row */}
+                 <div className="flex items-center gap-2 group">
+                    <div className="relative size-6 flex items-center justify-center">
+                        <Coins className="text-yellow-300" size={16} />
+                        <div className="absolute inset-0 blur-md bg-yellow-400/30 rounded-full animate-pulse -z-10" />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/70">Coins</span>
+                        <span className="text-sm font-black text-white">{coins.toLocaleString()}</span>
+                    </div>
+                </div>
+
+                {/* Rank Row */}
+                <div className="flex items-center gap-2 group">
+                    <div className="relative size-6 flex items-center justify-center p-0.5">
+                         <img src={theme.img} alt={theme.name} className="w-full h-full object-contain" />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/70">Rank: {theme.name}</span>
+                        <div className="flex items-baseline gap-0.5">
+                            <span className="text-sm font-black text-white">{exp.toLocaleString()}</span>
+                            <span className="text-[8px] font-bold text-white/60">XP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className={`flex items-center gap-2 sm:gap-4 ${className}`}>
             {/* Coins Badge - Hidden on mobile */}

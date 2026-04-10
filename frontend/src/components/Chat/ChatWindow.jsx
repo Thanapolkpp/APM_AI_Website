@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import pdfToText from "react-pdftotext"
-import { sendMessageToAI, sendMessageToAIWithImage, fetchChatHistory } from "../../services/aiService"
+import { sendMessageToAI, sendMessageToAIWithImage, fetchChatHistory, sendMessageToAIStreaming } from "../../services/aiService"
 
 // New Components
 import ChatHeader from "../chat-window/ChatHeader"
@@ -126,8 +126,9 @@ const ChatWindow = ({ mode: propsMode }) => {
     setIsLoading(true)
     pdfToText(file)
       .then((text) => {
-        setInput(prev => prev + "\n[เนื้อหาจาก PDF]:\n" + text)
-        alert("อ่านไฟล์ PDF สำเร็จแล้ว! คุณสามารถส่งข้อความต่อได้เลย")
+        const truncatedText = text.length > 5000 ? text.substring(0, 5000) + "..." : text
+        setInput(prev => prev + "\n[เนื้อหาจาก PDF]:\n" + truncatedText)
+        alert("อ่านไฟล์ PDF สำเร็จแล้ว! (ตัดเนื้อหาหากยาวเกินไป) คุณสามารถส่งข้อความต่อได้เลย")
       })
       .catch((error) => {
         console.error("Failed to extract text from pdf", error)
@@ -172,6 +173,49 @@ const ChatWindow = ({ mode: propsMode }) => {
   const isLoggedIn = !!localStorage.getItem("token")
   const isLimitReached = !isLoggedIn && guestChatCount >= 5
 
+  // Image compression helper
+  const compressImage = async (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 1024;
+          const MAX_HEIGHT = 1024;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              resolve(new File([blob], file.name, { type: "image/jpeg" }));
+            },
+            "image/jpeg",
+            0.7
+          );
+        };
+      };
+    });
+  };
+
   // Handle Send
   const handleSend = async (e) => {
     e.preventDefault()
@@ -211,11 +255,43 @@ const ChatWindow = ({ mode: propsMode }) => {
           content: m.text
       }));
 
-      const reply = selectedImage
-        ? await sendMessageToAIWithImage(finalPrompt, mode, selectedImage, activeHistoryContextId, conversationHistory)
-        : await sendMessageToAI(finalPrompt, mode, [], activeHistoryContextId, conversationHistory)
+      if (selectedImage) {
+          // Optimization: Compress image if large
+          let fileToUpload = selectedImage;
+          if (selectedImage && selectedImage.size > 500 * 1024) {
+            fileToUpload = await compressImage(selectedImage);
+          }
+          const reply = await sendMessageToAIWithImage(finalPrompt, mode, fileToUpload, activeHistoryContextId, conversationHistory)
+          setMessages((prev) => [...prev, { text: safeText(reply), sender: "ai" }])
+      } else {
+          // Streaming mode for text
+          let fullReply = ""
+          // Add a temporary AI message that will be updated
+          setMessages((prev) => [...prev, { text: "", sender: "ai", isStreaming: true }])
+          
+          await sendMessageToAIStreaming(finalPrompt, mode, [], conversationHistory, (chunk) => {
+              fullReply += chunk
+              setMessages((prev) => {
+                  const newMsgs = [...prev]
+                  const last = newMsgs[newMsgs.length - 1]
+                  if (last && last.sender === "ai" && last.isStreaming) {
+                      last.text = fullReply
+                  }
+                  return newMsgs
+              })
+          })
+          
+          // Finalize the message
+          setMessages((prev) => {
+              const newMsgs = [...prev]
+              const last = newMsgs[newMsgs.length - 1]
+              if (last && last.sender === "ai") {
+                  delete last.isStreaming
+              }
+              return newMsgs
+          })
+      }
 
-      setMessages((prev) => [...prev, { text: safeText(reply), sender: "ai" }])
       setActiveHistoryContextId(null)
       removeSelectedImage()
     } catch (error) {
@@ -254,30 +330,30 @@ const ChatWindow = ({ mode: propsMode }) => {
       <div className="flex flex-col shrink-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-white/5 pb-safe">
         
         {/* Quick Action Buttons: Compact Scrollable Row for Mobile */}
-        <div className="px-2 py-2 overflow-x-auto custom-scrollbar">
-          <div className="flex gap-2 min-w-min px-2">
+        <div className="px-4 py-3 overflow-x-auto no-scrollbar">
+          <div className="flex gap-3 min-w-min">
             <button
               onClick={() => setInput(plannerPrompt)}
               disabled={isLoading || isLimitReached}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 text-xs font-black text-gray-700 dark:text-gray-300 hover:border-primary/50 transition-all shadow-sm shrink-0"
+              className="flex items-center gap-2.5 px-5 py-2.5 bg-indigo-50/50 hover:bg-indigo-50 border border-indigo-100/50 rounded-2xl text-[13px] font-bold text-indigo-700 transition-all shadow-sm shrink-0 active:scale-95"
             >
-              <span>📅</span>
+              <span className="text-base">📅</span>
               <span className="whitespace-nowrap">จัดตารางเรียน</span>
             </button>
             <button
               onClick={() => setInput("เหงาจัง ชวนคุยหน่อยสิ ชวนคุยเรื่องอะไรก็ได้ที่สนุกๆ หรือเล่าเรื่องตลกให้ฟังหน่อย 🌷")}
               disabled={isLoading || isLimitReached}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 text-xs font-black text-gray-700 dark:text-gray-300 hover:border-pink-400/50 transition-all shadow-sm shrink-0"
+              className="flex items-center gap-2.5 px-5 py-2.5 bg-orange-50/50 hover:bg-orange-50 border border-orange-100/50 rounded-2xl text-[13px] font-bold text-orange-700 transition-all shadow-sm shrink-0 active:scale-95"
             >
-              <span>🐥</span>
+              <span className="text-base">🐥</span>
               <span className="whitespace-nowrap">คุยแก้เหงา</span>
             </button>
             <button
               onClick={() => setInput("มีเรื่องอยากปรึกษาหน่อย พอดีช่วงนี้ [ระบุเรื่องที่กังวล] อยากได้คำแนะนำหรือแนวทางแก้ไขปัญหาหน่อยครับ ✨")}
               disabled={isLoading || isLimitReached}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 text-xs font-black text-gray-700 dark:text-gray-300 hover:border-indigo-400/50 transition-all shadow-sm shrink-0"
+              className="flex items-center gap-2.5 px-5 py-2.5 bg-yellow-50/50 hover:bg-yellow-50 border border-yellow-100/50 rounded-2xl text-[13px] font-bold text-yellow-700 transition-all shadow-sm shrink-0 active:scale-95"
             >
-              <span>🤝</span>
+              <span className="text-base">🤝</span>
               <span className="whitespace-nowrap">ปรึกษา</span>
             </button>
           </div>

@@ -47,20 +47,46 @@ export const resetPassword = async (token, new_password) => {
 
 // ---------- AI ----------
 export const sendMessageToAI = async (message, mode, sheet_ids = [], context_history_id = null, conversation_history = null) => {
+    // ... (Keep existing Axios implementation as fallback)
     const payload = { message, mode, sheet_ids };
-    if (context_history_id) {
-        payload.context_history_id = context_history_id;
-    }
-    if (conversation_history) {
-        payload.conversation_history = conversation_history;
-    }
-    // ทั้ง Guest และ User ที่ Login แล้ว สามารถแชทได้ (authHeader จะส่ง token ถ้ามี)
-    const response = await axios.post(
-        API_TEXT_URL,
-        payload,
-        { headers: authHeader() }
-    );
+    if (context_history_id) payload.context_history_id = context_history_id;
+    if (conversation_history) payload.conversation_history = conversation_history;
+    
+    const response = await axios.post(API_TEXT_URL, payload, { headers: authHeader(), timeout: 60000 });
     return String(response.data?.reply ?? "");
+};
+
+/**
+ * Streaming Chat 
+ */
+export const sendMessageToAIStreaming = async (message, mode, sheet_ids = [], conversation_history = null, onChunk) => {
+    const payload = { message, mode, sheet_ids, conversation_history };
+    const token = localStorage.getItem("token");
+    const headers = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+
+    const response = await fetch(`${BASE_URL}/api/v1/chat/stream`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error("Network response was not ok");
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+
+    while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+            const chunk = decoder.decode(value, { stream: true });
+            onChunk(chunk);
+        }
+    }
 };
 
 export const sendMessageToAIWithImage = async (prompt, mode, imageFile, context_history_id = null, conversation_history = null) => {
@@ -80,6 +106,7 @@ export const sendMessageToAIWithImage = async (prompt, mode, imageFile, context_
             "Content-Type": "multipart/form-data",
             ...authHeader()
         },
+        timeout: 90000 // 90 seconds timeout for images
     });
     return String(response.data?.reply ?? response.data?.response ?? "");
 };

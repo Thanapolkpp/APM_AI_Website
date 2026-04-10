@@ -53,6 +53,47 @@ def get_chat_history(
     ]
 
 
+from fastapi.responses import StreamingResponse
+import json
+
+@router.post("/stream")
+async def chat_stream(
+    req: ChatRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Logic เหมือนเดิมในการเตรียม Prompt (ย่อเพื่อประหยัดเนื้อที่)
+    pdf_context_block = ""
+    if req.sheet_ids:
+        sheets = db.query(StudySheet).filter(StudySheet.user_id == current_user.id, StudySheet.id.in_(req.sheet_ids)).all()
+        pdf_parts = [f"[เอกสาร: {s.title}]\n{s.extracted_text}" for s in sheets if s.extracted_text]
+        pdf_context_block = "\n\n".join(pdf_parts)
+
+    history_block = ""
+    if req.conversation_history:
+        history_block = "\n".join([f"{'User' if m.role == 'user' else 'AI'}: {m.content}" for m in req.conversation_history[-HISTORY_CONTEXT_COUNT*2:]])
+
+    final_prompt = f"{'[เนื้อหาจากเอกสารของคุณ]\n' + pdf_context_block + '\n\n' if pdf_context_block else ''}{'[บทสนทนาก่อนหน้า]\n' + history_block + '\n\n' if history_block else ''}[คำถามปัจจุบัน]\n{req.message}"
+
+    from app.services.ai_service import call_ollama_stream
+
+    async def event_generator():
+        full_reply = ""
+        async for chunk in call_ollama_stream(final_prompt, req.mode):
+            full_reply += chunk
+            yield chunk
+
+        # บันทึกประวัติเมื่อจบ (แบบด่วน)
+        try:
+             new_history = ChatHistory(user_id=current_user.id, user_message=req.message, ai_response=full_reply, mode=req.mode)
+             db.add(new_history)
+             db.commit()
+        except:
+             pass
+
+    return StreamingResponse(event_generator(), media_type="text/plain")
+
+
 @router.post("/")
 async def chat(
     req: ChatRequest,
