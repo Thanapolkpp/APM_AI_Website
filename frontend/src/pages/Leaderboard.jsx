@@ -107,22 +107,35 @@ const Leaderboard = () => {
                                 initial={{ y: 50, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.1 }}
-                                className="flex flex-col items-center z-10 -mb-4 md:-mb-8"
+                                className="flex flex-col items-center z-20 -mb-4 md:-mb-8"
                             >
-                                <div className="relative mb-6 scale-110 md:scale-125">
-                                    <Crown className="absolute -top-10 left-1/2 -translate-x-1/2 text-yellow-400 size-10 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
-                                    <div className="size-24 md:size-28 rounded-[2.5rem] bg-white dark:bg-gray-800 border-4 border-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.2)] overflow-hidden">
+                                <div className="relative mb-6 scale-125 md:scale-150">
+                                    <div className="absolute -top-14 left-1/2 -translate-x-1/2 z-30">
+                                        <motion.div
+                                            animate={{ scale: [1, 1.1, 1], rotate: [-2, 2, -2] }}
+                                            transition={{ duration: 2, repeat: Infinity }}
+                                            className="px-4 py-1.5 bg-gradient-to-r from-yellow-400 via-amber-200 to-yellow-600 rounded-full shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-white"
+                                        >
+                                            <span className="text-[10px] font-black text-amber-900 uppercase tracking-widest whitespace-nowrap">
+                                                มหาเทพ
+                                            </span>
+                                        </motion.div>
+                                    </div>
+                                    <Crown className="absolute -top-10 left-1/2 -translate-x-1/2 text-yellow-500 size-12 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)] z-20" />
+                                    <div className="size-24 md:size-28 rounded-[2.5rem] bg-white dark:bg-gray-800 border-4 border-yellow-400 shadow-[0_0_40px_rgba(250,204,21,0.4)] overflow-hidden">
                                         <img src={getAvatarIcon(top3[0].equipped_avatar)} className="w-full h-full object-cover" alt="Rank 1" />
                                     </div>
-                                    <div className="absolute -top-3 -right-3 size-12 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-900">
+                                    <div className="absolute -top-3 -right-3 size-12 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-900 z-30">
                                         <span className="font-black text-white text-lg">1</span>
                                     </div>
+                                    {/* Pulse Effect Aura */}
+                                    <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-yellow-400/20 blur-2xl animate-pulse" />
                                 </div>
-                                <div className="text-center">
-                                    <p className="font-black text-gray-900 dark:text-white text-lg uppercase tracking-tight">{top3[0].username}</p>
-                                    <p className="text-sm font-bold text-yellow-500 drop-shadow-sm">{top3[0].exp} XP</p>
+                                <div className="text-center mt-4">
+                                    <p className="font-black text-gray-900 dark:text-white text-xl uppercase tracking-tight italic">{top3[0].username}</p>
+                                    <p className="text-base font-black text-yellow-600 drop-shadow-sm">{top3[0].exp} XP</p>
                                 </div>
-                                <div className="h-32 w-32 mt-6 bg-gradient-to-t from-yellow-400/30 to-yellow-400/10 rounded-t-3xl border-t border-yellow-400/30" />
+                                <div className="h-32 w-32 mt-6 bg-gradient-to-t from-yellow-400/40 via-yellow-400/20 to-transparent rounded-t-3xl border-x border-t border-yellow-400/30" />
                             </motion.div>
                         )}
 
@@ -169,11 +182,14 @@ const Leaderboard = () => {
                                 </div>
                                 <div className="flex-1">
                                     <p className="font-black text-gray-900 dark:text-white uppercase tracking-tight">{user.username}</p>
-                                    <div className="flex items-center gap-4 mt-0.5">
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-0.5">
                                         <span className="text-[10px] font-bold text-pink-500 uppercase flex items-center gap-1">
                                             <Star size={10} fill="currentColor" /> {user.exp} XP
                                         </span>
-                                        <span className="text-[10px] font-bold text-yellow-500 uppercase flex items-center gap-1">
+                                        <span className="text-[10px] font-bold text-indigo-500 uppercase flex items-center gap-1">
+                                            <Flame size={10} fill="currentColor" /> {(user.reading_time_minutes / 60).toFixed(1)} hrs
+                                        </span>
+                                        <span className="text-[10px] font-bold text-yellow-600 uppercase flex items-center gap-1">
                                             Coins {user.coins}
                                         </span>
                                     </div>

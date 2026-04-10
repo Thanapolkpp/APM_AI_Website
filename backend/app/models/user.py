@@ -13,6 +13,12 @@ class User(Base):
     has_claimed_test_reward = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
     
+    # Profile Details
+    studentId = Column(String(20), nullable=True)
+    major = Column(String(100), nullable=True)
+    university = Column(String(100), nullable=True)
+    equipped_avatar = Column(String(50), default="bro")
+    
     # Statistics for Special Missions
     reading_time_minutes = Column(Integer, default=0)
     missions_done = Column(Integer, default=0)

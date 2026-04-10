@@ -133,6 +133,7 @@ async def get_leaderboard(db: Session = Depends(get_db)):
             "username": u.username,
             "exp": u.exp,
             "coins": u.coins,
-            "equipped_avatar": u.equipped_avatar
+            "equipped_avatar": u.equipped_avatar,
+            "reading_time_minutes": u.reading_time_minutes or 0
         })
     return leaderboard
