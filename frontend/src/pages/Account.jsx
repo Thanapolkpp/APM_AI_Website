@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/footer";
+import { useTranslation } from "react-i18next";
 import { ASSETS, mapImagePath } from "../config/assets";
 
 const Logo = ASSETS.BRANDING.LOGO;
