@@ -355,3 +355,8 @@ export const claimSpecialMission = async (missionId) => {
     const response = await axios.post(`${API_USER_URL}/claim-mission/${missionId}`, {}, { headers: authHeader() });
     return response.data;
 };
+
+export const fetchLeaderboard = async () => {
+    const response = await axios.get(`${API_USER_URL}/leaderboard`, { headers: authHeader() });
+    return response.data;
+};

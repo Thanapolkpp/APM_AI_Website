@@ -339,6 +339,21 @@ const Home = () => {
 
         <Footer />
 
+        {/* Floating Ranking Button */}
+        {isLoggedIn && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => navigate("/leaderboard")}
+            className="fixed bottom-8 right-8 z-[90] size-14 md:size-16 rounded-3xl bg-gradient-to-tr from-yellow-400 via-amber-500 to-yellow-600 text-white shadow-[0_10px_30px_rgba(245,158,11,0.4)] flex items-center justify-center border-2 border-white/40 backdrop-blur-sm group"
+          >
+            <div className="absolute inset-0 rounded-3xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="material-symbols-outlined text-3xl md:text-4xl drop-shadow-md">trophy</span>
+          </motion.button>
+        )}
+
         <AnimatePresence>
           {showSupportAlert && (
             <motion.div

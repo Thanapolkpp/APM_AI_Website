@@ -38,6 +38,7 @@
     "todo": "ToDo List",
     "reading": "Reading",
     "events": "Events",
+    "ranking": "Ranking",
     "account": "Account",
     "logout": "Logout",
     "login": "Login",
@@ -176,5 +177,13 @@
     "form_btn": "Go to Form",
     "coming_soon": "Next Events Coming Soon...",
     "success_alert": "Yay! Reward claimed successfully! Don't forget to fill the form below 🌷"
+  },
+  "leaderboard": {
+    "title": "The Hardworking Students of APM AI",
+    "subtitle": "Study hard, chat hard, and let's get ranked, friends!",
+    "rank": "Rank",
+    "user": "User",
+    "exp": "EXP",
+    "coins": "Coins"
   }
 }

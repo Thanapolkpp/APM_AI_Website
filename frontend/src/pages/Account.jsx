@@ -155,28 +155,41 @@ const Account = () => {
 
             {/* Header */}
             <header className="sticky top-0 z-50 bg-white/30 dark:bg-gray-900/40 backdrop-blur-xl border-b border-white/50 dark:border-gray-700 shadow-sm transition-colors duration-300">
-                <div className="mx-auto max-w-7xl grid grid-cols-2 lg:grid-cols-3 items-center px-4 py-4 sm:px-6">
-                    {/* Left */}
-                    <div className="flex items-center gap-3">
+                <div className="mx-auto max-w-7xl flex items-center justify-between px-4 py-4 sm:px-6 h-20">
+                    {/* Left - Brand */}
+                    <div className="flex items-center gap-3 shrink-0">
                         <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-sm border border-white/60 bg-white dark:border-gray-600 dark:bg-gray-800">
                             <img src={Logo} alt="Logo" className="w-full h-full object-cover transition duration-300 hover:scale-110" />
                         </div>
-                        <div>
-                            <h1 className="font-extrabold text-[15px] sm:text-xl text-gray-900 dark:text-white tracking-tight">APM AI</h1>
-                            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">🌷 {t("nav.brand_subtitle")}</p>
+                        <div className="hidden min-[1140px]:block">
+                            <h1 className="font-extrabold text-[15px] sm:text-xl text-gray-900 dark:text-white tracking-tight leading-none">APM AI</h1>
+                            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium mt-0.5">{t("nav.brand_subtitle")}</p>
                         </div>
                     </div>
 
-                    {/* Center */}
-                    <div className="hidden lg:flex justify-center">
-                        <div className="bg-white/50 dark:bg-gray-800/60 backdrop-blur-md px-6 py-2 rounded-full border border-white/60 dark:border-gray-600 shadow-sm">
-                            <Navbar />
-                        </div>
+                    {/* Center - Back Button */}
+                    <div className="flex-1 flex justify-center">
+                        <button
+                            onClick={() => navigate("/")}
+                            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-white/50 dark:bg-white/10 border border-white dark:border-white/10 text-gray-600 dark:text-gray-300 font-black text-sm uppercase tracking-widest hover:bg-white transition-all active:scale-95 shadow-sm"
+                        >
+                            <span className="material-symbols-outlined text-xl">arrow_back</span>
+                            Back to Home
+                        </button>
                     </div>
 
-                    {/* Right */}
-                    <div className="flex justify-end gap-3 items-center">
+                    {/* Right - Profile & Noti */}
+                    <div className="flex justify-end gap-3 items-center shrink-0">
                         <CoinBadge className="hidden sm:flex scale-90" />
+
+                        {/* Leaderboard Button */}
+                        <button
+                            onClick={() => navigate("/leaderboard")}
+                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/80 dark:bg-gray-800/80 flex items-center justify-center shadow-sm hover:scale-105 transition active:scale-95 border border-white dark:border-gray-600 relative group"
+                            title="Leaderboard"
+                        >
+                            <span className="material-symbols-outlined text-[20px] sm:text-[22px] text-yellow-500 group-hover:rotate-12 transition-transform">trophy</span>
+                        </button>
 
                         {/* Notification Button */}
                         <div className="relative">

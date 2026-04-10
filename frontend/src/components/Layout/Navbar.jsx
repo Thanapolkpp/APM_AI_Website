@@ -24,35 +24,36 @@ export default function Navbar() {
 
   const navLinks = isLoggedIn 
     ? [
-        { name: t("nav.home"), to: "/" },
-        { name: t("nav.mall"), to: "/avatar" },
-        { name: t("nav.summaries"), to: "/summaries" },
-        { name: t("nav.todo"), to: "/todo" },
-        { name: t("nav.reading"), to: "/reading" },
-        { name: t("nav.events"), to: "/event" },
+        { name: t("nav.home"), to: "/", icon: "home" },
+        { name: t("nav.mall"), to: "/avatar", icon: "shopping_bag" },
+        { name: t("nav.summaries"), to: "/summaries", icon: "description" },
+        { name: t("nav.todo"), to: "/todo", icon: "task_alt" },
+        { name: t("nav.reading"), to: "/reading", icon: "menu_book" },
+        { name: t("nav.events"), to: "/event", icon: "celebration" },
       ]
     : [
-        { name: t("nav.home"), to: "/" },
-        { name: t("nav.about"), to: "/about" },
-        { name: t("nav.contact"), to: "/contact" },
+        { name: t("nav.home"), to: "/", icon: "home" },
+        { name: t("nav.about"), to: "/about", icon: "info" },
+        { name: t("nav.contact"), to: "/contact", icon: "alternate_email" },
       ]
 
   return (
     <>
       {/* DESKTOP NAV - Consistent with site theme */}
-      <nav className="hidden md:flex items-center gap-1.5 p-1.5 bg-white/40 dark:bg-black/20 backdrop-blur-3xl rounded-2xl border border-white/60 dark:border-white/10 shadow-sm">
+      <nav className={`hidden md:flex items-center ${i18n.language === "th" ? "gap-1" : "gap-1.5"} p-1.5 bg-white/40 dark:bg-black/20 backdrop-blur-3xl rounded-2xl border border-white/60 dark:border-white/10 shadow-sm max-w-full overflow-hidden`}>
         {navLinks.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
             className={({ isActive }) =>
-              `px-4 py-2 text-sm font-black rounded-xl transition-all duration-200 border
+              `px-3 lg:px-4 py-2 ${i18n.language === "th" ? "text-[12px] lg:text-[13px]" : "text-sm"} font-black rounded-xl transition-all duration-200 border whitespace-nowrap shrink-0 flex items-center gap-1.5
                 ${isActive
                 ? "text-white bg-gradient-to-r from-primary to-pink-500 border-white/20 shadow-md"
                 : "text-gray-600 dark:text-gray-300 border-transparent hover:bg-white/50 dark:hover:bg-white/10"
               }`
             }
           >
+            <span className="material-symbols-outlined text-[18px]">{link.icon}</span>
             {link.name}
           </NavLink>
         ))}
@@ -60,10 +61,10 @@ export default function Navbar() {
         {/* Language Switcher Desktop */}
         <button
           onClick={toggleLanguage}
-          className="ml-2 px-3 py-2 text-xs font-black rounded-xl border border-transparent hover:bg-white/50 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all flex items-center gap-2"
+          className="ml-1 px-2 py-2 text-xs font-black rounded-xl border border-transparent hover:bg-white/50 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all flex items-center gap-1 shrink-0"
         >
-          <PiTranslateBold size={18} className="text-primary" />
-          <span className="uppercase">{i18n.language === "th" ? "TH" : "EN"}</span>
+          <PiTranslateBold size={16} className="text-primary" />
+          <span className="uppercase text-[10px]">{i18n.language === "th" ? "TH" : "EN"}</span>
         </button>
       </nav>
 
@@ -144,7 +145,10 @@ export default function Navbar() {
                           }`
                       }
                     >
-                      <span className="text-lg uppercase tracking-tight">{link.name}</span>
+                      <div className="flex items-center gap-4">
+                        <span className="material-symbols-outlined text-2xl">{link.icon}</span>
+                        <span className="text-lg uppercase tracking-tight">{link.name}</span>
+                      </div>
                       <span className="material-symbols-outlined text-xl opacity-60">chevron_right</span>
                     </NavLink>
                   </motion.div>

@@ -1,192 +1,165 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import List
-import json
-
-from app.utils.db import get_db
-from app.utils.security import get_current_user
+from sqlalchemy import func
+from app.db.session import get_db
 from app.models.user import User
-from app.models.user_avatar import UserAvatar
-from app.models.user_room import UserRoom
-from app.models.avatar import Avatar
-from app.models.room import Room
+from app.schemas.user import UserProfile, UserUpdate
+from app.api.v1.auth import get_current_active_user
+import json
 
 router = APIRouter()
 
-class AddReadingTimeRequest(BaseModel):
-    minutes: int
+@router.get("/me", response_model=UserProfile)
+async def get_my_profile(current_user: User = Depends(get_current_active_user)):
+    return current_user
 
-@router.get("/me")
-def get_me(current_user: User = Depends(get_current_user)):
-    return {
-        "id": current_user.id,
-        "username": current_user.username,
-        "email": current_user.email,
-        "coins": current_user.coins,
-        "exp": current_user.exp,
-        "reading_time_minutes": current_user.reading_time_minutes,
-        "missions_done": current_user.missions_done,
-        "chat_modes": current_user.chat_modes_used
-    }
-
-@router.post("/add-reading-time")
-def add_reading_time(
-    req: AddReadingTimeRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if req.minutes <= 0:
-        return {"message": "Invalid minutes"}
-    
-    current_user.reading_time_minutes += req.minutes
-    current_user.exp += (req.minutes * 2) # แถม EXP ให้ด้วยนาทีละ 2
+@router.patch("/coins")
+async def update_user_coins(payload: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    amount = payload.get("amount", 0)
+    current_user.coins += amount
     db.commit()
-    return {"message": f"เพิ่มเวลาอ่าน {req.minutes} นาทีสำเร็จ", "total": current_user.reading_time_minutes}
+    return {"message": "Coins updated", "new_balance": current_user.coins}
+
+@router.patch("/exp")
+async def update_user_exp(payload: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    amount = payload.get("amount", 0)
+    current_user.exp += amount
+    db.commit()
+    return {"message": "EXP updated", "new_exp": current_user.exp}
 
 @router.get("/special-missions")
-def get_special_missions(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    # 1. ภารกิจอ่านหนังสือ (50 ชม = 3000 นาที)
-    reading_target = 3000
-    reading_progress = min(100, (current_user.reading_time_minutes / reading_target) * 100)
+async def get_special_missions(db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    # Calculate progress for special missions dynamically
+    # Mission 1: Study for 50 hours
+    reading_hours = (current_user.reading_time_minutes or 0) / 60
+    m1_progress = min(100, (reading_hours / 50) * 100)
     
-    # 2. ภารกิจ Todo (10 งาน)
-    todo_target = 10
-    todo_progress = min(100, (current_user.missions_done / todo_target) * 100)
+    # Mission 2: Complete 10 tasks (todos)
+    from app.models.todo import Todo
+    completed_tasks = db.query(Todo).filter(Todo.user_id == current_user.id, Todo.is_completed == True).count()
+    m2_progress = min(100, (completed_tasks / 10) * 100)
     
-    # 3. ภารกิจสายแชท (3 โหมด: bro, nerd, girl)
-    modes = current_user.chat_modes_used.split(",") if current_user.chat_modes_used else []
-    chat_modes = [m for m in modes if m in ["bro", "nerd", "girl"]]
-    chat_progress = min(100, (len(chat_modes) / 3) * 100)
-    
-    # 4. ภารกิจนักสะสม (3 ตัวละคร)
-    avatar_count = db.query(UserAvatar).filter(UserAvatar.user_id == current_user.id).count()
-    avatar_progress = min(100, (avatar_count / 3) * 100)
-    
-    # 5. ภารกิจนักแต่งห้อง (4 ฉาก)
-    room_count = db.query(UserRoom).filter(UserRoom.user_id == current_user.id).count()
-    room_progress = min(100, (room_count / 4) * 100)
-    
-    # 6. ภารกิจคู่หูที่แมตช์กัน (Nerd + Library หรือตามที่ระบบกำหนด)
-    # สมมติ ID ของ Nerd คือ 2 และ Library คือ 2 (ต้องไปเช็คใน DB จริงอีกที)
-    # ในที่นี้ขอนับถ้ามีจำนวนห้องและตัวละครอย่างน้อย 1 คู่ที่พรีเมียม
-    match_progress = 100 if (avatar_count >= 2 and room_count >= 2) else 50 if (avatar_count >= 1 and room_count >= 1) else 0
+    # Mission 3: Own 3 avatars
+    # Assuming inventory tracks owned avatars
+    from app.models.inventory import Inventory
+    owned_avatars = db.query(Inventory).filter(Inventory.user_id == current_user.id, Inventory.item_type == "avatar").count()
+    m3_progress = min(100, (owned_avatars / 3) * 100)
 
-    claimed_list = json.loads(current_user.claimed_missions) if current_user.claimed_missions else []
+    # Mission 4: Own 4 rooms
+    owned_rooms = db.query(Inventory).filter(Inventory.user_id == current_user.id, Inventory.item_type == "room").count()
+    m4_progress = min(100, (owned_rooms / 4) * 100)
+
+    # Check claimed status
+    claimed = []
+    if current_user.claimed_missions:
+        try:
+            claimed = json.loads(current_user.claimed_missions)
+        except:
+            claimed = []
 
     missions = [
         {
-            "id": "reading_50",
-            "title": "นักอ่านตัวยง",
-            "description": "อ่านหนังสือครบ 50 ชั่วโมง",
-            "progress": round(reading_progress, 1),
-            "current": current_user.reading_time_minutes,
-            "target": reading_target,
-            "unit": "นาที",
+            "id": 1,
+            "title": "Master of Focus",
+            "description": "Study for 50 hours total",
+            "progress": round(m1_progress, 1),
+            "current": round(reading_hours, 1),
+            "target": 50,
+            "unit": "Hours",
             "reward_coins": 500,
             "reward_exp": 1000,
-            "is_claimed": "reading_50" in claimed_list
+            "is_claimed": 1 in claimed
         },
         {
-            "id": "todos_10",
-            "title": "ผู้พิชิตงาน",
-            "description": "ทำภารกิจสำเร็จ 10 อย่าง",
-            "progress": round(todo_progress, 1),
-            "current": current_user.missions_done,
-            "target": todo_target,
-            "unit": "งาน",
+            "id": 2,
+            "title": "Task Conqueror",
+            "description": "Complete 10 private or social tasks",
+            "progress": m2_progress,
+            "current": completed_tasks,
+            "target": 10,
+            "unit": "Tasks",
             "reward_coins": 200,
             "reward_exp": 500,
-            "is_claimed": "todos_10" in claimed_list
+            "is_claimed": 2 in claimed
         },
         {
-            "id": "chat_master",
-            "title": "สายแชทตัวจริง",
-            "description": "คุยกับ AI ครบทั้ง 3 โหมด (Bro, Nerd, Girl)",
-            "progress": round(chat_progress, 1),
-            "current": len(chat_modes),
+            "id": 3,
+            "title": "Avatar Collector",
+            "description": "Unlock 3 different avatars",
+            "progress": m3_progress,
+            "current": owned_avatars,
             "target": 3,
-            "unit": "โหมด",
-            "reward_coins": 150,
-            "reward_exp": 300,
-            "is_claimed": "chat_master" in claimed_list
-        },
-        {
-            "id": "avatar_collector",
-            "title": "นักสะสมตัวละคร",
-            "description": "มีตัวละครในครอบครอง 3 ตัว",
-            "progress": round(avatar_progress, 1),
-            "current": avatar_count,
-            "target": 3,
-            "unit": "ตัว",
+            "unit": "Avatars",
             "reward_coins": 300,
             "reward_exp": 600,
-            "is_claimed": "avatar_collector" in claimed_list
+            "is_claimed": 3 in claimed
         },
         {
-            "id": "room_decorator",
-            "title": "นักแต่งห้อง",
-            "description": "มีฉากหลังในครอบครอง 4 ฉาก",
-            "progress": round(room_progress, 1),
-            "current": room_count,
+            "id": 4,
+            "title": "Room Designer",
+            "description": "Unlock 4 different backgrounds",
+            "progress": m4_progress,
+            "current": owned_rooms,
             "target": 4,
-            "unit": "ฉาก",
+            "unit": "Rooms",
             "reward_coins": 400,
             "reward_exp": 800,
-            "is_claimed": "room_decorator" in claimed_list
-        },
-        {
-            "id": "matching_set",
-            "title": "คู่หูที่สมบูรณ์แบบ",
-            "description": "มีตัวละครและฉากที่แมตช์กัน",
-            "progress": match_progress,
-            "current": 1 if match_progress == 100 else 0,
-            "target": 1,
-            "unit": "เซ็ต",
-            "reward_coins": 600,
-            "reward_exp": 1200,
-            "is_claimed": "matching_set" in claimed_list
+            "is_claimed": 4 in claimed
         }
     ]
     return missions
 
 @router.post("/claim-mission/{mission_id}")
-def claim_mission(
-    mission_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    # ดึงรายการที่เคยรับไปแล้ว
-    claimed_list = json.loads(current_user.claimed_missions) if current_user.claimed_missions else []
-    
-    if mission_id in claimed_list:
-        raise HTTPException(status_code=400, detail="คุณรับรางวัลนี้ไปแล้วจ้า")
-
-    # หาภารกิจและเช็ค Progress (จำลอง Logic เดียวกับ get_special_missions)
-    missions = get_special_missions(db, current_user)
+async def claim_mission(mission_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    missions = await get_special_missions(db, current_user)
     target_mission = next((m for m in missions if m["id"] == mission_id), None)
-
+    
     if not target_mission:
         raise HTTPException(status_code=404, detail="ไม่พบภารกิจนี้")
+    
+    if target_mission["is_claimed"]:
+        raise HTTPException(status_code=400, detail="คุณรับรางวัลไปแล้วจ้า")
     
     if target_mission["progress"] < 100:
         raise HTTPException(status_code=400, detail="ภารกิจยังไม่สำเร็จจ้า")
 
-    # ให้รางวัล
+    # Grant rewards
     current_user.coins += target_mission["reward_coins"]
     current_user.exp += target_mission["reward_exp"]
     
-    # บันทึกว่ารับแล้ว
-    claimed_list.append(mission_id)
-    current_user.claimed_missions = json.dumps(claimed_list)
+    # Update claimed list
+    claimed_list = []
+    if current_user.claimed_missions:
+        try:
+            claimed_list = json.loads(current_user.claimed_missions)
+        except:
+            claimed_list = []
+            
+    if mission_id not in claimed_list:
+        claimed_list.append(mission_id)
+        current_user.claimed_missions = json.dumps(claimed_list)
     
     db.commit()
+    return {"message": f"สำเร็จ! คุณได้รับ {target_mission['reward_coins']} เหรียญ และ {target_mission['reward_exp']} XP", "new_coins": current_user.coins, "new_exp": current_user.exp}
+
+@router.post("/add-reading-time")
+async def add_reading_time(payload: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    minutes = payload.get("minutes", 0)
+    current_user.reading_time_minutes = (current_user.reading_time_minutes or 0) + minutes
+    db.commit()
+    return {"message": "Reading time updated", "total_minutes": current_user.reading_time_minutes}
+
+@router.get("/leaderboard")
+async def get_leaderboard(db: Session = Depends(get_db)):
+    # Returns top users by EXP
+    users = db.query(User).order_by(User.exp.desc()).limit(10).all()
     
-    return {
-        "message": f"ยินดีด้วย! คุณได้รับ {target_mission['reward_coins']} Coins และ {target_mission['reward_exp']} EXP",
-        "new_coins": current_user.coins,
-        "new_exp": current_user.exp
-    }
+    leaderboard = []
+    for u in users:
+        leaderboard.append({
+            "username": u.username,
+            "exp": u.exp,
+            "coins": u.coins,
+            "equipped_avatar": u.equipped_avatar
+        })
+    return leaderboard
