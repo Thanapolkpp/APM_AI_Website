@@ -95,7 +95,6 @@ const Leaderboard = () => {
                                 </div>
                                 <div className="text-center">
                                     <p className="font-black text-gray-900 dark:text-white text-sm uppercase tracking-tight">{top3[1].username}</p>
-                                    <p className="text-xs font-bold text-slate-500">{top3[1].exp} XP</p>
                                 </div>
                                 <div className="h-24 w-28 mt-4 bg-gradient-to-t from-slate-400/20 to-slate-400/10 rounded-t-3xl border-t border-slate-300/30" />
                             </motion.div>
@@ -133,7 +132,6 @@ const Leaderboard = () => {
                                 </div>
                                 <div className="text-center mt-4">
                                     <p className="font-black text-gray-900 dark:text-white text-xl uppercase tracking-tight italic">{top3[0].username}</p>
-                                    <p className="text-base font-black text-yellow-600 drop-shadow-sm">{top3[0].exp} XP</p>
                                 </div>
                                 <div className="h-32 w-32 mt-6 bg-gradient-to-t from-yellow-400/40 via-yellow-400/20 to-transparent rounded-t-3xl border-x border-t border-yellow-400/30" />
                             </motion.div>
@@ -157,7 +155,6 @@ const Leaderboard = () => {
                                 </div>
                                 <div className="text-center">
                                     <p className="font-black text-gray-900 dark:text-white text-sm uppercase tracking-tight">{top3[2].username}</p>
-                                    <p className="text-xs font-bold text-amber-600">{top3[2].exp} XP</p>
                                 </div>
                                 <div className="h-16 w-28 mt-4 bg-gradient-to-t from-amber-600/20 to-amber-600/10 rounded-t-3xl border-t border-amber-600/20 shadow-sm" />
                             </motion.div>
@@ -181,23 +178,7 @@ const Leaderboard = () => {
                                     <img src={getAvatarIcon(user.equipped_avatar)} className="w-full h-full object-cover" alt="User" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="font-black text-gray-900 dark:text-white uppercase tracking-tight">{user.username}</p>
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-0.5">
-                                        <span className="text-[10px] font-bold text-pink-500 uppercase flex items-center gap-1">
-                                            <Star size={10} fill="currentColor" /> {user.exp} XP
-                                        </span>
-                                        <span className="text-[10px] font-bold text-indigo-500 uppercase flex items-center gap-1">
-                                            <Flame size={10} fill="currentColor" /> {(user.reading_time_minutes / 60).toFixed(1)} hrs
-                                        </span>
-                                        <span className="text-[10px] font-bold text-yellow-600 uppercase flex items-center gap-1">
-                                            Coins {user.coins}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="px-4">
-                                     <div className="size-8 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-400">
-                                        <Star size={14} />
-                                    </div>
+                                    <p className="font-black text-gray-900 dark:text-white uppercase tracking-tight text-lg">{user.username}</p>
                                 </div>
                             </motion.div>
                         ))}
