@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 from app.utils.db import get_db
-from app.utils.security import get_current_user
+from app.utils.security import get_current_user, get_optional_user
 from app.models.chat_history import ChatHistory
 from app.models.study_sheet import StudySheet
 from app.models.user import User
@@ -60,11 +60,11 @@ import json
 async def chat_stream(
     req: ChatRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_optional_user),
 ):
     # Logic เหมือนเดิมในการเตรียม Prompt (ย่อเพื่อประหยัดเนื้อที่)
     pdf_context_block = ""
-    if req.sheet_ids:
+    if req.sheet_ids and current_user:
         sheets = db.query(StudySheet).filter(StudySheet.user_id == current_user.id, StudySheet.id.in_(req.sheet_ids)).all()
         pdf_parts = [f"[เอกสาร: {s.title}]\n{s.extracted_text}" for s in sheets if s.extracted_text]
         pdf_context_block = "\n\n".join(pdf_parts)
@@ -83,13 +83,14 @@ async def chat_stream(
             full_reply += chunk
             yield chunk
 
-        # บันทึกประวัติเมื่อจบ (แบบด่วน)
-        try:
-             new_history = ChatHistory(user_id=current_user.id, user_message=req.message, ai_response=full_reply, mode=req.mode)
-             db.add(new_history)
-             db.commit()
-        except:
-             pass
+        # บันทึกประวัติเมื่อจบ (เฉพาะผู้ใช้ที่ Login)
+        if current_user:
+            try:
+                 new_history = ChatHistory(user_id=current_user.id, user_message=req.message, ai_response=full_reply, mode=req.mode)
+                 db.add(new_history)
+                 db.commit()
+            except:
+                 pass
 
     return StreamingResponse(event_generator(), media_type="text/plain")
 
@@ -98,11 +99,11 @@ async def chat_stream(
 async def chat(
     req: ChatRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_optional_user),
 ):
     # ดึง extracted_text จาก study sheets ที่เลือก (เฉพาะของ user นี้)
     pdf_context_block = ""
-    if req.sheet_ids:
+    if req.sheet_ids and current_user:
         sheets = (
             db.query(StudySheet)
             .filter(
@@ -129,22 +130,25 @@ async def chat(
         history_block = "\n".join(context_lines)
     else:
         # Fallback (ดึงบทสนทนาที่จะนำมาทำ Context จาก DB)
-        if req.context_history_id:
-            target_history = (
-                db.query(ChatHistory)
-                .filter(ChatHistory.id == req.context_history_id, ChatHistory.user_id == current_user.id)
-                .first()
-            )
-            recent_histories = [target_history] if target_history else []
+        if current_user:
+            if req.context_history_id:
+                target_history = (
+                    db.query(ChatHistory)
+                    .filter(ChatHistory.id == req.context_history_id, ChatHistory.user_id == current_user.id)
+                    .first()
+                )
+                recent_histories = [target_history] if target_history else []
+            else:
+                recent_histories = (
+                    db.query(ChatHistory)
+                    .filter(ChatHistory.user_id == current_user.id)
+                    .order_by(ChatHistory.created_at.desc())
+                    .limit(HISTORY_CONTEXT_COUNT)
+                    .all()
+                )
+                recent_histories = list(reversed(recent_histories))
         else:
-            recent_histories = (
-                db.query(ChatHistory)
-                .filter(ChatHistory.user_id == current_user.id)
-                .order_by(ChatHistory.created_at.desc())
-                .limit(HISTORY_CONTEXT_COUNT)
-                .all()
-            )
-            recent_histories = list(reversed(recent_histories))
+            recent_histories = []
 
         # ประกอบ context จากประวัติ DB
         context_lines = []
@@ -170,32 +174,32 @@ async def chat(
     result = await get_ai_response(final_prompt, req.mode)
     ai_reply = result.get("reply", "")
 
-    # บันทึกบทสนทนาใหม่ลง DB
-    new_history = ChatHistory(
-        user_id=current_user.id,
-        user_message=req.message,
-        ai_response=ai_reply,
-        mode=req.mode,
-    )
-    db.add(new_history)
-    db.commit()
-
-    # จำกัดประวัติแชท: ถ้าเกิน 4 ให้ลบตัวที่เก่าที่สุดออก
-    MAX_HISTORY = 4
-    current_count = db.query(ChatHistory).filter(ChatHistory.user_id == current_user.id).count()
-    
-    if current_count > MAX_HISTORY:
-        # ดึงรายการที่เก่าที่สุดที่ต้องลบ (ปกติคืออันเดียวที่เพิ่งเกินมา)
-        oldest_to_delete = (
-            db.query(ChatHistory)
-            .filter(ChatHistory.user_id == current_user.id)
-            .order_by(ChatHistory.created_at.asc())
-            .limit(current_count - MAX_HISTORY)
-            .all()
+    # บันทึกบทสนทนาใหม่ลง DB (เฉพาะผู้ใช้ที่ Login)
+    if current_user:
+        new_history = ChatHistory(
+            user_id=current_user.id,
+            user_message=req.message,
+            ai_response=ai_reply,
+            mode=req.mode,
         )
-        for h in oldest_to_delete:
-            db.delete(h)
+        db.add(new_history)
         db.commit()
+
+        # จำกัดประวัติแชท: ถ้าเกิน 4 ให้ลบตัวที่เก่าที่สุดออก
+        MAX_HISTORY = 4
+        current_count = db.query(ChatHistory).filter(ChatHistory.user_id == current_user.id).count()
+        
+        if current_count > MAX_HISTORY:
+            oldest_to_delete = (
+                db.query(ChatHistory)
+                .filter(ChatHistory.user_id == current_user.id)
+                .order_by(ChatHistory.created_at.asc())
+                .limit(current_count - MAX_HISTORY)
+                .all()
+            )
+            for h in oldest_to_delete:
+                db.delete(h)
+            db.commit()
 
     return {"reply": ai_reply}
 
