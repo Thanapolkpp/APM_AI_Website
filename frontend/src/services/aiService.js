@@ -47,7 +47,6 @@ export const resetPassword = async (token, new_password) => {
 
 // ---------- AI ----------
 export const sendMessageToAI = async (message, mode, sheet_ids = [], context_history_id = null, conversation_history = null) => {
-    // ... (Keep existing Axios implementation as fallback)
     const payload = { message, mode, sheet_ids };
     if (context_history_id) payload.context_history_id = context_history_id;
     if (conversation_history) payload.conversation_history = conversation_history;
@@ -124,7 +123,6 @@ export const sendMessageToAIWithPDF = async (prompt, mode, pdfFile) => {
     formData.append("mode", mode || "bro");
     formData.append("file", pdfFile);
 
-    // Guest สามารถใช้ฟีเจอร์ PDF ได้เช่นกัน
     const response = await axios.post(API_PDF_URL, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
@@ -259,12 +257,15 @@ export const fetchMarketSheets = async () => {
     return response.data;
 };
 
-export const uploadSheet = async (title, price, is_public, file) => {
+export const uploadSheet = async (title, price, is_public, file, extractedText = null) => {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("price", price);
     formData.append("is_public", is_public);
     formData.append("file", file);
+    if (extractedText) {
+        formData.append("extracted_text", extractedText);
+    }
 
     const response = await axios.post(`${API_SHEETS_URL}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data", ...authHeader() },
@@ -331,4 +332,10 @@ export const markAllNotificationsRead = async () => {
 export const markNotificationRead = async (id) => {
     const response = await axios.patch(`${API_NOTIFICATIONS_URL}/${id}/read`, {}, { headers: authHeader() });
     return response.data;
-};
+};
+
+// ---------- AI Summarize (Backend Prompt Mode) ----------
+export const summarizeSheet = async (sheetId) => {
+    const response = await axios.post(`${API_TEXT_URL}summarize/${sheetId}`, {}, { headers: authHeader() });
+    return response.data;
+};

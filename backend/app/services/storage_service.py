@@ -30,7 +30,7 @@ def upload_file(bucket: str, file_bytes: bytes, filename: str, content_type: str
     # เก็บเฉพาะภาษาอังกฤษ, ตัวเลข, '.', '-', '_'
     name_only = os.path.splitext(filename)[0]
     ext_only = os.path.splitext(filename)[1]
-    safe_name = re.sub(r'[^\w\d.-]', '_', name_only)
+    safe_name = re.sub(r'[^a-zA-Z0-9.-]', '_', name_only)
     
     unique_name = f"{uuid.uuid4().hex}_{safe_name}{ext_only}"
     

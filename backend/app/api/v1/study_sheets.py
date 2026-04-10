@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from typing import Optional, List
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -58,6 +59,7 @@ def upload_study_sheet(
     title: str = Form(...),
     price: int = Form(0),
     is_public: bool = Form(False),
+    extracted_text: Optional[str] = Form(None),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -90,8 +92,8 @@ def upload_study_sheet(
                 db.delete(oldest)
                 db.commit()
 
-        # extract text จาก original bytes ก่อน
-        extracted_text = extract_text_from_pdf(file_bytes)
+        # use extracted text from frontend if available, else extract from original bytes
+        final_text = extracted_text if extracted_text else extract_text_from_pdf(file_bytes)
 
         # compress PDF ให้เล็กลง แล้วค่อย upload
         compressed_bytes = compress_pdf(file_bytes)
@@ -103,7 +105,7 @@ def upload_study_sheet(
             user_id=current_user.id,
             title=title,
             file_path=public_url,
-            extracted_text=extracted_text,
+            extracted_text=final_text,
             price=price,
             is_public=is_public,
         )
@@ -129,7 +131,7 @@ def upload_study_sheet(
             "file_path": normalize_pdf_url(new_sheet.file_path),
             "price": new_sheet.price,
             "is_public": new_sheet.is_public,
-            "text_extracted": len(extracted_text) > 0,
+            "text_extracted": len(final_text) > 0,
             "bonus_coins": 3,
             "coins_total": current_user.coins,
         }

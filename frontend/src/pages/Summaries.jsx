@@ -14,7 +14,8 @@ const BroIcon = ASSETS.AVATARS.BRO;
 const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
 import { jsPDF } from "jspdf"
 import { pdfjs, Document, Page } from 'react-pdf';
-import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice, deleteSheet, updateExp, sendMessageToAI, sendMessageToAIWithPDF } from "../services/aiService"
+import pdfToText from 'react-pdftotext'
+import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice, deleteSheet, updateExp, sendMessageToAI, sendMessageToAIWithPDF, summarizeSheet } from "../services/aiService"
 
 // Configure pdfjs worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -166,54 +167,25 @@ const Summaries = () => {
         const TOTAL_TIME = 200 
         setTimeLeft(TOTAL_TIME)
 
-
+        // สร้างตัวแปรสำหรับเก็บ timer เพื่อให้ล้างค่าได้จากภายใน promise
         const timer = setInterval(() => {
-            setTimeLeft((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timer)
-
-                    // --- [REAL AI CALL] หลังจากนับถอยหลังเสร็จ ---
-                    const pdfUrl = formatDocUrl(item.file_path);
-                    const prompt = `ช่วยสรุปใจความสำคัญจากเนื้อหาชีทติวเรื่อง "${item.title}" นี้ให้หน่อยเพื่อน โดยเน้นที่ประเด็นสำคัญ 3-5 ข้อ และสรุปให้สั้นกระชับเข้าใจง่ายสำหรับนักศึกษา:`;
-
-                    if (item.file_path) {
-                        // ถ้ามีไฟล์ PDF ให้ส่งไปที่ chat-with-pdf เพื่อความแม่นยำสูงสุด
-                        fetch(pdfUrl)
-                            .then(res => res.blob())
-                            .then(async (blob) => {
-                                const file = new File([blob], "sheet.pdf", { type: "application/pdf" });
-                                const aiReply = await sendMessageToAIWithPDF(prompt, "nerd", file);
-                                const finalSummary = `✨ สรุปโดย APM AI (สดใหม่!) ✨\n\nหัวข้อ: ${item.title}\n\n${aiReply}`;
-                                setSummaryText(finalSummary);
-                                setIsGenerating(false);
-                            })
-                            .catch((error) => {
-                                console.error("AI PDF Error:", error);
-                                setSummaryText("ขออภัยครับเพื่อน พอดี AI อ่านไฟล์ PDF นี้ขัดข้องนิดหน่อย ลองใหม่อีกรอบนะ! 🌷");
-                                setIsGenerating(false);
-                            });
-                    } else {
-                        // ถ้าไม่มีไฟล์ (เผื่อไว้) ใช้ส่ง Text ปกติ
-                        const contentToSummarize = item.extracted_text || item.title || "ไม่มีเนื้อหาที่จะสรุป";
-                        sendMessageToAI(
-                            `${prompt}\n\n${contentToSummarize.substring(0, 5000)}`,
-                            "nerd"
-                        ).then((aiReply) => {
-                            const finalSummary = `✨ สรุปโดย APM AI (สดใหม่!) ✨\n\nหัวข้อ: ${item.title}\n\n${aiReply}`;
-                            setSummaryText(finalSummary);
-                            setIsGenerating(false);
-                        }).catch((error) => {
-                            console.error("AI Text Error:", error);
-                            setSummaryText("ขออภัยครับเพื่อน พอดี AI ติดขัดนิดหน่อย ลองใหม่อีกรอบนะ! 🌷");
-                            setIsGenerating(false);
-                        });
-                    }
-
-                    return 0;
-                }
-                return prev - 1
-            })
+            setTimeLeft((prev) => (prev <= 1 ? 0 : prev - 1))
         }, 1000)
+
+        // --- [REAL AI CALL] เรียกสรุปทันที ไม่ต้องรอเวลาจบ ---
+        summarizeSheet(item.id)
+            .then((result) => {
+                clearInterval(timer) // หยุดเวลาทันทีที่ข้อมูลมาถึง!
+                const finalSummary = `✨ สรุปโดย APM AI (Backend Mode) ✨\n\nหัวข้อ: ${result.title}\n\n${result.summary}`
+                setSummaryText(finalSummary)
+                setIsGenerating(false)
+            })
+            .catch((error) => {
+                clearInterval(timer) // หยุดเวลาในกรณี error ด้วย
+                console.error("Summarize Error:", error)
+                setSummaryText("ขออภัยครับเพื่อน พอดี AI สรุปชีทเล่มนี้ขัดข้องนิดหน่อย ลองใหม่อีกรอบนะ! 🌷")
+                setIsGenerating(false)
+            })
     }
 
     // --- SECURITY PROTOCOL (Anti-Screenshot) ---
@@ -277,11 +249,22 @@ const Summaries = () => {
 
         setIsLoadingSheets(true)
         try {
+            // STEP 1: Extract Text at Client-side (Offload burden from server)
+            let extractedText = ""
+            try {
+                extractedText = await pdfToText(selectedFile)
+                console.log("Successfully extracted text on client-side")
+            } catch (extractErr) {
+                console.warn("Client-side extraction failed, falling back to server:", extractErr)
+            }
+
+            // STEP 2: Upload to Backend
             const result = await uploadSheet(
                 uploadForm.title,
                 uploadForm.price,
                 uploadForm.is_public,
-                selectedFile
+                selectedFile,
+                extractedText // Send text along with file
             )
             localStorage.setItem("user_coins", String(result.coins_total))
             window.dispatchEvent(new Event("coinsUpdated"))

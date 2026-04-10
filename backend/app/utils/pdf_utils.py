@@ -20,26 +20,8 @@ def compress_pdf(file_bytes: bytes) -> bytes:
     try:
         doc = fitz.open(stream=file_bytes, filetype="pdf")
 
-        # ชั้น 2 — บีบรูปภาพในแต่ละหน้า
-        for page in doc:
-            for img_info in page.get_images(full=True):
-                xref = img_info[0]
-                try:
-                    base = doc.extract_image(xref)
-                    if base["ext"] not in ("jpeg", "jpg", "png"):
-                        continue
-
-                    # render รูปภาพใหม่ที่ quality ต่ำลง ผ่าน pixmap
-                    pix = fitz.Pixmap(doc, xref)
-                    if pix.n > 3:
-                        # แปลง CMYK/Alpha → RGB ก่อน
-                        pix = fitz.Pixmap(fitz.csRGB, pix)
-
-                    compressed = pix.tobytes("jpeg", jpg_quality=65)
-                    doc.update_stream(xref, compressed)
-                except Exception:
-                    # ถ้ารูปไหน compress ไม่ได้ ข้ามไป ไม่ให้ crash
-                    continue
+        # นำการบีบอัดรูปภาพออกเพื่อป้องกันปัญหารูปดำ (Black Images issue)
+        # เราจะใช้แค่การบีบอัด Stream และ Clean ขยะในไฟล์แทนซึ่งปลอดภัยกว่า
 
         # ชั้น 1 — garbage=4 ลบ object ที่ไม่ใช้, deflate=True บีบ stream
         output = io.BytesIO()

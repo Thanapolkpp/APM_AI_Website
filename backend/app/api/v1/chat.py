@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
@@ -202,4 +202,37 @@ async def chat(
             db.commit()
 
     return {"reply": ai_reply}
+
+
+@router.post("/summarize/{sheet_id}")
+async def summarize_sheet(
+    sheet_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    sheet = db.query(StudySheet).filter(StudySheet.id == sheet_id).first()
+    if not sheet:
+        raise HTTPException(status_code=404, detail="ไม่พบชีทสรุปนี้ครับ")
+
+    # ดึงข้อความจากชีท (ถ้าไม่มีให้ใช้ชื่อเรื่อง)
+    content = sheet.extracted_text or sheet.title
+    
+    # [Prompt อยู่ที่หลังบ้านแล้วครับ!] แก้ไขตรงนี้ได้เลย
+    system_prompt = (
+        f"ช่วยสรุปใจความสำคัญจากเนื้อหาชีทติวเรื่อง '{sheet.title}' นี้ให้หน่อยเพื่อน "
+        "โดยเน้นที่ประเด็นสำคัญ 3-5 ข้อ และสรุปให้สั้นกระชับ เข้าใจง่ายสำหรับนักศึกษา "
+        "ใช้ภาษากันเองแต่สุภาพ (แทนตัวเองว่า AI หรือเพื่อนก็ได้) ตกแต่งด้วย Emoji ให้ดูน่าอ่านด้วยนะ ✨"
+    )
+    
+    final_prompt = f"{system_prompt}\n\nเนื้อหาในชีท:\n{content[:8000]}"
+
+    # เรียก AI
+    result = await get_ai_response(final_prompt, "nerd")
+    ai_reply = result.get("reply", "")
+
+    return {
+        "title": sheet.title,
+        "summary": ai_reply,
+        "note": "สรุปโดย APM AI (Backend Prompt) ✨"
+    }
 
