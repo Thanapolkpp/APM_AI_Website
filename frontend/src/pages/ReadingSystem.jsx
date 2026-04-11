@@ -13,7 +13,7 @@ import { updateExp } from "../services/aiService"
 const CLOUD_NAME = "dxfxkq0zs";
 const BASE_URL = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto/v1/APM-AI/assets/`;
 
-import { ASSETS, getStaticFrame, mapImagePath } from "../config/assets";
+import { ASSETS, getStaticFrame, mapImagePath, getAvatarIcon } from "../config/assets";
 import { fetchOwnedRooms, fetchOwnedAvatars } from "../services/aiService";
 
 const Logo = ASSETS.BRANDING.LOGO;
@@ -57,6 +57,17 @@ const ReadingSystem = () => {
     const [staticMotionImg, setStaticMotionImg] = useState(null)
     const [staticGlass, setStaticGlass] = useState(null)
     const [staticSpeech, setStaticSpeech] = useState(null)
+
+    const refreshProfileImage = () => {
+        const savedAvatar = localStorage.getItem("avatar");
+        setProfileImage(getAvatarIcon(savedAvatar));
+    };
+
+    useEffect(() => {
+        refreshProfileImage();
+        window.addEventListener("avatarUpdated", refreshProfileImage);
+        return () => window.removeEventListener("avatarUpdated", refreshProfileImage);
+    }, []);
 
     const timerRef = useRef(null)
 
@@ -211,7 +222,7 @@ const ReadingSystem = () => {
                 <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
                     <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate("/")}>
                         <div className="relative size-12 rounded-2xl bg-white shadow-xl ring-2 ring-pink-100 flex items-center justify-center overflow-hidden">
-                            <img src={Logo} alt="Logo" className="size-8 object-contain transition duration-500 hover:scale-110" />
+                            <img src={profileImage || Logo} alt="Logo" className="size-8 object-contain transition duration-500 hover:scale-110" />
                         </div>
                         <div className="hidden sm:block">
                             <h1 className="text-xl font-black text-gray-900 dark:text-white leading-tight">APM Focus</h1>

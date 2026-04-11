@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"
 import Navbar from "../components/Layout/Navbar"
 import Footer from "../components/Layout/footer"
 import CoinBadge from "../components/UI/CoinBadge"
-import { ASSETS } from "../config/assets";
+import { ASSETS, getAvatarIcon } from "../config/assets";
 
 const Logo = ASSETS.BRANDING.LOGO;
 const GirlIcon = ASSETS.AVATARS.GIRL;
@@ -297,13 +297,23 @@ const Summaries = () => {
         }
     }
 
-    const [profileImage] = useState(() => {
-        const token = localStorage.getItem("token")
-        if (!token) return Logo
-        const savedAvatar = localStorage.getItem("avatar") || "bro"
-        const map = { girl: GirlIcon, nerd: NerdIcon, bro: BroIcon }
-        return map[savedAvatar.toLowerCase()] || BroIcon
-    })
+    const [profileImage, setProfileImage] = useState(Logo)
+
+    const refreshProfileImage = () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            setProfileImage(Logo);
+            return;
+        }
+        const savedAvatar = localStorage.getItem("avatar");
+        setProfileImage(getAvatarIcon(savedAvatar));
+    };
+
+    useEffect(() => {
+        refreshProfileImage();
+        window.addEventListener("avatarUpdated", refreshProfileImage);
+        return () => window.removeEventListener("avatarUpdated", refreshProfileImage);
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-background-dark font-display flex flex-col transition-colors duration-300 relative overflow-hidden">
@@ -315,7 +325,7 @@ const Summaries = () => {
                 <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
                     <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate("/")}>
                         <div className="relative size-12 rounded-2xl bg-white shadow-xl ring-2 ring-pink-100 flex items-center justify-center overflow-hidden">
-                            <img src={Logo} alt="Logo" className="size-8 object-contain group-hover:scale-110 transition-transform duration-500" />
+                            <img src={profileImage || Logo} alt="Logo" className="size-8 object-contain group-hover:scale-110 transition-transform duration-500" />
                         </div>
                         <div className="hidden sm:block">
                             <h1 className="text-xl font-black text-gray-900 dark:text-white leading-tight">APM AI</h1>

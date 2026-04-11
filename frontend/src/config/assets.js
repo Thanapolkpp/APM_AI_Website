@@ -95,3 +95,16 @@ export const mapImagePath = (path) => {
 
     return path;
 };
+
+/**
+ * Shared utility to get the correct avatar icon URL based on character name.
+ * Handles all variants and cases.
+ */
+export const getAvatarIcon = (name) => {
+    if (!name) return ASSETS.BRANDING.LOGO;
+    const p = name.toLowerCase();
+    if (p.includes("girl") || p.includes("bestie") || p.includes("cute")) return ASSETS.AVATARS.GIRL;
+    else if (p.includes("nerd") || p.includes("genius")) return ASSETS.AVATARS.NERD2;
+    else if (p.includes("bro")) return ASSETS.AVATARS.BRO;
+    else return ASSETS.BRANDING.LOGO; // Default (if absolutely no data)
+};

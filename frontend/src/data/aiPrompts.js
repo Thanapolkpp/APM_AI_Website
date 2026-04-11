@@ -5,10 +5,9 @@
 export const getSystemMessage = (currentMode, username) => {
     const name = username || "เพื่อนรัก";
     switch (currentMode) {
-        case "bro":
-            return username ? `Bro : มีอะไรให้ช่วยหรือเปล่าเพื่อน ${username} ` : `Bro: มีอะไรให้ช่วยหรือเปล่าเพื่อน`;
         case "girl":
             return username ? `Girl : ว่าไงค่ะซิส ${username}` : `Girl: ว่าไงค่ะซิส`;
+        case "nerd":
         default:
             return username ? `Nerd : สวัสดีครับคุณ ${name} ผม APM Assistant พร้อมช่วยคุณครับ` : `สวัสดีครับคุณ ${name} ผม APM Assistant พร้อมช่วยคุณครับ`;
     }

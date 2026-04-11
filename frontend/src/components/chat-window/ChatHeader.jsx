@@ -1,6 +1,6 @@
 import React from "react"
 import Navbar from "../Layout/Navbar"
-import { ASSETS } from "../../config/assets";
+import { ASSETS, getAvatarIcon } from "../../config/assets";
 import { User, Bell } from "lucide-react";
 import CoinBadge from "../UI/CoinBadge"
 
@@ -18,9 +18,8 @@ const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, 
             setProfileImage(savedImage);
             return;
         }
-        const savedAvatar = localStorage.getItem("avatar") || "bro" ;
-        const map = { girl: GirlIcon, nerd: NerdIcon, bro: BroIcon };
-        setProfileImage(map[savedAvatar.toLowerCase()] || BroIcon);
+        const savedAvatar = localStorage.getItem("avatar");
+        setProfileImage(getAvatarIcon(savedAvatar));
     }, []);
 
     React.useEffect(() => {
@@ -36,7 +35,7 @@ const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, 
                 <div className="flex items-center gap-2 group cursor-pointer shrink-0" onClick={() => navigate("/")}>
                     <div className="relative size-10 sm:size-12 rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden p-1.5 transition-transform group-hover:scale-105">
                         <img
-                            src={Logo}
+                            src={profileImage || Logo}
                             alt="Logo"
                             className="h-full w-full object-contain"
                         />

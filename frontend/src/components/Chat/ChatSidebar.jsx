@@ -15,22 +15,16 @@ const ChatSidebar = () => {
 
     const avatars = [
         {
-            id: "bro",
-            name: "Bro",
-            image: broImg,
-            glow: "border-sky-300 shadow-[0_0_20px_rgba(56,189,248,0.3)]",
+            id: "nerd",
+            name: "Nerd",
+            image: nerdImg,
+            glow: "border-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.3)]",
         },
         {
             id: "girl",
             name: "Girl",
             image: girlImg,
             glow: "border-pink-300 shadow-[0_0_20px_rgba(244,114,182,0.3)]",
-        },
-        {
-            id: "nerd",
-            name: "Nerd",
-            image: nerdImg,
-            glow: "border-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.3)]",
         }
     ]
 
@@ -131,7 +125,7 @@ const ChatSidebar = () => {
                                 <div 
                                     key={idx} 
                                     onClick={() => {
-                                        const targetMode = item.mode || "bro";
+                                        const targetMode = item.mode || "nerd";
                                         navigate(`/chat/${targetMode}`);
                                         
                                         // หน่วงเวลาเล็กน้อยเพื่อให้ ChatWindow อัปเดตโหมดตาม URL ก่อน
@@ -156,7 +150,7 @@ const ChatSidebar = () => {
                                             : item.mode === "nerd" ? "text-emerald-500" 
                                             : "text-pink-400"}`}
                                         >
-                                            {item.mode || "GIRL"}
+                                            {item.mode || "NERD"}
                                         </span>
                                         <span className="text-[10px] font-bold text-gray-400 ml-auto">
                                             {item.created_at ? new Date(item.created_at).toLocaleDateString('th-TH') : "ล่าสุด"}

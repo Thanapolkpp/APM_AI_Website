@@ -12,8 +12,9 @@ import LessonTabs from "../components/Course/LessonTabs"
 import HomeworkSummary from "../components/Course/HomeworkSummary"
 import NotificationBell from "../components/UI/NotificationBell"
 import CoinBadge from "../components/UI/CoinBadge"
-import { ASSETS } from "../config/assets"
+import { ASSETS, getAvatarIcon } from "../config/assets"
 import { useCoins } from "../hooks/useCoins"
+import { getUserProfile } from "../services/aiService"
 
 const Logo = ASSETS.BRANDING.LOGO
 const BroIcon = ASSETS.AVATARS.BRO
@@ -91,22 +92,25 @@ const Home = () => {
   const [profileImage, setProfileImage] = useState(Logo)
 
   const refreshProfileImage = () => {
-    if (!isLoggedIn) {
-      setProfileImage(Logo)
-      return
-    }
-    const savedImage = localStorage.getItem("avatarImage")
-    if (savedImage) {
-      setProfileImage(savedImage)
-      return
-    }
-    const savedAvatar = localStorage.getItem("avatar") || "bro"
-    const map = { girl: CuteGirlIcon, nerd: NerdIcon, bro: BroIcon }
-    setProfileImage(map[savedAvatar.toLowerCase()] || BroIcon)
-  }
+    const savedAvatar = localStorage.getItem("avatar");
+    setProfileImage(getAvatarIcon(savedAvatar));
+  };
 
   useEffect(() => {
     refreshProfileImage()
+
+    // Sync avatar from server to localStorage if logged in
+    if (isLoggedIn) {
+      getUserProfile()
+        .then(profile => {
+          if (profile.equipped_avatar) {
+            localStorage.setItem("avatar", profile.equipped_avatar);
+            refreshProfileImage();
+          }
+        })
+        .catch(err => console.error("Profile sync failed:", err));
+    }
+
     window.addEventListener("avatarUpdated", refreshProfileImage)
     return () => window.removeEventListener("avatarUpdated", refreshProfileImage)
   }, [isLoggedIn])
@@ -183,7 +187,7 @@ const Home = () => {
             onClick={() => navigate("/")}
           >
             <div className="relative size-10 md:size-12 shrink-0 overflow-hidden rounded-2xl bg-white shadow-xl ring-2 ring-pink-100 flex items-center justify-center">
-              <img src={Logo} alt="Logo" className="size-6 md:size-8 object-contain" />
+              <img src={profileImage || Logo} alt="Logo" className="size-6 md:size-8 object-contain" />
             </div>
             <div className="min-w-0">
               <h1 className="text-lg md:text-xl font-black tracking-tight leading-none text-gray-900 dark:text-white">APM AI</h1>
@@ -283,16 +287,16 @@ const Home = () => {
                 <div className="mt-3 md:mt-4 flex flex-col items-center gap-1">
                   {isLoggedIn ? (
                     <div className="flex items-center gap-2">
-                       <div className="size-1.5 md:size-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
-                       <span className="text-[10px] md:text-[12px] font-black text-gray-700 dark:text-gray-300">
-                         {t("home.exp_earned", { exp: exp.toLocaleString() })}
-                       </span>
-                     </div>
-                   ) : (
-                     <span className="text-[10px] md:text-[12px] font-black text-primary animate-pulse">
-                       {t("home.login_to_start")}
-                     </span>
-                   )}
+                      <div className="size-1.5 md:size-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+                      <span className="text-[10px] md:text-[12px] font-black text-gray-700 dark:text-gray-300">
+                        {t("home.exp_earned", { exp: exp.toLocaleString() })}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-[10px] md:text-[12px] font-black text-primary animate-pulse">
+                      {t("home.login_to_start")}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="absolute inset-0 -z-10 blur-3xl opacity-20 mix-blend-overlay bg-gradient-to-tr from-primary to-pink-400 rounded-full" />

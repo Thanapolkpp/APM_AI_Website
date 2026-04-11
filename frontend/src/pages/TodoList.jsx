@@ -13,7 +13,7 @@ import {
     getUserProfile, fetchOwnedAvatars, fetchOwnedRooms,
     uploadTodoProof, verifyTodo, fetchPendingTodos
 } from "../services/aiService"
-import { ASSETS, mapModelPath, mapImagePath } from "../config/assets"
+import { ASSETS, mapModelPath, mapImagePath, getAvatarIcon } from "../config/assets"
 import RankInfoModal from "../components/UI/RankInfoModal"
 
 const Logo = ASSETS.BRANDING.LOGO;
@@ -125,6 +125,18 @@ const TodoList = () => {
     
     const [equippedAvatar, setEquippedAvatar] = useState(null)
     const [equippedRoom, setEquippedRoom] = useState(null)
+    const [profileImage, setProfileImage] = useState(Logo)
+
+    const refreshProfileImage = () => {
+        const savedAvatar = localStorage.getItem("avatar");
+        setProfileImage(getAvatarIcon(savedAvatar));
+    };
+
+    useEffect(() => {
+        refreshProfileImage();
+        window.addEventListener("avatarUpdated", refreshProfileImage);
+        return () => window.removeEventListener("avatarUpdated", refreshProfileImage);
+    }, []);
     
     // [Admin Feature]
     const [isAdminView, setIsAdminView] = useState(false)
@@ -300,7 +312,7 @@ const TodoList = () => {
                 <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
                     <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate("/")}>
                         <div className="relative size-12 rounded-2xl bg-white shadow-xl ring-2 ring-pink-100 flex items-center justify-center overflow-hidden">
-                            <img src={Logo} alt="Logo" className="size-8 object-contain transition duration-500 hover:scale-110" />
+                            <img src={profileImage || Logo} alt="Logo" className="size-8 object-contain transition duration-500 hover:scale-110" />
                         </div>
                         <div className="hidden sm:block">
                             <h1 className="text-xl font-black text-gray-900 dark:text-white leading-tight">APM Quest</h1>

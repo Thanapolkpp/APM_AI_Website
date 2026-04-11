@@ -91,7 +91,7 @@ export const sendMessageToAIStreaming = async (message, mode, sheet_ids = [], co
 export const sendMessageToAIWithImage = async (prompt, mode, imageFile, context_history_id = null, conversation_history = null) => {
     const formData = new FormData();
     formData.append("prompt", prompt || "");
-    formData.append("mode", mode || "bro");
+    formData.append("mode", mode || "nerd");
     formData.append("file", imageFile);
     if (context_history_id) {
         formData.append("context_history_id", context_history_id);
@@ -120,7 +120,7 @@ export const sendMessageToAIWithImage = async (prompt, mode, imageFile, context_
 export const sendMessageToAIWithPDF = async (prompt, mode, pdfFile) => {
     const formData = new FormData();
     formData.append("prompt", prompt || "");
-    formData.append("mode", mode || "bro");
+    formData.append("mode", mode || "nerd");
     formData.append("file", pdfFile);
 
     const response = await axios.post(API_PDF_URL, formData, {

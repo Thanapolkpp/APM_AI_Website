@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/footer";
 import { useTranslation } from "react-i18next";
-import { ASSETS, mapImagePath } from "../config/assets";
+import { ASSETS, mapImagePath, getAvatarIcon } from "../config/assets";
 
 const Logo = ASSETS.BRANDING.LOGO;
 const BroIcon = ASSETS.AVATARS.BRO;
@@ -47,6 +47,10 @@ const Account = () => {
                     coins: profileData.coins,
                     exp: profileData.exp,
                 }));
+                if (profileData.equipped_avatar) {
+                    localStorage.setItem("avatar", profileData.equipped_avatar);
+                    refreshProfileImage();
+                }
 
                 const equipped = rooms.find(r => r.is_equipped) || rooms[0];
                 if (equipped) {
@@ -72,8 +76,8 @@ const Account = () => {
             setProfileImage(savedImage);
             return;
         }
-        const savedAvatar = localStorage.getItem("avatar") || "bro";
-        setProfileImage(avatarMap[savedAvatar.toLowerCase()] || BroIcon);
+        const savedAvatar = localStorage.getItem("avatar");
+        setProfileImage(getAvatarIcon(savedAvatar));
     };
 
     useEffect(() => {
@@ -155,8 +159,8 @@ const Account = () => {
                 <div className="mx-auto max-w-7xl flex items-center justify-between px-4 py-4 sm:px-6 h-20">
                     {/* Left - Brand */}
                     <div className="flex items-center gap-3 shrink-0">
-                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-sm border border-white/60 bg-white dark:border-gray-600 dark:bg-gray-800">
-                            <img src={Logo} alt="Logo" className="w-full h-full object-cover transition duration-300 hover:scale-110" />
+                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-sm border border-white/60 bg-white dark:border-gray-600 dark:bg-gray-800 transition-transform hover:scale-105 active:scale-95 cursor-pointer" onClick={() => navigate("/")}>
+                            <img src={profileImage || Logo} alt="Logo" className="w-full h-full object-cover" />
                         </div>
                         <div className="hidden min-[1140px]:block">
                             <h1 className="font-extrabold text-[15px] sm:text-xl text-gray-900 dark:text-white tracking-tight leading-none">APM AI</h1>

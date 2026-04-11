@@ -1,19 +1,24 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
+import { pdfjs } from "react-pdf"
 import pdfToText from "react-pdftotext"
 import { sendMessageToAI, sendMessageToAIWithImage, fetchChatHistory, sendMessageToAIStreaming } from "../../services/aiService"
+
+// Configure pdfjs worker globally for this component - matching react-pdftotext's dependency (4.8.69)
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs`
 
 // New Components
 import ChatHeader from "../chat-window/ChatHeader"
 import MessageList from "../chat-window/MessageList"
 import ChatInput from "../chat-window/ChatInput"
 import ImagePreview from "../chat-window/ImagePreview"
+import PdfPreview from "../chat-window/PdfPreview"
 import { getSystemMessage, buildPlannerSystemPrompt, plannerPrompt } from "../../data/aiPrompts"
 
 const ChatWindow = ({ mode: propsMode }) => {
   const navigate = useNavigate()
   const { mode: urlMode } = useParams()
-  const mode = urlMode || propsMode || "bro"
+  const mode = urlMode || propsMode || "nerd"
 
   const [input, setInput] = useState("")
   const [messages, setMessages] = useState([])
@@ -23,6 +28,11 @@ const ChatWindow = ({ mode: propsMode }) => {
   // Image state
   const [selectedImage, setSelectedImage] = useState(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null)
+
+  // PDF state
+  const [selectedPdf, setSelectedPdf] = useState(null)
+  const [pdfExtractedText, setPdfExtractedText] = useState("")
+  const [isReadingFile, setIsReadingFile] = useState(false)
 
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -112,32 +122,47 @@ const ChatWindow = ({ mode: propsMode }) => {
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
+  const removeSelectedPdf = () => {
+    setSelectedPdf(null)
+    setPdfExtractedText("")
+    setIsReadingFile(false)
+    if (pdfInputRef.current) pdfInputRef.current.value = ""
+  }
+
   const handlePickPdf = () => {
     pdfInputRef.current?.click()
   }
 
-  const handlePdfChange = (e) => {
+  const handlePdfChange = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.type !== "application/pdf") {
       alert("กรุณาเลือกไฟล์ PDF เท่านั้น")
       return
     }
-    setIsLoading(true)
-    pdfToText(file)
-      .then((text) => {
-        const truncatedText = text.length > 5000 ? text.substring(0, 5000) + "..." : text
-        setInput(prev => prev + "\n[เนื้อหาจาก PDF]:\n" + truncatedText)
-        alert("อ่านไฟล์ PDF สำเร็จแล้ว! (ตัดเนื้อหาหากยาวเกินไป) คุณสามารถส่งข้อความต่อได้เลย")
-      })
-      .catch((error) => {
-        console.error("Failed to extract text from pdf", error)
-        alert("ขออภัย ไม่สามารถอ่านไฟล์ PDF นี้ได้")
-      })
-      .finally(() => {
-        setIsLoading(false)
-        if (pdfInputRef.current) pdfInputRef.current.value = ""
-      })
+
+    setSelectedPdf(file)
+    setIsReadingFile(true)
+    setPdfExtractedText("")
+
+    try {
+      // Handle cases where pdfToText might be imported as a module object
+      const extractFunc = typeof pdfToText === 'function' ? pdfToText : pdfToText.default
+      
+      if (typeof extractFunc !== 'function') {
+        throw new Error("pdfToText is not a function")
+      }
+      
+      const text = await extractFunc(file)
+      setPdfExtractedText(text || "")
+    } catch (error) {
+      console.error("Failed to extract text from pdf", error)
+      alert("ขออภัย ไม่สามารถอ่านไฟล์ PDF นี้ได้")
+      setSelectedPdf(null)
+    } finally {
+      setIsReadingFile(false)
+      if (pdfInputRef.current) pdfInputRef.current.value = ""
+    }
   }
 
   const [guestChatCount, setGuestChatCount] = useState(() => {
@@ -219,16 +244,32 @@ const ChatWindow = ({ mode: propsMode }) => {
   // Handle Send
   const handleSend = async (e) => {
     e.preventDefault()
-    if ((!input.trim() && !selectedImage) || isLoading) return
+    if ((!input.trim() && !selectedImage && !selectedPdf) || isLoading) return
+    
+    // ถ้ากำลังประมวลผลไฟล์อยู่ ให้รอแป๊บนึง หรือแจ้งเตือน
+    if (isReadingFile) {
+      alert("กำลังประมวลผลไฟล์ PDF อยู่ครับ กรุณารออีกสักนิด... 🌷")
+      return
+    }
+
     if (isLimitReached) {
       alert("คุณใช้งานครบจำนวนจำกัด 5 ครั้งแล้ว กรุณาเข้าสู่ระบบเพื่อใช้งานต่อครับ")
       navigate("/login")
       return
     }
 
-    const textToSend = input.trim()
+    let textToSend = input.trim()
+
+    // Append PDF content if attached
+    if (pdfExtractedText) {
+      const truncatedText = pdfExtractedText.length > 5000 
+        ? pdfExtractedText.substring(0, 5000) + "..." 
+        : pdfExtractedText
+      textToSend = `${textToSend}\n\n[ข้อความจากเอกสาร PDF (${selectedPdf?.name})]:\n${truncatedText}`
+    }
+
     const userMsg = {
-      text: textToSend || "(แนบรูปภาพ)",
+      text: input.trim() || (selectedPdf ? `ส่งไฟล์ PDF: ${selectedPdf.name}` : "(แนบรูปภาพ)"),
       sender: "user",
       imagePreview: imagePreviewUrl || null,
     }
@@ -303,6 +344,7 @@ const ChatWindow = ({ mode: propsMode }) => {
 
       setActiveHistoryContextId(null)
       removeSelectedImage()
+      removeSelectedPdf()
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -374,6 +416,12 @@ const ChatWindow = ({ mode: propsMode }) => {
           onRemove={removeSelectedImage}
         />
 
+        <PdfPreview
+          selectedFile={selectedPdf}
+          onRemove={removeSelectedPdf}
+          isReading={isReadingFile}
+        />
+
         {isLimitReached && (
           <div className="mx-4 my-1 p-2 rounded-xl bg-red-50 border border-red-100 flex items-center justify-between text-[10px] text-red-600 font-bold shadow-sm shrink-0">
             <div className="flex items-center gap-2 truncate">
@@ -399,6 +447,7 @@ const ChatWindow = ({ mode: propsMode }) => {
           handlePdfChange={handlePdfChange}
           headerTheme={headerTheme}
           disabled={isLimitReached}
+          isProcessing={isReadingFile}
         />
       </div>
     </div>

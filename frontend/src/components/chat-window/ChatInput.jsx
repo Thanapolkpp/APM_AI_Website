@@ -13,6 +13,7 @@ const ChatInput = ({
     handlePdfChange,
     headerTheme,
     disabled = false,
+    isProcessing = false,
 }) => {
     return (
         <form onSubmit={handleSend} className={`flex items-center gap-3 p-4 bg-white ${disabled ? "opacity-60" : ""}`}>
@@ -46,11 +47,15 @@ const ChatInput = ({
                 <button
                     type="button"
                     onClick={handlePickPdf}
-                    disabled={isLoading || disabled}
-                    className="size-12 rounded-2xl flex items-center justify-center bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-all text-gray-500 shadow-sm"
+                    disabled={isLoading || disabled || isProcessing}
+                    className="size-12 rounded-2xl flex items-center justify-center bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-all text-gray-500 shadow-sm disabled:cursor-not-allowed"
                     title="แนบไฟล์ PDF"
                 >
-                    <span className="material-symbols-outlined text-2xl">picture_as_pdf</span>
+                    {isProcessing ? (
+                        <div className="size-5 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin" />
+                    ) : (
+                        <span className="material-symbols-outlined text-2xl">picture_as_pdf</span>
+                    )}
                 </button>
             </div>
 
