@@ -20,7 +20,7 @@ const Chat = () => {
                     <div className="absolute -bottom-[10%] -right-[10%] size-[400px] bg-purple-200/20 blur-[100px] rounded-full" />
                 </div>
 
-                <div className="w-full max-w-4xl h-full flex flex-col md:h-[90vh]">
+                <div className="w-full max-w-6xl h-full flex flex-col md:h-[91vh]">
                     <ChatWindow mode={mode} />
                 </div>
             </main>

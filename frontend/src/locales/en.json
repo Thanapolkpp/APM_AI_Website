@@ -185,5 +185,10 @@
     "user": "User",
     "exp": "EXP",
     "coins": "Coins"
+  },
+  "rank": {
+    "path_of_glory": "Path of Glory",
+    "title": "LEGEND",
+    "subtitle": ""
   }
 }

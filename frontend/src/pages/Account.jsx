@@ -64,25 +64,22 @@ const Account = () => {
     };
 
     // 🌟 1. สร้าง State สำหรับเก็บ Source ของรูปภาพที่จะแสดง
-    const [profileImage, setProfileImage] = useState(() => {
-        // ลองหาว่ามีรูป 3D ที่ถูกถ่ายเก็บไว้ไหม
-        const savedImage = localStorage.getItem("avatarImage");
-        if (savedImage) return savedImage;
+    const [profileImage, setProfileImage] = useState(Logo);
 
-        // ถ้าไม่มีรูป 3D ให้กลับไปดูว่าเลือกตัวละคร id ไหนไว้ แล้วใช้รูป 2D แทน
-        const savedAvatar = localStorage.getItem("avatar") || "bro";
-        return avatarMap[savedAvatar.toLowerCase()] || BroIcon;
-    });
-
-    useEffect(() => {
-        // 🌟 2. อัปเดตเมื่อโหลดหน้าเว็บ
+    const refreshProfileImage = () => {
         const savedImage = localStorage.getItem("avatarImage");
         if (savedImage) {
             setProfileImage(savedImage);
-        } else {
-            const savedAvatar = localStorage.getItem("avatar") || "bro";
-            setProfileImage(avatarMap[savedAvatar.toLowerCase()] || BroIcon);
+            return;
         }
+        const savedAvatar = localStorage.getItem("avatar") || "bro";
+        setProfileImage(avatarMap[savedAvatar.toLowerCase()] || BroIcon);
+    };
+
+    useEffect(() => {
+        refreshProfileImage();
+        window.addEventListener("avatarUpdated", refreshProfileImage);
+        return () => window.removeEventListener("avatarUpdated", refreshProfileImage);
     }, []);
 
     // ✅ Dark Mode State
@@ -295,7 +292,7 @@ const Account = () => {
             </header>
 
             <main className="flex-1 flex flex-col items-center justify-center w-full px-6 py-10 z-10">
-                <div className="w-full max-w-4xl bg-white/40 dark:bg-gray-800/40 backdrop-blur-2xl rounded-[40px] shadow-2xl border border-white/60 dark:border-gray-700/50 overflow-hidden">
+                <div className="w-full max-w-7xl bg-white/40 dark:bg-gray-800/40 backdrop-blur-2xl rounded-[40px] shadow-2xl border border-white/60 dark:border-gray-700/50 overflow-hidden">
 
                     {/* Cover Photo - Compact Height */}
                     <div className="h-40 md:h-48 bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 dark:from-pink-900/50 dark:via-purple-900/50 dark:to-indigo-900/50 relative overflow-hidden">

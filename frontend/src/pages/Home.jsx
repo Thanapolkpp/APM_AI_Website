@@ -88,14 +88,28 @@ const Home = () => {
   const rankImage = getRankImg(userLevel);
   const isLoggedIn = !!localStorage.getItem("token");
 
-  const [profileImage] = useState(() => {
-    if (!isLoggedIn) return Logo
+  const [profileImage, setProfileImage] = useState(Logo)
+
+  const refreshProfileImage = () => {
+    if (!isLoggedIn) {
+      setProfileImage(Logo)
+      return
+    }
     const savedImage = localStorage.getItem("avatarImage")
-    if (savedImage) return savedImage
+    if (savedImage) {
+      setProfileImage(savedImage)
+      return
+    }
     const savedAvatar = localStorage.getItem("avatar") || "bro"
     const map = { girl: CuteGirlIcon, nerd: NerdIcon, bro: BroIcon }
-    return map[savedAvatar.toLowerCase()] || BroIcon
-  })
+    setProfileImage(map[savedAvatar.toLowerCase()] || BroIcon)
+  }
+
+  useEffect(() => {
+    refreshProfileImage()
+    window.addEventListener("avatarUpdated", refreshProfileImage)
+    return () => window.removeEventListener("avatarUpdated", refreshProfileImage)
+  }, [isLoggedIn])
 
   const modes = [
     {

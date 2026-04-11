@@ -184,6 +184,10 @@
     "user": "ผู้ใช้",
     "exp": "EXP",
     "coins": "Coins"
+  },
+  "rank": {
+    "path_of_glory": "เส้นทางแห่งเกียรติยศ",
+    "title": "LEGEND",
+    "subtitle": ""
   }
-    
 }

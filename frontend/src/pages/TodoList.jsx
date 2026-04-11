@@ -14,6 +14,7 @@ import {
     uploadTodoProof, verifyTodo, fetchPendingTodos
 } from "../services/aiService"
 import { ASSETS, mapModelPath, mapImagePath } from "../config/assets"
+import RankInfoModal from "../components/UI/RankInfoModal"
 
 const Logo = ASSETS.BRANDING.LOGO;
 
@@ -108,48 +109,6 @@ const LevelBar = ({ exp = 0, onInfoClick }) => {
     );
 };
 
-/* ================= Rank Info Modal ================= */
-const RankInfoModal = ({ isOpen, onClose }) => {
-    if (!isOpen) return null;
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
-            <div className="bg-white dark:bg-gray-900 w-full max-w-lg rounded-[48px] overflow-hidden shadow-2xl border border-white/20 p-10 animate-in fade-in zoom-in duration-300">
-                <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                        <Trophy className="text-yellow-500" size={32}/> Rank Progression
-                    </h3>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-all">
-                        <X size={24} className="text-gray-400" />
-                    </button>
-                </div>
-                <div className="space-y-4 max-h-[440px] overflow-y-auto pr-2 custom-scrollbar">
-                    {Object.entries(LEVEL_THEMES).map(([lvl, theme], idx) => (
-                        <div key={lvl} className="flex items-center justify-between p-5 rounded-[28px] bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 group hover:scale-[1.02] transition-all">
-                            <div className="flex items-center gap-4">
-                                <div 
-                                    className="size-16 rounded-2xl flex items-center justify-center p-2 bg-white dark:bg-white/5 shadow-lg ring-4 ring-gray-50 dark:ring-white/5"
-                                >
-                                    <img src={theme.img} alt={theme.name} className="w-full h-full object-contain" />
-                                </div>
-                                <div>
-                                    <p className="font-black text-xl text-gray-800 dark:text-white">{theme.name}</p>
-                                    <p className="text-[10px] font-bold text-gray-400 tracking-[.2em]">LEVEL {lvl}</p>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <p className="font-black text-lg text-primary">{LEVEL_THRESHOLDS[idx] || 0} XP</p>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Required</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                <button onClick={onClose} className="w-full mt-8 py-5 rounded-3xl bg-primary text-white font-black text-xl shadow-xl shadow-primary/30 active:scale-95 transition-all">
-                    เข้าใจแล้วจ้า!
-                </button>
-            </div>
-        </div>
-    );
-};
 
 /* ================= Page ================= */
 const TodoList = () => {

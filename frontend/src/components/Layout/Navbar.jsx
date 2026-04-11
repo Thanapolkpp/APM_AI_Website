@@ -46,7 +46,7 @@ export default function Navbar() {
             key={link.to}
             to={link.to}
             className={({ isActive }) =>
-              `px-3 lg:px-4 py-2 ${i18n.language === "th" ? "text-[12px] lg:text-[13px]" : "text-sm"} font-black rounded-xl transition-all duration-200 border whitespace-nowrap shrink-0 flex items-center gap-1.5
+              `px-3 lg:px-4 py-2 ${i18n.language === "th" ? "text-[12px] lg:text-[13px]" : "text-sm"} font-bold rounded-xl transition-all duration-200 border whitespace-nowrap shrink-0 flex items-center gap-1.5
                 ${isActive
                 ? "text-white bg-gradient-to-r from-primary to-pink-500 border-white/20 shadow-md"
                 : "text-gray-600 dark:text-gray-300 border-transparent hover:bg-white/50 dark:hover:bg-white/10"

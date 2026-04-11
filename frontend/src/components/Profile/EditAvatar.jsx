@@ -1,4 +1,5 @@
 import React, { useEffect, useState, Suspense, useMemo, useRef } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../Layout/Navbar";
 import { Canvas, useFrame } from "@react-three/fiber";
@@ -167,8 +168,12 @@ const EditAvatar = () => {
                 if (selectedId) {
                     await equipAvatarApi(selectedId);
                     localStorage.setItem("equipped_avatar_id", selectedId);
+                    
+                    // Update the "avatar" name in localStorage for other components
+                    const chosen = visualAvatars.find(a => a.id === selectedId);
+                    if (chosen) localStorage.setItem("avatar", chosen.name.toLowerCase());
                 }
-                showCustomAlert("บันทึกตัวละครแล้วจ้า! 🌷", "success");
+                showCustomAlert("บันทึกหน้าตาใหม่ให้ชาวโลกเห็นเรียบร้อย! 🌷", "success");
             } else {
                 if (selectedSceneId) {
                     await equipRoomApi(selectedSceneId);
@@ -262,7 +267,7 @@ const EditAvatar = () => {
                         <div className="flex gap-3 md:gap-6 justify-center">
                             {isOwned(currentItem.id) ? (
                                 <button onClick={handleSave} className="px-10 py-3.5 md:px-16 md:py-6 rounded-[22px] md:rounded-[32px] bg-white text-gray-900 font-black text-sm md:text-2xl shadow-2xl hover:scale-105 active:scale-95 transition-all border-2 md:border-4 border-transparent hover:border-white/50 flex items-center gap-3">
-                                    <CheckCircle2 size={24} className="text-emerald-500" /> {currentTab === 'avatar' ? 'สวมใส่ ✨' : 'ใช้ฉากนี้ 🌸'}
+                                    <CheckCircle2 size={24} className="text-emerald-500" /> {currentTab === 'avatar' ? 'ใช้อันนี้เป็นโปรไฟล์ ✨' : 'ใช้ฉากนี้ 🌸'}
                                 </button>
                             ) : (
                                 <button onClick={() => handleBuy(currentItem)} className="px-10 py-3.5 md:px-16 md:py-6 rounded-[22px] md:rounded-[32px] bg-yellow-400 text-yellow-900 font-black text-sm md:text-2xl shadow-2xl hover:scale-105 active:scale-95 transition-all border-2 md:border-4 border-yellow-200/50 flex items-center gap-3">
@@ -293,15 +298,26 @@ const EditAvatar = () => {
                                     <button 
                                         key={item.id} 
                                         onClick={() => currentTab === 'avatar' ? setSelectedId(item.id) : setSelectedSceneId(item.id)} 
-                                        className={`flex-shrink-0 w-28 md:w-44 snap-start group relative flex flex-col items-center gap-3 p-3 md:p-5 rounded-[24px] md:rounded-[36px] border-2 transition-all duration-300
+                                        className={`flex-shrink-0 w-28 md:w-44 snap-start group relative flex flex-col items-center gap-3 p-3 md:p-5 rounded-[24px] md:rounded-[36px] border-[3px] transition-all duration-500
                                             ${active 
-                                                ? 'bg-white dark:bg-white/10 border-primary shadow-2xl ring-4 ring-primary/10 scale-[1.05] z-10' 
-                                                : 'bg-white/20 hover:bg-white/40 border-transparent hover:scale-[1.02]'}
+                                                ? 'bg-white dark:bg-slate-800 border-emerald-400 shadow-[0_20px_40px_rgba(16,185,129,0.2)] scale-[1.1] z-10 ring-8 ring-emerald-400/5' 
+                                                : 'bg-white/20 dark:bg-white/5 border-pink-400/20 hover:border-pink-400/50 opacity-60 hover:opacity-100'}
                                         `}
                                     >
                                         <div className="relative size-14 md:size-24 shrink-0">
+                                            {/* Selection Badge */}
+                                            {active && (
+                                                <motion.div 
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    className="absolute -top-2 -right-2 z-30 size-6 md:size-8 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg"
+                                                >
+                                                    <CheckCircle2 size={16} className="text-white" />
+                                                </motion.div>
+                                            )}
+
                                             {item.image ? (
-                                                <img src={item.image} className={`w-full h-full shadow-lg transition-transform duration-500 group-hover:rotate-3 ${currentTab === 'avatar' ? 'rounded-full' : 'rounded-2xl object-cover'}`} alt={item.name} />
+                                                <img src={item.image} className={`w-full h-full shadow-lg transition-transform duration-500 group-hover:rotate-3 ${active ? 'scale-110 shadow-primary/20' : ''} ${currentTab === 'avatar' ? 'rounded-full' : 'rounded-2xl object-cover'}`} alt={item.name} />
                                             ) : (
                                                 <div className="w-full h-full rounded-2xl" style={{ backgroundColor: item.color }} />
                                             )}

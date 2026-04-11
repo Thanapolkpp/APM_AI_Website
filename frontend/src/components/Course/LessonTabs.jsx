@@ -2,7 +2,8 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { Trophy, ShieldCheck, Sparkles, Star, ChevronRight } from "lucide-react"
+import { Trophy, ShieldCheck, Sparkles, Star, ChevronRight, X } from "lucide-react"
+import RankInfoModal from "../UI/RankInfoModal"
 
 const ranks = [
     { key: "bronze", name: "Bronze", tier: "Junior", exp: "0 XP", benefit: "Normal", color: "from-amber-700/40 to-amber-900/40", img: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368522/Broze_xwm5gg.png" },
@@ -18,15 +19,19 @@ export default function RankingSystem() {
     const { t } = useTranslation()
     const navigate = useNavigate()
     const [active, setActive] = useState("gold")
+    const [isRankModalOpen, setIsRankModalOpen] = useState(false)
     const activeRank = ranks.find(r => r.key === active)
 
     return (
         <div className="w-full max-w-6xl mx-auto py-10 md:py-20 px-4 mt-6 md:mt-10">
             {/* Header - Simplified for Mobile */}
             <div className="text-center mb-10 md:mb-16">
-                <div className="hidden md:inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/5 border border-white/10 text-white font-black text-sm tracking-[.3em] uppercase mb-4">
+                <button 
+                    onClick={() => setIsRankModalOpen(true)}
+                    className="hidden md:inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-slate-900 dark:text-white font-black text-sm tracking-[.3em] uppercase mb-4 hover:scale-105 active:scale-95 transition-all"
+                >
                     <Trophy className="text-yellow-500" size={16}/> {t("rank.path_of_glory")}
-                </div>
+                </button>
                 <h2 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white">
                     {t("rank.title")} <span className="bg-gradient-to-r from-primary to-pink-500 bg-clip-text text-transparent">LEGEND</span>
                 </h2>
@@ -144,8 +149,12 @@ export default function RankingSystem() {
                     </div>
 
                 </div>
-
             </div>
+
+            <RankInfoModal 
+                isOpen={isRankModalOpen} 
+                onClose={() => setIsRankModalOpen(false)} 
+            />
         </div>
     )
 }

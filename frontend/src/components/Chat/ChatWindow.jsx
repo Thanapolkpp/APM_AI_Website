@@ -317,7 +317,7 @@ const ChatWindow = ({ mode: propsMode }) => {
   }
 
   return (
-    <div className="flex flex-col h-full w-full max-w-4xl mx-auto bg-white md:bg-gray-50 md:rounded-[40px] md:shadow-2xl border-none md:border md:border-gray-100 overflow-hidden relative">
+    <div className="flex flex-col h-full w-full max-w-6xl mx-auto bg-white md:bg-gray-50 md:rounded-[40px] md:shadow-2xl border-none md:border md:border-gray-100 overflow-hidden relative">
 
       <ChatHeader
         mode={mode}

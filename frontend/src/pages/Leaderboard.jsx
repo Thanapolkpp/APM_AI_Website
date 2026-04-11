@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import Navbar from "../components/Layout/Navbar";
 import { ASSETS } from "../config/assets";
 import { Trophy, Crown, Star, Flame, Award } from "lucide-react";
+import RankInfoModal from "../components/UI/RankInfoModal";
 
 const GirlIcon = ASSETS.AVATARS.GIRL;
 const BroIcon = ASSETS.AVATARS.BRO;
@@ -14,6 +15,7 @@ const Leaderboard = () => {
     const { t } = useTranslation();
     const [leaders, setLeaders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
         fetchLeaderboard()
@@ -22,8 +24,43 @@ const Leaderboard = () => {
     }, []);
 
     const getAvatarIcon = (avatarName) => {
-        const map = { girl: GirlIcon, nerd: NerdIcon, bro: BroIcon };
-        return map[avatarName?.toLowerCase()] || BroIcon;
+        const name = avatarName?.toLowerCase();
+        const map = { 
+            girl: GirlIcon, 
+            bestie: GirlIcon, 
+            nerd: NerdIcon, 
+            genius: NerdIcon, 
+            bro: BroIcon 
+        };
+        return map[name] || BroIcon;
+    };
+
+    const getLevelInfo = (totalExp) => {
+        const thresholds = [0, 50, 150, 300, 500, 800, 1200];
+        let level = 1;
+        for (let i = 0; i < thresholds.length; i++) {
+            if (totalExp >= thresholds[i]) level = i + 1;
+            else break;
+        }
+        return level;
+    };
+
+    const getRankImg = (lvl) => {
+        const imgs = {
+            1: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368522/Broze_xwm5gg.png",
+            2: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368517/Sliver_ea2lid.png",
+            3: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368525/Gold_bglivb.png",
+            4: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368536/Plat_rakik4.png",
+            5: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368517/Diamond_gjekkx.png",
+            6: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368537/Master_ypfzxo.png",
+            7: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368533/Legen_vts5jo.png",
+        };
+        return imgs[lvl] || imgs[1];
+    };
+
+    const getRankName = (lvl) => {
+        const names = ["BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "MASTER", "LEGEND"];
+        return names[lvl - 1] || "BRONZE";
     };
 
     if (loading) return (
@@ -35,6 +72,19 @@ const Leaderboard = () => {
     const top3 = leaders.slice(0, 3);
     const others = leaders.slice(3);
 
+    const currentUser = leaders.find(u => u.username === localStorage.getItem("username"));
+    const currentLvl = currentUser ? getLevelInfo(currentUser.exp) : 1;
+
+    const ranksData = [
+        { name: "BRONZE", img: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368522/Broze_xwm5gg.png" },
+        { name: "SILVER", img: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368517/Sliver_ea2lid.png" },
+        { name: "GOLD", img: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368525/Gold_bglivb.png" },
+        { name: "PLATINUM", img: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368536/Plat_rakik4.png" },
+        { name: "DIAMOND", img: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368517/Diamond_gjekkx.png" },
+        { name: "MASTER", img: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368537/Master_ypfzxo.png" },
+        { name: "LEGEND", img: "https://res.cloudinary.com/dxfxkq0zs/image/upload/v1775368533/Legen_vts5jo.png" }
+    ];
+
     return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A] font-display relative overflow-hidden transition-colors duration-300">
              {/* Dynamic Background */}
@@ -43,7 +93,7 @@ const Leaderboard = () => {
                 <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-400/10 rounded-full blur-[120px]" />
             </div>
 
-            <div className="flex flex-col min-h-screen relative z-10">
+            <div className="flex flex-col min-h-screen relative z-0">
                 <header className="sticky top-0 z-50 w-full border-b border-gray-200/50 dark:border-white/5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl py-4 px-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                          <div className="size-10 rounded-xl bg-gradient-to-tr from-primary to-pink-500 flex items-center justify-center shadow-lg shadow-primary/20">
@@ -59,21 +109,52 @@ const Leaderboard = () => {
                     </button>
                 </header>
 
-                <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-8 md:py-16">
-                    <div className="text-center mb-20">
-                         <motion.div 
+                <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-8 md:py-16">
+                        {/* PATH OF GLORY Label */}
+                        <motion.div 
                             initial={{ y: -20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
-                            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 mb-6"
+                            className="flex items-center justify-center gap-2 mb-4"
                         >
-                            <Flame className="text-primary" size={14} />
-                            <span className="text-[10px] font-black text-primary tracking-widest uppercase">Hall of Fame</span>
+                            <Trophy className="text-yellow-500" size={16}/>
+                            <span className="text-[12px] font-black text-slate-900 dark:text-white tracking-[0.4em] uppercase">
+                                {t("rank.path_of_glory")}
+                            </span>
                         </motion.div>
-                        <h2 className="text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tighter uppercase italic leading-none mb-4">
-                            เหล่าคนเทพ <br/>
-                            <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-600 bg-clip-text text-transparent">แห่ง APM AI</span>
-                        </h2>
-                    </div>
+
+                        {/* Rank Title */}
+                        <div className="relative mb-12">
+                            <h2 className="text-6xl md:text-8xl font-black text-slate-900 dark:text-white tracking-tighter uppercase relative z-10 flex flex-wrap justify-center items-center gap-x-6 gap-y-2">
+                                <span>{getRankName(currentLvl)}</span>
+                                <span className="bg-gradient-to-r from-teal-300 via-blue-400 to-pink-500 bg-clip-text text-transparent opacity-80">
+                                    {getRankName(currentLvl)}
+                                </span>
+                            </h2>
+                        </div>
+
+                        {/* Ranks Row Inside Pill Container */}
+                        <div className="max-w-4xl mx-auto mb-16 px-4">
+                            <div className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border border-white/60 dark:border-white/5 rounded-[3rem] p-4 shadow-xl flex items-center justify-center gap-2 md:gap-8 overflow-x-auto no-scrollbar">
+                                {ranksData.map((rank, idx) => {
+                                    const isActive = currentLvl === (idx + 1);
+                                    return (
+                                        <button 
+                                            key={idx} 
+                                            onClick={() => setIsMenuOpen(true)}
+                                            className={`flex flex-col items-center gap-1.5 min-w-[60px] md:min-w-[80px] p-2 rounded-3xl transition-all hover:scale-105 active:scale-95 ${isActive ? 'bg-white dark:bg-slate-800 shadow-lg ring-2 ring-emerald-400/30 scale-110' : 'opacity-40 grayscale hover:grayscale-0 hover:opacity-100'}`}
+                                        >
+                                            <div className={`size-10 md:size-12 rounded-2xl flex items-center justify-center p-1.5 ${isActive ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-gray-100 dark:bg-slate-800'}`}>
+                                                <img src={rank.img} alt={rank.name} className="w-full h-full object-contain" />
+                                            </div>
+                                            <span className={`text-[8px] font-black tracking-widest ${isActive ? 'text-emerald-500' : 'text-gray-400'}`}>
+                                                {rank.name}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
 
                     {/* Podium Area */}
                     <div className="flex justify-center items-end gap-3 md:gap-12 mb-24 px-2">
@@ -94,6 +175,10 @@ const Leaderboard = () => {
                                     </div>
                                 </div>
                                 <p className="font-black text-slate-700 dark:text-slate-300 text-sm md:text-base uppercase truncate w-full text-center">{top3[1].username}</p>
+                                <div className="mt-1 flex items-center gap-1.5">
+                                    <img src={getRankImg(getLevelInfo(top3[1].exp))} className="size-4 object-contain" alt="rank" />
+                                    <span className="text-[10px] font-black text-slate-400">{top3[1].exp} XP</span>
+                                </div>
                                 <div className="w-full h-20 md:h-28 mt-4 bg-gradient-to-b from-slate-200 dark:from-slate-800 to-transparent rounded-t-2xl opacity-40" />
                             </motion.div>
                         )}
@@ -131,6 +216,10 @@ const Leaderboard = () => {
                                     </div>
                                 </div>
                                 <p className="font-black text-slate-900 dark:text-white text-lg md:text-2xl uppercase italic tracking-tight truncate w-full text-center">{top3[0].username}</p>
+                                <div className="mt-2 flex items-center gap-2 px-3 py-1 bg-white/50 dark:bg-black/20 rounded-full border border-amber-200/50 shadow-sm">
+                                    <img src={getRankImg(getLevelInfo(top3[0].exp))} className="size-5 md:size-6 object-contain" alt="rank" />
+                                    <span className="text-xs md:text-sm font-black text-amber-600 dark:text-amber-400">{top3[0].exp} XP</span>
+                                </div>
                                 <div className="w-full h-28 md:h-40 mt-4 bg-gradient-to-b from-amber-400 dark:from-amber-600 to-transparent rounded-t-3xl opacity-30 shadow-inner" />
                             </motion.div>
                         )}
@@ -152,6 +241,10 @@ const Leaderboard = () => {
                                     </div>
                                 </div>
                                 <p className="font-black text-slate-700 dark:text-slate-300 text-sm md:text-base uppercase truncate w-full text-center">{top3[2].username}</p>
+                                <div className="mt-1 flex items-center gap-1.5">
+                                    <img src={getRankImg(getLevelInfo(top3[2].exp))} className="size-4 object-contain" alt="rank" />
+                                    <span className="text-[10px] font-black text-slate-400">{top3[2].exp} XP</span>
+                                </div>
                                 <div className="w-full h-16 md:h-20 mt-4 bg-gradient-to-b from-amber-800/20 dark:from-amber-800/40 to-transparent rounded-t-2xl opacity-40" />
                             </motion.div>
                         )}
@@ -174,7 +267,16 @@ const Leaderboard = () => {
                                     <img src={getAvatarIcon(user.equipped_avatar)} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt="User" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="font-black text-slate-800 dark:text-slate-200 uppercase tracking-tight text-lg">{user.username}</p>
+                                    <p className="font-black text-slate-800 dark:text-slate-200 uppercase tracking-tight text-lg leading-none">{user.username}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                         <div className="flex items-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-white/5 rounded-full border border-gray-100 dark:border-white/5">
+                                            <span className="text-[10px] font-black text-slate-500">{user.exp} XP</span>
+                                         </div>
+                                         <div className="flex items-center gap-1">
+                                            <img src={getRankImg(getLevelInfo(user.exp))} className="size-4 object-contain opacity-80" alt="rank" />
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{getRankName(getLevelInfo(user.exp))}</span>
+                                         </div>
+                                    </div>
                                 </div>
                                 <div className="px-4 opacity-20 group-hover:opacity-100 transition-opacity">
                                      <Award size={20} className="text-slate-400" />
@@ -194,6 +296,11 @@ const Leaderboard = () => {
             <style jsx>{`
                 .italic { font-style: italic; }
             `}</style>
+
+            <RankInfoModal 
+                isOpen={isMenuOpen} 
+                onClose={() => setIsMenuOpen(false)} 
+            />
         </div>
     );
 };

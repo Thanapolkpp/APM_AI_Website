@@ -88,11 +88,11 @@ const CoinBadge = ({ className = "", isVibrant = false }) => {
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
     const pillClass = isVibrant 
-        ? "bg-white/20 backdrop-blur-md border border-white/30"
+        ? "bg-white/5 backdrop-blur-sm border border-white/10"
         : "bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10";
     
-    const labelClass = isVibrant ? "text-white/80" : "text-gray-400";
-    const valueClass = isVibrant ? "text-white" : "text-gray-900 dark:text-white";
+    const labelClass = isVibrant ? "text-white/70" : "text-gray-400";
+    const valueClass = isVibrant ? "text-white drop-shadow-sm" : "text-gray-900 dark:text-white";
 
     const isStacked = className.includes("!flex-col");
 
@@ -130,78 +130,80 @@ const CoinBadge = ({ className = "", isVibrant = false }) => {
 
     return (
         <div className={`flex items-center gap-2 sm:gap-4 ${className}`}>
-            {/* Coins Badge - Hidden on mobile */}
-            <div className={`hidden md:flex group items-center gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 ${pillClass}`}>
+            <div className={`flex group items-center gap-2 px-2 py-1 sm:px-4 sm:py-2 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 ${isVibrant ? "" : "shadow-lg " + pillClass}`}>
                 <div className="relative">
-                    <Coins className={isVibrant ? "text-yellow-300" : "text-yellow-500"} size={18} />
+                    <Coins className={isVibrant ? "text-yellow-300" : "text-yellow-500"} size={isVibrant ? 16 : 18} />
                     <div className={`absolute inset-0 blur-lg rounded-full -z-10 animate-pulse ${isVibrant ? "bg-yellow-200/40" : "bg-yellow-400/30"}`} />
                 </div>
-                <div className="flex flex-col items-start leading-none">
-                    <span className={`hidden md:inline text-[9px] font-black uppercase tracking-widest mb-0.5 ${labelClass}`}>Coins</span>
-                    <span className={`font-black text-sm sm:text-base tabular-nums ${valueClass}`}>
+                <div className="flex items-center gap-1.5 leading-none">
+                    <span className={`text-[9px] font-black uppercase tracking-widest ${labelClass}`}>Coins</span>
+                    <span className={`font-black text-xs sm:text-base tabular-nums ${valueClass}`}>
                         {coins.toLocaleString()}
                     </span>
                 </div>
             </div>
 
-            {/* Circular Level & EXP Badge - Hidden on mobile per request */}
-            <div className={`hidden md:flex group relative items-center gap-2 rounded-full md:px-4 md:py-2 transition-all duration-300 hover:scale-105 active:scale-95 
-                ${isVibrant ? "" : "md:bg-white/60 md:dark:bg-white/5 md:backdrop-blur-xl md:border md:border-white/60 md:dark:border-white/10 md:shadow-lg md:rounded-2xl"}
+            {isVibrant && <div className="w-px h-4 bg-white/20" />}
+
+            <div className={`flex group relative items-center gap-2 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 
+                ${isVibrant ? "" : "bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-lg px-4 py-2"}
                 `}
                 style={{ boxShadow: (isVibrant) ? "none" : `0 10px 15px -3px ${theme.shadow}` }}>
                 {/* Ring Container */}
-                <div className="relative size-[34px] sm:size-[42px] flex items-center justify-center shrink-0">
-                    <svg width={size} height={size} className="transform -rotate-90 scale-[0.8] sm:scale-100">
-                        {/* Background Ring */}
-                        <circle
-                            cx={center}
-                            cy={center}
-                            r={radius}
-                            fill="transparent"
-                            stroke="currentColor"
-                            strokeWidth={strokeWidth}
-                            className={isVibrant ? "text-white/20" : "text-gray-200 dark:text-gray-800"}
-                        />
-                        {/* Progress Ring */}
-                        <circle
-                            cx={center}
-                            cy={center}
-                            r={radius}
-                            fill="transparent"
-                            stroke={`url(#exp-gradient-${level})`}
-                            strokeWidth={strokeWidth}
-                            strokeDasharray={circumference}
-                            style={{
-                                strokeDashoffset,
-                                transition: "stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)",
-                            }}
-                            strokeLinecap="round"
-                        />
-                        <defs>
-                            <linearGradient id={`exp-gradient-${level}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor={isVibrant ? "#fff" : theme.from} />
-                                <stop offset="100%" stopColor={isVibrant ? "#e2e8f0" : theme.to} />
-                            </linearGradient>
-                        </defs>
-                    </svg>
+                <div className="relative size-[28px] sm:size-[40px] flex items-center justify-center shrink-0">
+                    {!isVibrant && (
+                         <svg width={size} height={size} className="transform -rotate-90 scale-[0.7] sm:scale-100">
+                         {/* Background Ring */}
+                         <circle
+                             cx={center}
+                             cy={center}
+                             r={radius}
+                             fill="transparent"
+                             stroke="currentColor"
+                             strokeWidth={strokeWidth}
+                             className="text-gray-200 dark:text-gray-800"
+                         />
+                         {/* Progress Ring */}
+                         <circle
+                             cx={center}
+                             cy={center}
+                             r={radius}
+                             fill="transparent"
+                             stroke={`url(#exp-gradient-${level})`}
+                             strokeWidth={strokeWidth}
+                             strokeDasharray={circumference}
+                             style={{
+                                 strokeDashoffset,
+                                 transition: "stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)",
+                             }}
+                             strokeLinecap="round"
+                         />
+                         <defs>
+                             <linearGradient id={`exp-gradient-${level}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                                 <stop offset="0%" stopColor={theme.from} />
+                                 <stop offset="100%" stopColor={theme.to} />
+                             </linearGradient>
+                         </defs>
+                     </svg>
+                    )}
 
-                    {/* Rank Image (Replacing LV. Text) */}
-                    <div className="absolute inset-0 flex items-center justify-center p-1.5">
+                    {/* Rank Image */}
+                    <div className={`absolute inset-0 flex items-center justify-center ${isVibrant ? "p-0" : "p-1"}`}>
                         <img 
                             src={theme.img} 
                             alt={theme.name} 
-                            className="w-full h-full object-contain drop-shadow-sm transition-transform duration-500 group-hover:scale-110" 
+                            className="w-full h-full object-contain drop-shadow-md transition-transform duration-500 group-hover:scale-110" 
                         />
                     </div>
                 </div>
 
-                {/* EXP Info - Hidden on mobile */}
-                <div className="hidden md:flex flex-col items-start leading-none pr-1">
-                    <span className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${labelClass}`}>Rank: {theme.name}</span>
-                    <div className="flex items-baseline gap-1">
+                {/* EXP Info */}
+                <div className="flex items-center gap-1.5 leading-none pr-1">
+                    <span className={`text-[9px] font-black uppercase tracking-widest ${labelClass}`}>Rank: {theme.name}</span>
+                    <div className="flex items-baseline gap-0.5">
                         <span
-                            className={`font-black text-sm sm:text-base tabular-nums tracking-tight ${isVibrant ? "text-white" : "bg-clip-text text-transparent"}`}
-                            style={isVibrant ? {} : { backgroundImage: `linear-gradient(to right, ${theme.from}, ${theme.to})` }}
+                            className={`font-black text-xs sm:text-base tabular-nums tracking-tight ${isVibrant ? "text-white" : "bg-clip-text text-transparent"}`}
+                            style={isVibrant ? { textShadow: "0 2px 4px rgba(0,0,0,0.1)" } : { backgroundImage: `linear-gradient(to right, ${theme.from}, ${theme.to})` }}
                         >
                             {exp.toLocaleString()}
                         </span>

@@ -10,15 +10,24 @@ const BroIcon = ASSETS.AVATARS.BRO;
 const NerdIcon = ASSETS.AVATARS.NERD2;
 
 const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, isLoggedIn }) => {
-    const [profileImage] = React.useState(() => {
+    const [profileImage, setProfileImage] = React.useState(null);
+
+    const refreshProfileImage = React.useCallback(() => {
         const savedImage = localStorage.getItem("avatarImage");
-        if (savedImage) return savedImage;
-        const savedAvatar = localStorage.getItem("avatar") || "bro";
+        if (savedImage) {
+            setProfileImage(savedImage);
+            return;
+        }
+        const savedAvatar = localStorage.getItem("avatar") || "bro" ;
         const map = { girl: GirlIcon, nerd: NerdIcon, bro: BroIcon };
-        const mapped = map[savedAvatar.toLowerCase()];
-        if (mapped) return mapped;
-        return null;
-    });
+        setProfileImage(map[savedAvatar.toLowerCase()] || BroIcon);
+    }, []);
+
+    React.useEffect(() => {
+        refreshProfileImage();
+        window.addEventListener("avatarUpdated", refreshProfileImage);
+        return () => window.removeEventListener("avatarUpdated", refreshProfileImage);
+    }, [refreshProfileImage]);
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-gray-100 dark:border-white/5 bg-white backdrop-blur-xl">
@@ -33,13 +42,13 @@ const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, 
                         />
                     </div>
                     <div className="flex flex-col leading-tight">
-                        <h1 className="text-sm sm:text-lg font-black text-gray-900 dark:text-white tracking-tight">APM AI</h1>
+                        <h1 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white tracking-tight">APM AI</h1>
                         <p className="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Assistant</p>
                     </div>
                 </div>
 
                 {/* CENTER: Navbar (Desktop) */}
-                <div className="hidden lg:flex justify-center flex-1 mx-8">
+                <div className="hidden md:flex justify-center flex-1 mx-8">
                     <div className="rounded-full border border-gray-100 bg-gray-50/50 px-8 py-2 shadow-sm">
                         <Navbar />
                     </div>
@@ -47,9 +56,7 @@ const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, 
          
                 {/* RIGHT: Actions */}
                 <div className="flex justify-end items-center gap-2 sm:gap-4 shrink-0">
-                    <div className="hidden md:block">
-                        <Navbar />
-                    </div>
+
 
                     <button className="relative size-10 rounded-full flex items-center justify-center bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 shadow-sm text-gray-400 transition-all hover:text-gray-600 active:scale-95">
                         <Bell size={20} />
@@ -95,8 +102,8 @@ const ChatHeader = ({ mode, headerTheme, onClearChat, navigate, guestChatCount, 
 
                     <div className="flex items-center gap-3 shrink-0 mr-1">
                         {isLoggedIn && (
-                             <div className="hidden sm:flex flex-col gap-1.5 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 min-w-[140px]">
-                                <CoinBadge isVibrant={true} className="!flex-col !items-start !gap-1.5" />
+                             <div className="hidden sm:flex items-center gap-3 p-2 px-4 rounded-3xl bg-black/20 backdrop-blur-md border border-white/20">
+                                <CoinBadge isVibrant={true} className="!gap-4" />
                              </div>
                         )}
 

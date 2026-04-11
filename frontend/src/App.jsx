@@ -17,7 +17,7 @@ const TodoList = lazy(() => import("./pages/TodoList"));
 const ReadingSystem = lazy(() => import("./pages/ReadingSystem"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const EditAvatar = lazy(() => import("./components/Profile/EditAvatar"));
-import SessionTimer from "./components/UI/SessionTimer";
+
 import BetaAlert from "./components/UI/BetaAlert";
 
 // Loading component
@@ -30,8 +30,7 @@ const PageLoading = () => (
 function App() {
   return (
     <>
-      {/* Session countdown timer - fixed bottom-left, visible only when logged in */}
-      <SessionTimer />
+
       <BetaAlert />
 
       <Suspense fallback={<PageLoading />}>
