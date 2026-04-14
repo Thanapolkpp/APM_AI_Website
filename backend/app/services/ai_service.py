@@ -6,7 +6,7 @@ from typing import Optional
 
 # ─── Config ──────────────────────────────────────────────────
 OLLAMA_URL = os.getenv("OLLAMA_URL", "https://unexplorative-unpalatable-lisha.ngrok-free.dev")
-MODEL_NAME = os.getenv("MODEL_NAME", "qwen2.5:7b")
+MODEL_NAME = os.getenv("MODEL_NAME", "apm-assistant:latest")
 
 # ─── Persona ─────────────────────────────────────────────────
 def _build_persona(mode: str) -> str:

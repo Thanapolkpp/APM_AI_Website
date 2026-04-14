@@ -208,13 +208,11 @@ const Home = () => {
               <CoinBadge />
             </div>
             <NotificationBell />
-            <button
-              type="button"
+            <div
+              className="size-10 md:size-12 rounded-2xl border-2 border-white dark:border-white/10 cursor-pointer bg-white bg-cover bg-center shadow-lg hover:scale-110 active:scale-95 transition-all overflow-hidden"
+              style={{ backgroundImage: `url("${profileImage}")` }}
               onClick={() => navigate(isLoggedIn ? "/account" : "/login")}
-              className="size-8 md:size-10 rounded-2xl bg-white dark:bg-white/10 border-2 border-white dark:border-white/20 cursor-pointer shadow-lg hover:rotate-6 active:scale-95 transition-all overflow-hidden shrink-0"
-            >
-              <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-            </button>
+            />
             <div className="lg:hidden">
               <Navbar />
             </div>
