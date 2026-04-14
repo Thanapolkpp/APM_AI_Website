@@ -244,10 +244,8 @@ async def summarize_sheet(
     if not sheet:
         raise HTTPException(status_code=404, detail="ไม่พบชีทสรุปนี้ครับ")
 
-    # ดึงข้อความจากชีท (ถ้าไม่มีให้ใช้ชื่อเรื่อง)
     content = sheet.extracted_text or sheet.title
     
-    # [Prompt อยู่ที่หลังบ้านแล้วครับ!] แก้ไขตรงนี้เพื่อล็อคภาษาไทย
     system_prompt = (
         f"ช่วยสรุปใจความสำคัญจากเนื้อหาชีทติวเรื่อง '{sheet.title}' นี้ให้หน่อยเพื่อน "
         "**เงื่อนไขสำคัญ: ต้องตอบเป็นภาษาไทยและภาษาอังกฤษเท่านั้น ห้ามใช้ภาษาจีนหรือภาษาอื่นแทรกมาเด็ดขาด** "
@@ -257,7 +255,6 @@ async def summarize_sheet(
     
     final_prompt = f"{system_prompt}\n\nเนื้อหาในชีท:\n{content[:8000]}"
 
-    # เรียก AI
     result = await get_ai_response(final_prompt, "nerd")
     ai_reply = result.get("reply", "")
 
@@ -266,4 +263,53 @@ async def summarize_sheet(
         "summary": ai_reply,
         "note": "สรุปโดย APM AI (Backend Prompt) ✨"
     }
+
+@router.post("/summarize/{sheet_id}/stream")
+async def summarize_sheet_stream(
+    sheet_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    sheet = db.query(StudySheet).filter(StudySheet.id == sheet_id).first()
+    if not sheet:
+        raise HTTPException(status_code=404, detail="ไม่พบชีทสรุปนี้ครับ")
+
+    content = sheet.extracted_text or sheet.title
+    
+    system_prompt = (
+        f"ช่วยสรุปใจความสำคัญจากเนื้อหาชีทติวเรื่อง '{sheet.title}' นี้ให้หน่อยเพื่อน "
+        "**เงื่อนไขสำคัญ: ต้องตอบเป็นภาษาไทยและภาษาอังกฤษเท่านั้น ห้ามใช้ภาษาจีนหรือภาษาอื่นแทรกมาเด็ดขาด** "
+        "โดยเน้นที่ประเด็นสำคัญ 3-5 ข้อ และสรุปให้สั้นกระชับ เข้าใจง่ายสำหรับนักศึกษา "
+        "ใช้ภาษากันเองแต่สุภาพ (แทนตัวเองว่า AI หรือเพื่อนก็ได้) ตกแต่งด้วย Emoji ให้ดูน่าอ่านด้วยนะ ✨"
+    )
+    
+    final_prompt = f"{system_prompt}\n\nเนื้อหาในชีท:\n{content[:8000]}"
+
+    from app.services.ai_service import call_ollama_stream
+    return StreamingResponse(call_ollama_stream(final_prompt, "nerd"), media_type="text/plain")
+
+
+@router.delete("/history/clear/all")
+def clear_all_chat_history(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    db.query(ChatHistory).filter(ChatHistory.user_id == current_user.id).delete()
+    db.commit()
+    return {"message": "ล้างประวัติทั้งหมดแล้วนะเพื่อน! 🧹✨"}
+
+
+@router.delete("/history/{history_id}")
+def delete_chat_history_item(
+    history_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    history = db.query(ChatHistory).filter(ChatHistory.id == history_id, ChatHistory.user_id == current_user.id).first()
+    if not history:
+        raise HTTPException(status_code=404, detail="ไม่พบประวัตินี้ หรือคุณไม่มีสิทธิ์ลบ")
+    
+    db.delete(history)
+    db.commit()
+    return {"message": "ลบประวัติสำเร็จแล้วเพื่อน ✨"}
 

@@ -111,6 +111,42 @@ export const sendMessageToAIWithImage = async (prompt, mode, imageFile, context_
 };
 
 /**
+ * Streaming Chat for Images
+ */
+export const sendMessageToAIWithImageStreaming = async (prompt, mode, imageFile, onChunk) => {
+    const formData = new FormData();
+    formData.append("prompt", prompt || "");
+    formData.append("mode", mode || "nerd");
+    if (imageFile) formData.append("file", imageFile);
+
+    const token = localStorage.getItem("token");
+    const headers = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+
+    const response = await fetch(`${BASE_URL}/api/v1/ai/chat-with-image/stream`, {
+        method: "POST",
+        headers,
+        body: formData
+    });
+
+    if (!response.ok) throw new Error("Network response was not ok");
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+
+    while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+            const chunk = decoder.decode(value, { stream: true });
+            onChunk(chunk);
+        }
+    }
+};
+
+/**
  * Chat with PDF content
  * @param {string} prompt - User message or summary instruction
  * @param {string} mode - AI personality (bro, nerd, etc.)
@@ -130,6 +166,42 @@ export const sendMessageToAIWithPDF = async (prompt, mode, pdfFile) => {
         },
     });
     return String(response.data?.reply ?? "");
+};
+
+/**
+ * Streaming Chat for PDF
+ */
+export const sendMessageToAIWithPDFStreaming = async (prompt, mode, pdfFile, onChunk) => {
+    const formData = new FormData();
+    formData.append("prompt", prompt || "");
+    formData.append("mode", mode || "nerd");
+    formData.append("file", pdfFile);
+
+    const token = localStorage.getItem("token");
+    const headers = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+
+    const response = await fetch(`${BASE_URL}/api/v1/ai/chat-with-pdf/stream`, {
+        method: "POST",
+        headers,
+        body: formData
+    });
+
+    if (!response.ok) throw new Error("Network response was not ok");
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+
+    while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+            const chunk = decoder.decode(value, { stream: true });
+            onChunk(chunk);
+        }
+    }
 };
 
 // ---------- User ----------
@@ -196,6 +268,16 @@ export const updateExp = async (amount) => {
 // ---------- Chat History ----------
 export const fetchChatHistory = async () => {
     const response = await axios.get(`${BASE_URL}/api/v1/chat/history`, { headers: authHeader() });
+    return response.data;
+};
+
+export const deleteChatHistoryItem = async (history_id) => {
+    const response = await axios.delete(`${BASE_URL}/api/v1/chat/history/${history_id}`, { headers: authHeader() });
+    return response.data;
+};
+
+export const clearAllChatHistory = async () => {
+    const response = await axios.delete(`${BASE_URL}/api/v1/chat/history/clear/all`, { headers: authHeader() });
     return response.data;
 };
 
@@ -338,6 +420,36 @@ export const markNotificationRead = async (id) => {
 export const summarizeSheet = async (sheetId) => {
     const response = await axios.post(`${API_TEXT_URL}summarize/${sheetId}`, {}, { headers: authHeader() });
     return response.data;
+};
+
+/**
+ * Streaming Summarize
+ */
+export const summarizeSheetStreaming = async (sheetId, onChunk) => {
+    const token = localStorage.getItem("token");
+    const headers = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+
+    const response = await fetch(`${API_TEXT_URL}summarize/${sheetId}/stream`, {
+        method: "POST",
+        headers
+    });
+
+    if (!response.ok) throw new Error("Network response was not ok");
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+
+    while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+            const chunk = decoder.decode(value, { stream: true });
+            onChunk(chunk);
+        }
+    }
 };
 
 // ---------- Special Missions & Reading Time ----------

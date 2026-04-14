@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { pdfjs } from "react-pdf"
 import pdfToText from "react-pdftotext"
-import { sendMessageToAI, sendMessageToAIWithImage, fetchChatHistory, sendMessageToAIStreaming } from "../../services/aiService"
+import { sendMessageToAI, sendMessageToAIWithImage, fetchChatHistory, sendMessageToAIStreaming, sendMessageToAIWithImageStreaming, sendMessageToAIWithPDFStreaming } from "../../services/aiService"
 
 // Configure pdfjs worker globally for this component - matching react-pdftotext's dependency (4.8.69)
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs`
@@ -304,8 +304,73 @@ const ChatWindow = ({ mode: propsMode }) => {
         if (selectedImage.size > 500 * 1024) {
           fileToUpload = await compressImage(selectedImage);
         }
-        const reply = await sendMessageToAIWithImage(finalPrompt, mode, fileToUpload, activeHistoryContextId, conversationHistory)
-        setMessages((prev) => [...prev, { text: safeText(reply), sender: "ai" }])
+        
+        let fullReply = ""
+        setMessages((prev) => [...prev, { text: "...", sender: "ai", isStreaming: true }])
+        
+        try {
+          await sendMessageToAIWithImageStreaming(finalPrompt, mode, fileToUpload, (chunk) => {
+            fullReply += chunk
+            setMessages((prev) => {
+              const newMsgs = [...prev]
+              const lastMsg = newMsgs[newMsgs.length - 1]
+              if (lastMsg && lastMsg.isStreaming) {
+                return [...newMsgs.slice(0, -1), { ...lastMsg, text: fullReply }]
+              }
+              return newMsgs
+            })
+          })
+        } catch (err) {
+          console.error("Image stream failed, falling back to normal:", err)
+          const reply = await sendMessageToAIWithImage(finalPrompt, mode, fileToUpload, activeHistoryContextId, conversationHistory)
+          fullReply = reply
+        }
+
+        // Finalize message
+        setMessages((prev) => {
+          const newMsgs = [...prev]
+          const lastMsg = newMsgs[newMsgs.length - 1]
+          if (lastMsg && lastMsg.sender === "ai") {
+            const { isStreaming, ...rest } = lastMsg
+            return [...newMsgs.slice(0, -1), { ...rest, text: fullReply }]
+          }
+          return newMsgs
+        })
+
+      } else if (selectedPdf) {
+        // PDF Streaming logic
+        let fullReply = ""
+        setMessages((prev) => [...prev, { text: "...", sender: "ai", isStreaming: true }])
+        
+        try {
+          await sendMessageToAIWithPDFStreaming(finalPrompt, mode, selectedPdf, (chunk) => {
+            fullReply += chunk
+            setMessages((prev) => {
+              const newMsgs = [...prev]
+              const lastMsg = newMsgs[newMsgs.length - 1]
+              if (lastMsg && lastMsg.isStreaming) {
+                return [...newMsgs.slice(0, -1), { ...lastMsg, text: fullReply }]
+              }
+              return newMsgs
+            })
+          })
+        } catch (err) {
+          console.error("PDF stream failed, falling back to normal:", err)
+          // Use normal text prompt since PDF text was already extracted and appended to finalPrompt
+          const fallbackReply = await sendMessageToAI(finalPrompt, mode, [], activeHistoryContextId, conversationHistory)
+          fullReply = fallbackReply
+        }
+
+        // Finalize message
+        setMessages((prev) => {
+          const newMsgs = [...prev]
+          const lastMsg = newMsgs[newMsgs.length - 1]
+          if (lastMsg && lastMsg.sender === "ai") {
+            const { isStreaming, ...rest } = lastMsg
+            return [...newMsgs.slice(0, -1), { ...rest, text: fullReply }]
+          }
+          return newMsgs
+        })
       } else {
         // Streaming mode สำหรับ Text
         let fullReply = ""

@@ -6,14 +6,20 @@ import { ASSETS } from "../../config/assets";
 const broImg = ASSETS.AVATARS.BRO;
 const girlImg = ASSETS.AVATARS.GIRL;
 const nerdImg = ASSETS.AVATARS.NERD2; // Default Nerd
-import { Lock, Sparkles, History as HistoryIcon, Heart } from "lucide-react"
-import { getUserProfile, fetchChatHistory, fetchOwnedAvatars } from "../../services/aiService"
+import { Lock, Sparkles, History as HistoryIcon, Heart, Trash2 } from "lucide-react"
+import { getUserProfile, fetchChatHistory, fetchOwnedAvatars, deleteChatHistoryItem, clearAllChatHistory } from "../../services/aiService"
 
 const ChatSidebar = () => {
     const navigate = useNavigate()
     const { mode: selectedAvatar } = useParams()
 
     const avatars = [
+        {
+            id: "bro",
+            name: "Bro",
+            image: broImg,
+            glow: "border-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.3)]",
+        },
         {
             id: "nerd",
             name: "Nerd",
@@ -66,6 +72,29 @@ const ChatSidebar = () => {
         navigate(`/chat/${id}`)
     }
 
+    const handleDeleteItem = async (e, id) => {
+        e.stopPropagation();
+        if (!window.confirm("ต้องการลบประวัตินี้ใช่ไหมเพื่อน? 🌷")) return;
+        
+        try {
+            await deleteChatHistoryItem(id);
+            setHistory(prev => prev.filter(item => item.id !== id));
+        } catch (err) {
+            console.error("Failed to delete history item", err);
+        }
+    }
+
+    const handleClearAll = async () => {
+        if (!window.confirm("ต้องการล้างประวัติทั้งหมดเลยเหรอ!? 🧹✨")) return;
+
+        try {
+            await clearAllChatHistory();
+            setHistory([]);
+        } catch (err) {
+            console.error("Failed to clear chat history", err);
+        }
+    }
+
     return (
         <aside className="flex flex-col w-full lg:w-80 h-auto lg:h-full p-3 lg:p-4 bg-white/30 backdrop-blur-xl border-t lg:border-t-0 lg:border-l border-white/40 overflow-x-auto lg:overflow-y-auto z-40">
             <div className="flex flex-row lg:flex-col gap-4 lg:gap-6 items-center lg:items-stretch h-full">
@@ -115,8 +144,16 @@ const ChatSidebar = () => {
 
                 {/* --- ส่วนใหม่: ประวัติการคุย 3 อันล่าสุด --- */}
                 <div className="hidden lg:flex flex-col mt-4 space-y-4 flex-1">
-                    <div className="px-2">
+                    <div className="px-2 flex justify-between items-center">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-[2px]">ความทรงจำล่าสุด 💌</span>
+                        {history.length > 0 && (
+                            <button 
+                                onClick={handleClearAll}
+                                className="text-[9px] font-black text-red-400 hover:text-red-500 uppercase tracking-wider transition-colors"
+                            >
+                                Clear All
+                            </button>
+                        )}
                     </div>
                     
                     <div className="space-y-3">
@@ -134,12 +171,20 @@ const ChatSidebar = () => {
                                             window.dispatchEvent(event);
                                         }, 50);
                                     }}
-                                    className={`bg-white/40 p-4 rounded-[24px] border border-white/60 shadow-sm transition-all hover:translate-x-1 cursor-pointer
+                                    className={`group/item bg-white/40 p-4 rounded-[24px] border border-white/60 shadow-sm transition-all hover:translate-x-1 cursor-pointer relative
                                         ${item.mode === "bro" ? "hover:bg-blue-50 hover:border-blue-200" 
                                         : item.mode === "nerd" ? "hover:bg-emerald-50 hover:border-emerald-200" 
                                         : "hover:bg-pink-50 hover:border-pink-200"}`}
                                 >
-                                    <div className="flex gap-2 items-center mb-2">
+                                    <button 
+                                        onClick={(e) => handleDeleteItem(e, item.id)}
+                                        className="absolute top-3 right-3 opacity-0 group-hover/item:opacity-100 hover:scale-110 transition-all text-gray-400 hover:text-red-400"
+                                        title="Delete"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+
+                                    <div className="flex gap-2 items-center mb-2 pr-6">
                                         <div className={`w-1.5 h-1.5 rounded-full 
                                             ${item.mode === "bro" ? "bg-blue-400" 
                                             : item.mode === "nerd" ? "bg-emerald-400" 
@@ -152,13 +197,15 @@ const ChatSidebar = () => {
                                         >
                                             {item.mode || "NERD"}
                                         </span>
-                                        <span className="text-[10px] font-bold text-gray-400 ml-auto">
-                                            {item.created_at ? new Date(item.created_at).toLocaleDateString('th-TH') : "ล่าสุด"}
-                                        </span>
                                     </div>
                                     <p className="text-[12px] font-bold text-gray-700 line-clamp-2 leading-relaxed italic">
                                         "{item.user_message}"
                                     </p>
+                                    <div className="mt-2 text-right">
+                                        <span className="text-[9px] font-bold text-gray-400">
+                                            {item.created_at ? new Date(item.created_at).toLocaleDateString('th-TH') : "ล่าสุด"}
+                                        </span>
+                                    </div>
                                 </div>
                             ))
                         ) : (

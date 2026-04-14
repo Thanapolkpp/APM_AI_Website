@@ -15,7 +15,7 @@ const NerdIcon = ASSETS.AVATARS.NERD2; // Default Nerd
 import { jsPDF } from "jspdf"
 import { pdfjs, Document, Page } from 'react-pdf';
 import pdfToText from 'react-pdftotext'
-import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice, deleteSheet, updateExp, sendMessageToAI, sendMessageToAIWithPDF, summarizeSheet } from "../services/aiService"
+import { fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, fetchPurchasedSheets, toggleSheetPublish, updateSheetPrice, deleteSheet, updateExp, sendMessageToAI, sendMessageToAIWithPDF, summarizeSheet, summarizeSheetStreaming } from "../services/aiService"
 
 // Configure pdfjs worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -157,35 +157,27 @@ const Summaries = () => {
         return true
     }
 
-    const handleAIGenerate = (item) => {
+    const handleAIGenerate = async (item) => {
         if (!checkAuth()) return
         setSelectedItem(item)
         setIsModalOpen(true)
         setIsGenerating(true)
         setSummaryText("")
 
-        const TOTAL_TIME = 200 
-        setTimeLeft(TOTAL_TIME)
+        let fullSummary = `✨ สรุปโดย APM AI (Streaming Mode) ✨\n\nหัวข้อ: ${item.title}\n\n`
+        setSummaryText(fullSummary)
 
-        // สร้างตัวแปรสำหรับเก็บ timer เพื่อให้ล้างค่าได้จากภายใน promise
-        const timer = setInterval(() => {
-            setTimeLeft((prev) => (prev <= 1 ? 0 : prev - 1))
-        }, 1000)
-
-        // --- [REAL AI CALL] เรียกสรุปทันที ไม่ต้องรอเวลาจบ ---
-        summarizeSheet(item.id)
-            .then((result) => {
-                clearInterval(timer) // หยุดเวลาทันทีที่ข้อมูลมาถึง!
-                const finalSummary = `✨ สรุปโดย APM AI (Backend Mode) ✨\n\nหัวข้อ: ${result.title}\n\n${result.summary}`
-                setSummaryText(finalSummary)
-                setIsGenerating(false)
+        try {
+            await summarizeSheetStreaming(item.id, (chunk) => {
+                fullSummary += chunk
+                setSummaryText(fullSummary)
             })
-            .catch((error) => {
-                clearInterval(timer) // หยุดเวลาในกรณี error ด้วย
-                console.error("Summarize Error:", error)
-                setSummaryText("ขออภัยครับเพื่อน พอดี AI สรุปชีทเล่มนี้ขัดข้องนิดหน่อย ลองใหม่อีกรอบนะ! 🌷")
-                setIsGenerating(false)
-            })
+        } catch (error) {
+            console.error("Summarize Error:", error)
+            setSummaryText(prev => prev + "\n\nขออภัยครับเพื่อน พอดี AI สรุปชีทเล่มนี้ขัดข้องนิดหน่อย ลองใหม่อีกรอบนะ! 🌷")
+        } finally {
+            setIsGenerating(false)
+        }
     }
 
     // --- SECURITY PROTOCOL (Anti-Screenshot) ---
@@ -680,38 +672,19 @@ const Summaries = () => {
                             <button onClick={() => setIsModalOpen(false)} className="size-10 rounded-xl bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-400 hover:rotate-90 hover:bg-red-50 hover:text-red-500 transition-all"><HiOutlineX size={24} /></button>
                         </div>
                         <div className="flex-1 overflow-y-auto p-10 dark:text-gray-200 whitespace-pre-wrap text-lg leading-relaxed antialiased">
-                            {isGenerating ? (
-                                <div className="flex flex-col items-center justify-center h-full py-12 space-y-8">
-                                    <div className="relative size-32 md:size-40">
-                                        {/* Background Ring */}
-                                        <svg className="size-full -rotate-90">
-                                            <circle cx="50%" cy="50%" r="45%" fill="none" stroke="currentColor" strokeWidth="8" className="text-gray-100 dark:text-white/5" />
-                                            {/* Progress Ring */}
-                                            <circle
-                                                cx="50%" cy="50%" r="45%" fill="none" stroke="currentColor" strokeWidth="8"
-                                                strokeDasharray="283"
-                                                strokeDashoffset={283 - (283 * (200 - timeLeft)) / 200}
-                                                className="text-primary transition-all duration-1000"
-                                                strokeLinecap="round"
-                                            />
-                                        </svg>
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                            <span className="text-3xl md:text-4xl font-black text-primary">{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Analyzing</span>
-                                        </div>
-                                    </div>
-                                    <div className="text-center space-y-2">
-                                        <p className="font-black text-xl md:text-2xl animate-pulse text-gray-900 dark:text-white">กำลังติวเข้มให้เพื่อนอยู่... 🧠✨</p>
-                                        <p className="text-sm font-bold text-gray-500 dark:text-gray-400">กรุณารอสักครู่ AI กำลังอ่านชีทเล่มนี้อย่างละเอียดน้าา</p>
-                                    </div>
-                                    <div className="w-full max-w-xs h-2 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-primary transition-all duration-1000"
-                                            style={{ width: `${((200 - timeLeft) / 200) * 100}%` }}
-                                        />
-                                    </div>
+                            {summaryText}
+                            {isGenerating && (
+                                <div className="inline-flex items-center gap-2 ml-2">
+                                    <span className="size-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                    <span className="size-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                    <span className="size-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                                 </div>
-                            ) : summaryText}
+                            )}
+                            {!summaryText && isGenerating && (
+                                <div className="flex flex-col items-center justify-center h-full py-12 space-y-4">
+                                     <p className="font-black text-xl md:text-2xl animate-pulse text-gray-900 dark:text-white">กำลังเตรียมสรุปให้เพื่อนอยู่... 🧠✨</p>
+                                </div>
+                            )}
                         </div>
                         <div className="p-8 bg-gray-50 dark:bg-white/5 flex gap-4">
                             <button onClick={downloadPDF} className="flex-1 py-5 rounded-[28px] bg-primary text-white font-black text-lg shadow-xl shadow-primary/30 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-3">
