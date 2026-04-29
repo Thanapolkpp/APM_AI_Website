@@ -12,6 +12,18 @@ from app.models.user_avatar import UserAvatar
 
 router = APIRouter()
 
+@router.post("/claim-test-reward")
+def claim_test_reward(db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    if current_user.has_claimed_test_reward:
+        raise HTTPException(status_code=400, detail="คุณกดรับรางวัลไปแล้วครับเพื่อน 🌷")
+    
+    current_user.coins += 50
+    current_user.exp += 30
+    current_user.has_claimed_test_reward = True
+    
+    db.commit()
+    return {"message": "เย้! รับรางวัลสำเร็จแล้วครับ +50 🪙 +30 ✨", "new_coins": current_user.coins, "new_exp": current_user.exp}
+
 # ── Schema สำหรับ coins update (ป้องกัน arbitrary values) ──
 class UpdateCoinsRequest(BaseModel):
     amount: int
@@ -85,17 +97,6 @@ def update_user_coins(payload: UpdateCoinsRequest, db: Session = Depends(get_db)
     db.commit()
     return {"new_balance": current_user.coins}
 
-@router.post("/claim-test-reward")
-def claim_test_reward(db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    if current_user.has_claimed_test_reward:
-        raise HTTPException(status_code=400, detail="คุณกดรับรางวัลไปแล้วครับเพื่อน 🌷")
-    
-    current_user.coins += 50
-    current_user.exp += 30
-    current_user.has_claimed_test_reward = True
-    
-    db.commit()
-    return {"message": "เย้! รับรางวัลสำเร็จแล้วครับ +50 🪙 +30 ✨", "new_coins": current_user.coins, "new_exp": current_user.exp}
 
 @router.patch("/exp")
 def update_user_exp(payload: UpdateExpRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):

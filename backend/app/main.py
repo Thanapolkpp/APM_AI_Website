@@ -69,7 +69,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["120/minute"])
 app = FastAPI(
     title="Gen Z AI Study Planner API",
     description="Backend สำหรับระบบจัดตารางเรียนและ Chatbot AI พร้อมระบบผู้ใช้",
-    version="1.2.0",
+    version="1.2.6",
     lifespan=lifespan
 )
 
