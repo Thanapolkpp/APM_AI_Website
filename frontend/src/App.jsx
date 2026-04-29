@@ -18,6 +18,12 @@ const ReadingSystem = lazy(() => import("./pages/ReadingSystem"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const EditAvatar = lazy(() => import("./components/Profile/EditAvatar"));
 
+const PageLoading = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw' }}>
+    <div style={{ padding: '20px', fontSize: '1.2rem', color: '#666' }}>Loading...</div>
+  </div>
+);
+
 function App() {
   return (
     <>
