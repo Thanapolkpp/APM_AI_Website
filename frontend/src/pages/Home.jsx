@@ -311,16 +311,14 @@ const Home = () => {
               <div className="absolute inset-0 -z-10 blur-3xl opacity-20 mix-blend-overlay bg-gradient-to-tr from-primary to-pink-400 rounded-full" />
             </motion.div>
 
-            <h2 className="text-4xl md:text-[84px] font-black tracking-tight leading-[1.05] text-gray-900 dark:text-white mb-6">
-              {t("home.hero_title_uni_life", { aiFriend: "" })}
-              <span className="bg-gradient-to-r from-[#97d8c9] via-[#ae97d8] to-[#d897c5] bg-clip-text text-transparent">
-                {t("home.hero_title_ai_friend")}
-              </span>
-              {i18n.language === 'en' ? " for Uni Life" : ""}
+            <h2 className="text-4xl md:text-[80px] font-black tracking-tighter leading-[0.95] text-gray-900 dark:text-white mb-6">
+              Your <span className="bg-gradient-to-r from-[#97d8c9] via-[#ae97d8] to-[#d897c5] bg-clip-text text-transparent">
+                AI Friend
+              </span> for Uni Life
               <motion.span
                 animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="inline-block ml-2"
+                className="inline-block ml-3"
               >
                 ❤️
               </motion.span>
