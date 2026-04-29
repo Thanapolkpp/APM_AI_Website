@@ -77,20 +77,27 @@ async def generate_sheet_quiz(
     if not sheet:
         raise HTTPException(status_code=404, detail="ไม่พบชีทนี้")
     
+    # เพิ่มเนื้อหาเป็น 8000 ตัวอักษรเพื่อให้ AI มีข้อมูลมากขึ้น
     content = sheet.extracted_text or "ไม่มีเนื้อหาในไฟล์นี้"
     
-    prompt = f"สร้างข้อสอบปรนัย (MCQ) 5 ข้อ จากเนื้อหานี้: {content[:3500]}. "
+    prompt = f"สร้างข้อสอบปรนัย (MCQ) 5 ข้อ จากเนื้อหานี้: {content[:8000]}. "
     prompt += "ตอบกลับเป็น JSON array เท่านั้น: [{'question': '...', 'options': ['A','B','C','D'], 'answer': 0}]. answer คือเลข index (0-3)"
     
     response = await ai_service.get_ai_response(prompt, "nerd")
     
     try:
         text = response.get("reply", "")
-        match = re.search(r'\[.*\]', text, re.DOTALL)
+        # ค้นหา JSON ในสตริงที่อาจมีข้อความอื่นปนมา
+        match = re.search(r'\[\s*{.*}\s*\]', text, re.DOTALL)
         if match:
             quiz = json.loads(match.group())
             return {"quiz": quiz}
-    except Exception:
-        pass
+        else:
+            # ลองค้นหาแบบกว้างขึ้นถ้าแบบแรกไม่เจอ
+            match_fallback = re.search(r'\[.*\]', text, re.DOTALL)
+            if match_fallback:
+                return {"quiz": json.loads(match_fallback.group())}
+    except Exception as e:
+        print(f"❌ Quiz JSON Parse Error: {e}")
         
     return {"quiz": []}

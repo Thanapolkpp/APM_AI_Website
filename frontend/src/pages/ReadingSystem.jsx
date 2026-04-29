@@ -394,8 +394,16 @@ const ReadingSystem = () => {
                         </div>
 
                         {youtubeId && (
-                            <div className="mt-6 rounded-2xl overflow-hidden aspect-video shadow-2xl border border-white/20">
-                                <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`} title="Music" frameBorder="0" allow="autoplay; encrypted-media" allowFullScreen></iframe>
+                            <div className={`mt-6 rounded-2xl overflow-hidden aspect-video shadow-2xl border border-white/20 transition-all duration-500 ${isActive ? 'opacity-100 scale-100' : 'opacity-40 scale-95 grayscale'}`}>
+                                <iframe 
+                                    width="100%" 
+                                    height="100%" 
+                                    src={`https://www.youtube.com/embed/${youtubeId}?autoplay=${isActive ? 1 : 0}&enablejsapi=1&version=3`} 
+                                    title="Music" 
+                                    frameBorder="0" 
+                                    allow="autoplay; encrypted-media" 
+                                    allowFullScreen
+                                ></iframe>
                             </div>
                         )}
                     </div>

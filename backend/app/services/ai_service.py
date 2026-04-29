@@ -16,7 +16,9 @@ MODEL_NAME = os.getenv("MODEL_NAME", "apm-assistant:latest")
 
 # ─── Google Gemini Fallback Config ───────────────────────────
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+_RAW_GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = _RAW_GEMINI_MODEL.strip() if _RAW_GEMINI_MODEL else "gemini-2.5-flash"
+STABLE_MODEL = "gemini-2.0-flash" # รุ่นที่ค่อนข้างชัวร์ เอาไว้ fallback
 
 # ─── Ollama Health Tracking ──────────────────────────────────
 # เก็บสถานะ Ollama: ถ้าล่มจะหยุดลองชั่วคราว (circuit breaker)
@@ -188,6 +190,19 @@ async def _call_gemini(message: str, mode: str, image_bytes: Optional[bytes] = N
         return response.text.strip() if response.text else ""
 
     except Exception as e:
+        # ถ้าพัง และยังไม่ได้ใช้รุ่น Stable ให้ลองใช้รุ่น Stable ทันที
+        if GEMINI_MODEL != STABLE_MODEL:
+            print(f"⚠️ {GEMINI_MODEL} failed, retrying with {STABLE_MODEL}...")
+            try:
+                response = await asyncio.to_thread(
+                    client.models.generate_content,
+                    model=STABLE_MODEL,
+                    contents=contents,
+                    config={"temperature": 0.6, "max_output_tokens": 500}
+                )
+                return response.text.strip() if response.text else ""
+            except: pass
+            
         print(f"❌ Gemini Error: {e}")
         raise Exception(f"ไม่สามารถติดต่อ Google Gemini ได้ ({str(e)})")
 
@@ -223,20 +238,45 @@ async def _call_gemini_stream(message: str, mode: str, image_bytes: Optional[byt
         stream_response = await asyncio.to_thread(_stream_sync)
 
         # iterate ผ่าน chunks แบบ real-time
-        def _get_iterator():
-            return iter(stream_response)
+        def _get_next_chunk(it):
+            try:
+                return next(it)
+            except StopIteration:
+                return None
             
-        iterator = await asyncio.to_thread(_get_iterator)
+        iterator = await asyncio.to_thread(iter, stream_response)
         
         while True:
-            try:
-                chunk = await asyncio.to_thread(next, iterator)
-                if chunk.text:
-                    yield chunk.text
-            except StopIteration:
+            chunk = await asyncio.to_thread(_get_next_chunk, iterator)
+            if chunk is None:
                 break
+            if chunk.text:
+                yield chunk.text
 
     except Exception as e:
+        # Fallback สำหรับ Stream (เฉพาะถ้ายังไม่ได้ใช้รุ่น Stable)
+        if GEMINI_MODEL != STABLE_MODEL:
+            print(f"⚠️ Gemini Stream {GEMINI_MODEL} failed, retrying with {STABLE_MODEL}...")
+            try:
+                # แก้ไขชื่อโมเดลชั่วคราวสำหรับการรันใหม่
+                client = _get_gemini_client()
+                stream_response = await asyncio.to_thread(
+                    client.models.generate_content_stream,
+                    model=STABLE_MODEL,
+                    contents=contents,
+                    config={"temperature": 0.6, "max_output_tokens": 500}
+                )
+                iterator = iter(stream_response)
+                while True:
+                    def _next_safe(it):
+                        try: return next(it)
+                        except StopIteration: return None
+                    c = await asyncio.to_thread(_next_safe, iterator)
+                    if c is None: break
+                    if c.text: yield c.text
+                return # จบการทำงานถ้า fallback สำเร็จ
+            except: pass
+
         print(f"❌ Gemini Stream Error: {e}")
         yield f" [Gemini Error: {str(e)}]"
 
