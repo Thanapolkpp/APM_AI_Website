@@ -8,6 +8,10 @@ import CoinBadge from "../components/UI/CoinBadge"
 import { ASSETS, getAvatarIcon } from "../config/assets";
 import { jsPDF } from "jspdf"
 import pdfToText from 'react-pdftotext'
+import { pdfjs } from "react-pdf"
+
+// Configure PDF.js worker for react-pdftotext
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs`
 import { 
     fetchMySheets, fetchMarketSheets, uploadSheet, buySheet, 
     fetchPurchasedSheets, deleteSheet, updateExp, 
