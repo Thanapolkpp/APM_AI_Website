@@ -54,6 +54,8 @@ def buy_avatar(
     owned_count = db.query(UserAvatar).filter(UserAvatar.user_id == current_user.id).count()
     actual_price = avatar.price if owned_count > 0 else 0
 
+    # Re-read coins จาก DB เพื่อป้องกัน race condition (2 request พร้อมกัน)
+    db.refresh(current_user)
     if current_user.coins < actual_price:
         raise HTTPException(status_code=400, detail=f"เหรียญไม่พอ (ต้องการ {actual_price} เหรียญ)")
 
@@ -104,6 +106,8 @@ def buy_room(
     owned_count = db.query(UserRoom).filter(UserRoom.user_id == current_user.id).count()
     actual_price = room.price if owned_count > 0 else 0
 
+    # Re-read coins จาก DB เพื่อป้องกัน race condition (2 request พร้อมกัน)
+    db.refresh(current_user)
     if current_user.coins < actual_price:
         raise HTTPException(status_code=400, detail=f"เหรียญไม่พอ (ต้องการ {actual_price} เหรียญ)")
 

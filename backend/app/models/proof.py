@@ -12,4 +12,4 @@ class Proof(Base):
     description = Column(Text, nullable=True)
     file_path = Column(String(500), nullable=False)   # Supabase public URL
     file_type = Column(String(50), nullable=False)    # "pdf" | "image"
-    created_at = Column(DateTime, default=datetime.now)
+    created_at = Column(DateTime, default=datetime.utcnow)

@@ -18,21 +18,9 @@ const ReadingSystem = lazy(() => import("./pages/ReadingSystem"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const EditAvatar = lazy(() => import("./components/Profile/EditAvatar"));
 
-import BetaAlert from "./components/UI/BetaAlert";
-
-// Loading component
-const PageLoading = () => (
-  <div className="flex items-center justify-center min-h-screen bg-white dark:bg-gray-900">
-    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-  </div>
-);
-
 function App() {
   return (
     <>
-
-      <BetaAlert />
-
       <Suspense fallback={<PageLoading />}>
         <Routes>
           <Route path="/" element={<Home />} />

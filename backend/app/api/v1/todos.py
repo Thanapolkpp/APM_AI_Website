@@ -1,5 +1,4 @@
 import os
-import shutil
 from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session
@@ -77,6 +76,9 @@ def toggle_todo(
     todo.is_completed = not todo.is_completed
     if todo.is_completed:
         current_user.missions_done += 1
+    else:
+        # ป้องกัน missions_done ติดลบ เมื่อ un-toggle
+        current_user.missions_done = max(0, current_user.missions_done - 1)
     db.commit()
     db.refresh(todo)
     return {
@@ -154,14 +156,19 @@ def verify_todo(
     if not todo:
         raise HTTPException(status_code=404, detail="Todo not found")
 
+    # ดักจับ: ถ้าสถานะปัจจุบันเป็น accepted อยู่แล้ว ไม่ต้องให้รางวัลซ้ำ
+    old_status = todo.status
     todo.status = body.status
+
     if body.status == "accepted":
         todo.is_completed = True
-        user = db.query(User).filter(User.id == todo.user_id).first()
-        if user:
-            user.exp += 15
-            user.coins += 2
-            user.missions_done += 1
+        # ให้รางวัลเฉพาะในกรณีที่เปลี่ยนจากสถานะอื่นมาเป็น accepted ครั้งแรกเท่านั้น
+        if old_status != "accepted":
+            user = db.query(User).filter(User.id == todo.user_id).first()
+            if user:
+                user.exp += 15
+                user.coins += 2
+                user.missions_done += 1
     else:
         todo.is_completed = False
 

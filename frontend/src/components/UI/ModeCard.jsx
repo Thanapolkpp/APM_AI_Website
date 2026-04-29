@@ -4,51 +4,46 @@ const ModeCard = ({ title, icon, description, buttonIcon, colors, onClick }) => 
     return (
         <div
             onClick={onClick}
-            className={`group cursor-pointer transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl active:scale-95 border-2 border-transparent 
-                md:${colors.bg} md:${colors.hoverBorder} md:${colors.shadow}
-                rounded-[2rem] md:rounded-2xl p-2.5 md:p-8 flex flex-col items-center text-center
+            className={`group cursor-pointer transition-all duration-300 active:scale-95 border-4 border-toon-black shadow-toon-lg hover:-translate-x-1 hover:-translate-y-1 hover:shadow-toon-xl
+                ${colors.bg} rounded-[2rem] md:rounded-3xl p-4 md:p-8 flex flex-col items-center text-center
                 relative overflow-hidden
-                bg-white/60 dark:bg-black/20 backdrop-blur-3xl shadow-lg md:shadow-none
             `}
         >
-            {/* Mobile-only background accent */}
-            <div className={`md:hidden absolute inset-0 opacity-10 bg-gradient-to-br ${colors.bg.replace('bg-', 'from-')}`} />
-
             <div
-                className={`w-16 h-16 md:w-24 md:h-24 rounded-full flex items-center justify-center text-3xl md:text-5xl md:mb-6 shadow-inner transition-all duration-500 group-hover:scale-110 relative z-10
-                    md:${colors.iconBg} bg-white/80 dark:bg-white/10 ring-2 ring-white/20
+                className={`w-20 h-20 md:w-28 md:h-28 rounded-full border-4 border-toon-black flex items-center justify-center text-3xl md:text-5xl md:mb-6 shadow-toon transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 relative z-10
+                    ${colors.iconBg} bg-white
                 `}
             >
                 {typeof icon === "string" && icon.length <= 4 ? (
-                    <span>{icon}</span>
+                    <span className="font-black">{icon}</span>
                 ) : (
                     <img
                         src={icon}
                         alt={title}
-                        className="w-12 h-12 md:w-20 md:h-20 rounded-full object-cover drop-shadow-sm"
+                        className="w-14 h-14 md:w-24 md:h-24 rounded-full object-cover"
                     />
                 )}
             </div>
 
             <div className="hidden md:block">
-                <h3 className="text-2xl font-black mb-3">{title}</h3>
-                <p className={`text-sm leading-relaxed mb-8 font-medium ${colors.text}`}>
+                <h3 className="text-3xl font-black mb-3 text-toon-black uppercase italic">{title}</h3>
+                <p className={`text-base leading-relaxed mb-8 font-black text-toon-black/70`}>
                     {description}
                 </p>
                 <div className="mt-auto w-full">
                     <div
-                        className={`w-full py-4 rounded-xl font-black shadow-sm transition-all flex items-center justify-center gap-2 ${colors.button} hover:px-8`}
+                        className={`w-full py-4 rounded-2xl border-4 border-toon-black font-black shadow-toon transition-all flex items-center justify-center gap-2 bg-white text-toon-black hover:-translate-y-1 hover:shadow-toon-lg active:translate-y-0 active:shadow-none`}
                     >
-                        <span>Start Chat</span>
-                        <span className="material-symbols-outlined text-lg">{buttonIcon}</span>
+                        <span className="uppercase italic">Start Chat</span>
+                        <span className="material-symbols-outlined font-black">{buttonIcon}</span>
                     </div>
                 </div>
             </div>
             
-            {/* Mobile Icon Label - Clean & Subtle */}
+            {/* Mobile Icon Label */}
             <div className="md:hidden mt-3 relative z-10">
-                <span className={`text-[10px] font-black uppercase tracking-widest ${colors.text} opacity-60 group-hover:opacity-100 transition-opacity`}>
-                    {title.split(' ')[0]} {/* e.g. "Bro" or "Cute" */}
+                <span className={`text-xs font-black uppercase tracking-widest text-toon-black`}>
+                    {title.split(' ')[0]}
                 </span>
             </div>
         </div>

@@ -71,3 +71,29 @@
 .slide-in-from-bottom-2 {
     animation-name: slideInFromBottom;
 }
+
+/* Toon Styles */
+.toon-card {
+    @apply border-4 border-toon-black shadow-toon-lg bg-white rounded-3xl overflow-hidden transition-all duration-200;
+}
+
+.toon-card:hover {
+    @apply -translate-x-1 -translate-y-1 shadow-toon-xl;
+}
+
+.toon-button {
+    @apply border-4 border-toon-black shadow-toon bg-primary text-toon-black font-black py-3 px-6 rounded-2xl transition-all duration-200 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-toon-lg active:translate-x-0 active:translate-y-0 active:shadow-none;
+}
+
+.toon-input {
+    @apply border-4 border-toon-black rounded-2xl py-4 px-6 bg-white outline-none focus:bg-yellow-50 transition-colors font-bold;
+}
+
+@keyframes wiggle {
+    0%, 100% { transform: rotate(-2deg); }
+    50% { transform: rotate(2deg); }
+}
+
+.animate-wiggle {
+    animation: wiggle 0.3s ease-in-out infinite;
+}

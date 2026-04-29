@@ -1,23 +1,43 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.utils.db import get_db
-from app.utils.security import verify_password, create_access_token, hash_password
+from app.utils.security import verify_password, create_access_token, hash_password, validate_password_strength
 from app.services.auth_service import get_user_by_email, get_user_by_username, create_user
 from app.models.password_reset_token import PasswordResetToken
 from app.services.mail_service import send_reset_password_email
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from fastapi.security import OAuth2PasswordRequestForm
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 # --- Schema สำหรับรับข้อมูล (Validation) ---
 class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v):
+        v = v.strip()
+        if len(v) < 3 or len(v) > 30:
+            raise ValueError("Username ต้องมี 3-30 ตัวอักษร")
+        if not v.replace("_", "").replace("-", "").isalnum():
+            raise ValueError("Username รองรับเฉพาะ ภาษาอังกฤษ ตัวเลข _ และ - เท่านั้น")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError("รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร")
+        return v
 
 class UserLogin(BaseModel):
     email: Optional[str] = None
@@ -31,10 +51,18 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
 
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, v):
+        if len(v) < 8:
+            raise ValueError("รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร")
+        return v
+
 # --- Endpoints ---
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def register(request: Request, user_data: UserCreate, db: Session = Depends(get_db)):
     # 1. เช็คว่ามี Email นี้ในระบบหรือยัง
     existing_user_email = get_user_by_email(db, email=user_data.email)
     if existing_user_email:
@@ -50,6 +78,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return {"message": "สมัครสมาชิกสำเร็จ", "user_id": new_user.id}
 
 @router.post("/login")
+@limiter.limit("10/minute")
 async def login(
     request: Request,
     login_data: Optional[UserLogin] = None, 
@@ -82,7 +111,14 @@ async def login(
             detail="ข้อมูลล็อกอินไม่ครบถ้วน",
             headers={"WWW-Authenticate": "Bearer"},
         )
-        
+
+    # จำกัดความยาว input ป้องกัน abuse
+    if len(input_identifier) > 100 or len(input_password) > 128:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ข้อมูลไม่ถูกต้อง",
+        )
+
     # ค้นหา User โดยเช็คว่าเป็นอีเมลหรือชื่อผู้ใช้
     if "@" in input_identifier:
         user = get_user_by_email(db, email=input_identifier)
@@ -108,7 +144,8 @@ async def login(
 
 
 @router.post("/forgot-password")
-def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def forgot_password(request: Request, body: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = get_user_by_email(db, email=body.email)
 
     # ไม่บอกว่าหาไม่เจอ กันคน brute force หา email
@@ -122,7 +159,7 @@ def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
 
     # สร้าง token ใหม่ หมดอายุใน 15 นาที
     token = secrets.token_urlsafe(32)
-    expires_at = datetime.now() + timedelta(minutes=15)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
 
 
     reset_token = PasswordResetToken(
@@ -140,7 +177,8 @@ def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/reset-password")
-def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def reset_password(request: Request, body: ResetPasswordRequest, db: Session = Depends(get_db)):
     # หา token ใน DB
     reset_token = db.query(PasswordResetToken).filter(
         PasswordResetToken.token == body.token
@@ -150,7 +188,7 @@ def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="ลิงก์ไม่ถูกต้อง")
 
     # เช็คว่าหมดอายุหรือยัง
-    if datetime.now() > reset_token.expires_at:
+    if datetime.now(timezone.utc) > reset_token.expires_at:
 
         db.delete(reset_token)
         db.commit()

@@ -23,8 +23,8 @@ pydantic
 pydantic-settings
 email-validator
 
-# HTTP Requests (Ollama)
-requests
+# HTTP Requests (Ollama AI)
+httpx
 
 # Environment Variables
 python-dotenv
@@ -34,3 +34,9 @@ supabase
 
 # PDF Compression
 pymupdf
+
+# Rate Limiting (ป้องกัน Brute-force / DoS)
+slowapi
+
+# Google Gemini AI (Fallback เมื่อ Ollama ใช้ไม่ได้)
+google-genai

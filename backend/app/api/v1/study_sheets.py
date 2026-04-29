@@ -17,6 +17,7 @@ router = APIRouter()
 
 BUCKET = "sheets"
 MAX_SHEETS_PER_USER = 10
+MAX_PDF_SIZE = 25 * 1024 * 1024  # 25 MB
 
 def normalize_pdf_url(path: str) -> str:
     """ENSURE FULL ABSOLUTE SUPABASE URL AND PREVENT DOUBLE BUCKET NAMES"""
@@ -55,7 +56,7 @@ class UpdatePriceRequest(BaseModel):
 # ---------- Endpoints ----------
 
 @router.post("/upload")
-def upload_study_sheet(
+async def upload_study_sheet(
     title: str = Form(...),
     price: int = Form(0),
     is_public: bool = Form(False),
@@ -71,7 +72,16 @@ def upload_study_sheet(
         if price < 0:
             raise HTTPException(status_code=400, detail="ราคาต้องไม่ติดลบ")
 
-        file_bytes = file.file.read()
+        # ใช้ async read แทน sync
+        file_bytes = await file.read()
+
+        # ── ตรวจสอบขนาดไฟล์ ──
+        if len(file_bytes) > MAX_PDF_SIZE:
+            raise HTTPException(status_code=413, detail="ไฟล์ PDF ใหญ่เกิน 25 MB")
+
+        # ── ตรวจสอบ PDF magic bytes ──
+        if not file_bytes.startswith(b"%PDF"):
+            raise HTTPException(status_code=400, detail="ไฟล์ไม่ใช่ PDF ที่ถูกต้อง")
 
         # FIFO: ถ้ามีครบ 10 ลบเก่าสุดก่อน (ลบจาก Supabase + DB)
         sheet_count = db.query(StudySheet).filter(StudySheet.user_id == current_user.id).count()
@@ -86,7 +96,7 @@ def upload_study_sheet(
                 if oldest.file_path:
                     try:
                         delete_file(BUCKET, oldest.file_path)
-                    except:
+                    except Exception:
                         pass
                 db.query(UserSheet).filter(UserSheet.sheet_id == oldest.id).delete()
                 db.delete(oldest)
@@ -135,14 +145,15 @@ def upload_study_sheet(
             "bonus_coins": 3,
             "coins_total": current_user.coins,
         }
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
-        # ส่งข้อความ Error กลับไปให้ Frontend รู้สาเหตุที่แท้จริง
-        error_detail = str(e)
-        print(f"❌ Upload Error: {error_detail}")
+        # ซ่อน internal details ใน production
+        print(f"❌ Upload Error: {str(e)}")
         raise HTTPException(
             status_code=500, 
-            detail=f"เกิดข้อผิดพลาดในการอัปโหลด: {error_detail} (เพื่อนเช็ค SUPABASE_URL/KEY ใน Render หรือยังครับ?)"
+            detail="เกิดข้อผิดพลาดในการอัปโหลด กรุณาลองใหม่อีกครั้ง"
         )
 
 
@@ -169,7 +180,8 @@ def get_my_sheets(
             "is_mine": True,
             "already_purchased": False,
             "created_at": s.created_at,
-            "extracted_text": s.extracted_text,
+            # ตัด extracted_text ออกจาก list response เพื่อลดขนาด payload
+            "has_extracted_text": bool(s.extracted_text),
         }
         for s in sheets
     ]
@@ -187,9 +199,16 @@ def get_market(
         .all()
     )
 
+    # ใช้ subquery เฉพาะ sheet_id แทนการ load ทั้ง row
+    from sqlalchemy import select
+    purchased_subquery = (
+        select(UserSheet.sheet_id)
+        .where(UserSheet.buyer_id == current_user.id)
+        .scalar_subquery()
+    )
     purchased_ids = {
         row.sheet_id
-        for row in db.query(UserSheet).filter(UserSheet.buyer_id == current_user.id).all()
+        for row in db.query(UserSheet.sheet_id).filter(UserSheet.buyer_id == current_user.id).all()
     }
 
     return [
@@ -205,10 +224,38 @@ def get_market(
             "already_purchased": s.id in purchased_ids or s.user_id == current_user.id,
             "is_mine": s.user_id == current_user.id,
             "created_at": s.created_at,
-            "extracted_text": s.extracted_text,
+            # ตัด extracted_text ออกจาก market list เพื่อลดขนาด payload
+            "has_extracted_text": bool(s.extracted_text),
         }
         for s in sheets
     ]
+
+
+@router.get("/{sheet_id}/text")
+def get_sheet_text(
+    sheet_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """ดึง extracted_text แยกเฉพาะเมื่อต้องการใช้ (lazy loading)"""
+    sheet = db.query(StudySheet).filter(StudySheet.id == sheet_id).first()
+    if not sheet:
+        raise HTTPException(status_code=404, detail="ไม่พบ Sheet นี้")
+    
+    # เช็คสิทธิ์: ต้องเป็นเจ้าของ หรือซื้อแล้ว
+    if sheet.user_id != current_user.id:
+        purchased = db.query(UserSheet).filter(
+            UserSheet.buyer_id == current_user.id,
+            UserSheet.sheet_id == sheet_id,
+        ).first()
+        if not purchased:
+            raise HTTPException(status_code=403, detail="คุณไม่มีสิทธิ์เข้าถึง Sheet นี้")
+    
+    return {
+        "id": sheet.id,
+        "title": sheet.title,
+        "extracted_text": sheet.extracted_text or "",
+    }
 
 
 @router.get("/my-purchased")
@@ -235,7 +282,7 @@ def get_purchased_sheets(
             "is_mine": False,
             "already_purchased": True,
             "bought_at": us.bought_at,
-            "extracted_text": sheet.extracted_text,
+            "has_extracted_text": bool(sheet.extracted_text),
         }
         for us, sheet in rows
     ]

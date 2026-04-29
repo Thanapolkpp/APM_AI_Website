@@ -48,78 +48,76 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex items-center justify-center p-6 relative overflow-hidden transition-colors duration-300">
-            {/* Background Blobs for Glassmorphism */}
-            <div className="absolute top-10 left-10 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
-            <div className="absolute bottom-10 right-10 w-96 h-96 bg-pink-300/20 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
+        <div className="min-h-screen bg-yellow-400 font-cartoon flex items-center justify-center p-6 relative overflow-hidden">
+            {/* Playful Background Elements */}
+            <div className="absolute top-10 left-10 w-32 h-32 bg-primary border-4 border-toon-black rounded-full shadow-toon animate-bounce"></div>
+            <div className="absolute bottom-10 right-10 w-48 h-48 bg-pink-300 border-4 border-toon-black rotate-12 shadow-toon animate-pulse"></div>
+            <div className="absolute top-1/4 right-20 w-24 h-24 bg-purple-400 border-4 border-toon-black -rotate-12 shadow-toon"></div>
 
-            <div className="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-2 bg-white/40 dark:bg-white/5 backdrop-blur-2xl rounded-[48px] shadow-2xl border border-white/60 dark:border-white/10 overflow-hidden z-10 transition-all">
+            <div className="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-2 toon-card z-10">
 
                 {/* Left Side - Illustration / Brand */}
-                <div className="hidden md:flex flex-col items-center justify-center p-12 bg-gradient-to-br from-pink-400/10 to-primary/10 relative overflow-hidden border-r border-white/40 dark:border-white/10">
-                    <div className="absolute -top-20 -left-20 w-64 h-64 bg-pink-400/20 rounded-full blur-3xl"></div>
-                    <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-primary/20 rounded-full blur-3xl"></div>
-
+                <div className="hidden md:flex flex-col items-center justify-center p-12 bg-white border-r-4 border-toon-black relative overflow-hidden">
                     <div className="relative z-10 flex flex-col items-center text-center">
-                        <div className="w-32 h-32 rounded-[32px] bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/80 dark:border-white/20 shadow-xl overflow-hidden mb-8 transform -rotate-3 hover:rotate-0 transition duration-500">
-                            <img src={Logo} alt="Logo" className="w-full h-full object-cover scale-110" />
+                        <div className="w-40 h-40 rounded-[32px] bg-yellow-200 border-4 border-toon-black shadow-toon overflow-hidden mb-8 transform -rotate-6 hover:rotate-0 transition duration-500">
+                            <img src={Logo} alt="Logo" className="w-full h-full object-cover p-2" />
                         </div>
-                        <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight mb-4 leading-tight">Welcome Back!</h2>
-                        <p className="text-gray-500 dark:text-gray-400 font-bold text-lg leading-relaxed">
-                            ดีใจที่ได้เจอกันอีกครั้ง 🌷 <br /> ถึงเวลาสนุกกับการเรียนรู้ต่อไปแล้ว!
+                        <h2 className="text-5xl font-black text-toon-black tracking-tight mb-4 leading-tight uppercase">Hey there!</h2>
+                        <p className="text-toon-black font-bold text-xl leading-relaxed">
+                            ดีใจที่ได้เจอกันอีกครั้งนะจ๊ะ! 🌈 <br /> มาลุยเรียนรู้กันต่อเถอะ!
                         </p>
 
                         <div className="mt-12 flex gap-4">
-                            <img src={CuteGirlIcon} alt="Girl" className="w-16 h-16 rounded-full border-4 border-white/60 shadow-md transform rotate-6 hover:scale-110 transition-transform" />
-                            <img src={BroIcon} alt="Bro" className="w-16 h-16 rounded-full border-4 border-white/60 shadow-md transform -rotate-6 -ml-8 hover:scale-110 transition-transform" />
+                            <img src={CuteGirlIcon} alt="Girl" className="w-20 h-20 rounded-full border-4 border-toon-black shadow-toon transform rotate-12 hover:scale-110 transition-transform bg-girl-pink" />
+                            <img src={BroIcon} alt="Bro" className="w-20 h-20 rounded-full border-4 border-toon-black shadow-toon transform -rotate-12 -ml-8 hover:scale-110 transition-transform bg-bro-blue" />
                         </div>
                     </div>
                 </div>
 
                 {/* Right Side - Login Form */}
-                <div className="p-6 sm:p-8 md:p-14 flex flex-col justify-center">
+                <div className="p-8 sm:p-10 md:p-14 flex flex-col justify-center bg-white">
                     <div className="md:hidden flex justify-center mb-6">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[28px] bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-white/80 dark:border-white/20 shadow-md overflow-hidden">
-                            <img src={Logo} alt="Logo" className="w-full h-full object-cover p-2" />
+                        <div className="w-24 h-24 rounded-3xl bg-yellow-200 border-4 border-toon-black shadow-toon overflow-hidden transform -rotate-3">
+                            <img src={Logo} alt="Logo" className="w-full h-full object-cover p-3" />
                         </div>
                     </div>
 
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-2 text-center md:text-left">เข้าสู่ระบบ</h1>
-                    <p className="text-gray-500 dark:text-gray-400 font-bold mb-6 md:mb-8 text-center md:text-left text-sm md:text-base px-4 md:px-0">กรอกข้อมูลบัญชีเพื่อเข้าใช้งาน APM AI</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-toon-black mb-2 text-center md:text-left uppercase italic">เข้าสู่ระบบ</h1>
+                    <p className="text-gray-600 font-bold mb-8 text-center md:text-left text-lg">กรอกข้อมูลเพื่อเข้าสู่โลก AI กันเลย! ✨</p>
 
                     {error && (
-                        <div className="mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-bold flex items-center gap-2 shadow-sm animate-shake">
-                            <span className="material-symbols-outlined text-lg">error</span>
+                        <div className="mb-6 p-4 rounded-2xl bg-red-100 border-4 border-toon-black text-red-600 font-black flex items-center gap-2 shadow-toon animate-wiggle">
+                            <span className="material-symbols-outlined text-xl">error</span>
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 px-2 md:px-0">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                                ชื่อผู้ใช้ หรือ อีเมล
+                            <label className="block text-sm font-black text-toon-black uppercase tracking-widest mb-2 ml-1">
+                                Username / Email
                             </label>
                             <input
                                 type="text"
                                 value={identifier}
                                 onChange={(e) => setIdentifier(e.target.value)}
-                                placeholder="Username or Email"
+                                placeholder="ใครเอ่ย?"
                                 required
-                                className="w-full px-5 py-3.5 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 transition-all text-gray-800 dark:text-white font-bold text-sm md:text-base"
+                                className="toon-input w-full"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                                รหัสผ่าน
+                            <label className="block text-sm font-black text-toon-black uppercase tracking-widest mb-2 ml-1">
+                                Password
                             </label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
+                                placeholder="ความลับนะ!"
                                 required
-                                className="w-full px-5 py-3.5 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm outline-none focus:ring-4 focus:ring-primary/20 transition-all text-gray-800 dark:text-white font-bold text-sm md:text-base"
+                                className="toon-input w-full"
                             />
                         </div>
 
@@ -127,7 +125,7 @@ const Login = () => {
                             <button 
                                 type="button" 
                                 onClick={() => navigate("/forgot-password")}
-                                className="text-xs md:text-sm font-bold text-primary hover:text-pink-600 transition"
+                                className="text-sm font-black text-toon-black hover:text-primary transition underline decoration-4 underline-offset-4"
                             >
                                 ลืมรหัสผ่าน?
                             </button>
@@ -136,19 +134,19 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-4 md:py-5 mt-2 rounded-2xl bg-gradient-to-r from-primary to-purple-600 text-white font-black text-base md:text-lg shadow-xl hover:shadow-primary/30 hover:-translate-y-1 active:scale-[0.98] transition-all disabled:opacity-70 disabled:hover:translate-y-0"
+                            className="toon-button w-full text-2xl uppercase italic"
                         >
-                            {isLoading ? "กำลังเข้าสู่ระบบ..." : "LOGIN"}
+                            {isLoading ? "รอแป๊บน้า..." : "ไปกันเลย! 🚀"}
                         </button>
                     </form>
 
-                    <div className="mt-8 md:mt-10 text-center text-gray-500 font-bold text-sm md:text-base">
-                        ยังไม่มีบัญชีใช่ไหม?{" "}
+                    <div className="mt-10 text-center text-gray-600 font-bold text-lg">
+                        ยังไม่มีไอดีหรอ?{" "}
                         <button
                             onClick={() => navigate("/register")}
-                            className="font-black text-primary hover:text-pink-600 underline underline-offset-4 decoration-2 transition"
+                            className="font-black text-purple-600 hover:text-primary underline underline-offset-4 decoration-4 transition"
                         >
-                            สมัครสมาชิกเลย!
+                            สมัครตรงนี้เลย!
                         </button>
                     </div>
                 </div>
@@ -156,12 +154,12 @@ const Login = () => {
 
             <button
                 onClick={() => navigate("/")}
-                className="absolute top-4 left-4 sm:top-8 sm:left-8 flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-full bg-white/50 dark:bg-white/10 backdrop-blur-md border border-white/50 dark:border-white/10 text-gray-700 dark:text-white font-black text-xs sm:text-sm shadow-sm hover:bg-white dark:hover:bg-white/20 transition z-20 active:scale-95"
+                className="absolute top-4 left-4 sm:top-8 sm:left-8 flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border-4 border-toon-black text-toon-black font-black text-sm shadow-toon hover:-translate-y-1 hover:shadow-toon-lg transition active:scale-95 z-20"
             >
-                <span className="material-symbols-outlined text-base">arrow_back</span> กลับหน้าแรก
+                <span className="material-symbols-outlined font-black">arrow_back</span> กลับบ้าน
             </button>
         </div>
-    );
-};
-
+    );  
+}
+    
 export default Login;

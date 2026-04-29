@@ -26,7 +26,16 @@ if "aivencloud" in SQLALCHEMY_DATABASE_URL:
         if os.path.exists(CA_CERT_PATH):
             connect_args = {"ssl_ca": CA_CERT_PATH}
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
+# ─── Connection Pooling สำหรับ Performance ───
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args=connect_args,
+    pool_size=10,           # จำนวน connection ที่เก็บไว้ใน pool
+    max_overflow=20,        # connection เพิ่มเติมได้สูงสุดเมื่อ pool เต็ม
+    pool_recycle=1800,      # รีไซเคิล connection ทุก 30 นาที (ป้องกัน stale connection)
+    pool_pre_ping=True,     # เช็ค connection ก่อนใช้ (auto-reconnect ถ้าหลุด)
+    pool_timeout=30,        # timeout สำหรับรอ connection จาก pool
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -34,5 +43,8 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()

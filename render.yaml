@@ -24,3 +24,7 @@ services:
         sync: false
       - key: GRADIO_URL
         sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash

@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import List, Optional
 
 from app.utils.db import get_db
@@ -9,10 +9,14 @@ from app.models.chat_history import ChatHistory
 from app.models.study_sheet import StudySheet
 from app.models.user import User
 from app.services.ai_service import get_ai_response
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 HISTORY_CONTEXT_COUNT = 3
+MAX_MESSAGE_LENGTH = 5000  # จำกัดความยาวข้อความ ป้องกัน abuse
 
 SYSTEM_INSTRUCTION = (
     "คุณคือ APM AI เพื่อนคู่คิดวัยเรียนวัยรุ่น "
@@ -31,6 +35,24 @@ class ChatRequest(BaseModel):
     context_history_id: Optional[int] = None
     conversation_history: Optional[List[ChatMessage]] = None
 
+    @field_validator("message")
+    @classmethod
+    def validate_message(cls, v):
+        v = v.strip()
+        if not v:
+            raise ValueError("ข้อความต้องไม่ว่างเปล่า")
+        if len(v) > MAX_MESSAGE_LENGTH:
+            raise ValueError(f"ข้อความยาวเกินไป (สูงสุด {MAX_MESSAGE_LENGTH} ตัวอักษร)")
+        return v
+
+    @field_validator("mode")
+    @classmethod
+    def validate_mode(cls, v):
+        allowed_modes = {"bro", "girl", "nerd"}
+        if v not in allowed_modes:
+            raise ValueError(f"โหมดไม่ถูกต้อง (รองรับ: {', '.join(allowed_modes)})")
+        return v
+
 
 @router.get("/history")
 def get_chat_history(
@@ -38,6 +60,9 @@ def get_chat_history(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    # Hard cap เพื่อป้องกัน client ส่ง limit สูงมาก
+    limit = min(limit, 100)
+    
     histories = (
         db.query(ChatHistory)
         .filter(ChatHistory.user_id == current_user.id)
@@ -63,7 +88,9 @@ from fastapi.responses import StreamingResponse
 import json
 
 @router.post("/stream")
+@limiter.limit("30/minute")
 async def chat_stream(
+    request: Request,
     req: ChatRequest,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_user),
@@ -108,14 +135,16 @@ async def chat_stream(
                  new_history = ChatHistory(user_id=current_user.id, user_message=req.message, ai_response=full_reply, mode=req.mode)
                  db.add(new_history)
                  db.commit()
-            except:
-                 pass
+            except Exception:
+                 db.rollback()
 
     return StreamingResponse(event_generator(), media_type="text/plain")
 
 
 @router.post("/")
+@limiter.limit("30/minute")
 async def chat(
+    request: Request,
     req: ChatRequest,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_user),
@@ -312,4 +341,3 @@ def delete_chat_history_item(
     db.delete(history)
     db.commit()
     return {"message": "ลบประวัติสำเร็จแล้วเพื่อน ✨"}
-

@@ -12,4 +12,4 @@ class Notification(Base):
     title = Column(String(200), nullable=False)
     message = Column(String(500), nullable=False)
     is_read = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime, default=datetime.now, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

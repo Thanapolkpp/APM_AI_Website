@@ -11,6 +11,7 @@ from app.services.storage_service import upload_file, delete_file
 router = APIRouter()
 
 BUCKET = "proofs"
+MAX_PROOF_SIZE = 15 * 1024 * 1024  # 15 MB
 
 ALLOWED_TYPES = {
     "application/pdf": "pdf",
@@ -23,7 +24,7 @@ ALLOWED_TYPES = {
 # ---------- Endpoints ----------
 
 @router.post("/upload")
-def upload_proof(
+async def upload_proof(
     title: str = Form(...),
     description: str = Form(""),
     file: UploadFile = File(...),
@@ -36,7 +37,13 @@ def upload_proof(
             detail="รองรับเฉพาะ PDF, JPG, PNG, WEBP เท่านั้น"
         )
 
-    file_bytes = file.file.read()
+    # ใช้ async read แทน sync
+    file_bytes = await file.read()
+
+    # ── ตรวจสอบขนาดไฟล์ ──
+    if len(file_bytes) > MAX_PROOF_SIZE:
+        raise HTTPException(status_code=413, detail="ไฟล์ใหญ่เกิน 15 MB")
+
     file_type = ALLOWED_TYPES[file.content_type]
 
     # compress PDF ก่อน upload (รูปภาพ upload ตรงได้เลย)
