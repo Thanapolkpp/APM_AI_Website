@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/footer";
 import CoinBadge from "../components/UI/CoinBadge";
@@ -90,15 +91,20 @@ const Event = () => {
 
             <header className="sticky top-0 z-50 w-full border-b border-white/40 bg-white/60 dark:bg-black/20 backdrop-blur-xl transition-all">
                 <div className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 py-4">
-                    <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate("/")}>
-                        <div className="relative size-12 rounded-2xl bg-white shadow-xl ring-2 ring-pink-100 flex items-center justify-center overflow-hidden">
-                            <img src={Logo} alt="Logo" className="size-8 object-contain transition duration-500 hover:scale-110" />
+                    <motion.div
+                        initial={{ x: -20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        className="flex items-center gap-3 shrink-0 cursor-pointer"
+                        onClick={() => navigate("/")}
+                    >
+                        <div className="relative size-10 md:size-12 shrink-0 overflow-hidden rounded-2xl bg-white shadow-xl ring-2 ring-pink-100 flex items-center justify-center">
+                            <img src={profileImage || Logo} alt="Logo" className="size-6 md:size-8 object-contain" />
                         </div>
-                        <div className="hidden sm:block text-left">
-                            <h1 className="text-xl font-black text-gray-900 dark:text-white leading-tight">APM AI</h1>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Special Events 🎉</p>
+                        <div className="min-w-0">
+                            <h1 className="text-lg md:text-xl font-black tracking-tight leading-none text-gray-900 dark:text-white">APM AI</h1>
+                            <p className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Special Events 🎉</p>
                         </div>
-                    </div>
+                    </motion.div>
                     {/* Desktop Navbar */}
                     <div className="hidden lg:flex flex-1 justify-center">
                         <Navbar />
