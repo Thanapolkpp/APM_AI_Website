@@ -1,6 +1,7 @@
 import os
 from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+import asyncio
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -130,14 +131,18 @@ async def upload_todo_proof(
     file_path = os.path.join(user_proof_dir, filename)
 
     # Save validated file
-    with open(file_path, "wb") as buffer:
-        buffer.write(file_bytes)
+    def _save_all():
+        with open(file_path, "wb") as buffer:
+            buffer.write(file_bytes)
 
-    # Store relative path (e.g., "1/abc.jpg") in DB
-    db_filename = f"{current_user.id}/{filename}"
-    todo.proof_image = db_filename
-    todo.status = "pending"
-    db.commit()
+        # Store relative path (e.g., "1/abc.jpg") in DB
+        db_filename = f"{current_user.id}/{filename}"
+        todo.proof_image = db_filename
+        todo.status = "pending"
+        db.commit()
+        return db_filename
+
+    db_filename = await asyncio.to_thread(_save_all)
 
     return {"message": "Upload successful", "image": f"/uploads/proofs/{db_filename}"}
 

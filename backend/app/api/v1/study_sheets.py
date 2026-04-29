@@ -12,6 +12,7 @@ from app.models.user import User
 from app.services import notification_service
 from app.services.storage_service import upload_file, delete_file
 import os
+import asyncio
 
 router = APIRouter()
 
@@ -84,55 +85,66 @@ async def upload_study_sheet(
             raise HTTPException(status_code=400, detail="ไฟล์ไม่ใช่ PDF ที่ถูกต้อง")
 
         # FIFO: ถ้ามีครบ 10 ลบเก่าสุดก่อน (ลบจาก Supabase + DB)
-        sheet_count = db.query(StudySheet).filter(StudySheet.user_id == current_user.id).count()
+        sheet_count = await asyncio.to_thread(lambda: db.query(StudySheet).filter(StudySheet.user_id == current_user.id).count())
         if sheet_count >= MAX_SHEETS_PER_USER:
-            oldest = (
+            oldest = await asyncio.to_thread(lambda: (
                 db.query(StudySheet)
                 .filter(StudySheet.user_id == current_user.id)
                 .order_by(StudySheet.created_at.asc())
                 .first()
-            )
+            ))
             if oldest:
                 if oldest.file_path:
                     try:
-                        delete_file(BUCKET, oldest.file_path)
+                        await asyncio.to_thread(delete_file, BUCKET, oldest.file_path)
                     except Exception:
                         pass
-                db.query(UserSheet).filter(UserSheet.sheet_id == oldest.id).delete()
-                db.delete(oldest)
-                db.commit()
+                
+                def _delete_old_record(oid, uid):
+                    db.query(UserSheet).filter(UserSheet.sheet_id == oid).delete()
+                    db.delete(oldest)
+                    db.commit()
+                
+                await asyncio.to_thread(_delete_old_record, oldest.id, current_user.id)
 
         # use extracted text from frontend if available, else extract from original bytes
-        final_text = extracted_text if extracted_text else extract_text_from_pdf(file_bytes)
+        if extracted_text:
+            final_text = extracted_text
+        else:
+            final_text = await asyncio.to_thread(extract_text_from_pdf, file_bytes)
 
         # compress PDF ให้เล็กลง แล้วค่อย upload
-        compressed_bytes = compress_pdf(file_bytes)
+        compressed_bytes = await asyncio.to_thread(compress_pdf, file_bytes)
         
         # อัปโหลดไปยัง Supabase
-        public_url = upload_file(BUCKET, compressed_bytes, file.filename or "sheet.pdf")
+        public_url = await asyncio.to_thread(upload_file, BUCKET, compressed_bytes, file.filename or "sheet.pdf")
 
-        new_sheet = StudySheet(
-            user_id=current_user.id,
-            title=title,
-            file_path=public_url,
-            extracted_text=final_text,
-            price=price,
-            is_public=is_public,
-        )
-        db.add(new_sheet)
-        db.commit()
-        db.refresh(new_sheet)
+        def _save_new_sheet():
+            new_sheet = StudySheet(
+                user_id=current_user.id,
+                title=title,
+                file_path=public_url,
+                extracted_text=final_text,
+                price=price,
+                is_public=is_public,
+            )
+            db.add(new_sheet)
+            db.commit()
+            db.refresh(new_sheet)
+            
+            current_user.coins += 3
+            db.commit()
+            
+            notification_service.add_notification(
+                db=db,
+                user_id=current_user.id,
+                type="coin_earned",
+                title="ได้รับ Coin!",
+                message=f"อัปโหลดชีท '{title}' สำเร็จ ได้รับ +3 coins เป็นรางวัล!",
+            )
+            return new_sheet
 
-        current_user.coins += 3
-        db.commit()
-
-        notification_service.add_notification(
-            db=db,
-            user_id=current_user.id,
-            type="coin_earned",
-            title="ได้รับ Coin!",
-            message=f"อัปโหลดชีท '{title}' สำเร็จ ได้รับ +3 coins เป็นรางวัล!",
-        )
+        new_sheet = await asyncio.to_thread(_save_new_sheet)
 
         return {
             "message": "อัปโหลดสำเร็จ",

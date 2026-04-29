@@ -68,6 +68,17 @@ def _get_http_client() -> httpx.AsyncClient:
         )
     return _http_client
 
+async def init_ai_service():
+    """Pre-initialize the global HTTP client pool"""
+    _get_http_client()
+
+async def close_ai_service():
+    """ปิด HTTP client เมื่อ shutdown server"""
+    global _http_client
+    if _http_client and not _http_client.is_closed:
+        await _http_client.aclose()
+        _http_client = None
+
 
 # ─── Google Gemini Client (Lazy Init) ────────────────────────
 _gemini_client = None
@@ -366,7 +377,15 @@ async def get_ai_response_with_pdf(prompt: str, mode: str, pdf_data: Optional[by
         try:
             import fitz
             doc = fitz.open(path)
-            text = "".join([page.get_text() for page in doc])
+            text_parts = []
+            current_len = 0
+            for page in doc:
+                page_text = page.get_text()
+                text_parts.append(page_text)
+                current_len += len(page_text)
+                if current_len >= 8000:
+                    break
+            text = "".join(text_parts)
             doc.close()
             return text
         finally:

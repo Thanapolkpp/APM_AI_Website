@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session
 from app.utils.db import get_db
 from app.models.user import User
 from app.utils.security import get_current_user as get_current_active_user
 from pydantic import BaseModel, field_validator
 import json
+import asyncio
 
 from app.models.avatar import Avatar
 from app.models.user_avatar import UserAvatar
@@ -25,7 +26,7 @@ class UpdateCoinsRequest(BaseModel):
 
 
 @router.get("/me")
-async def get_my_profile(db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def get_my_profile(db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     # Find equipped avatar name
     equipped = db.query(Avatar.name).join(UserAvatar).filter(
         UserAvatar.user_id == current_user.id,
@@ -44,7 +45,7 @@ async def get_my_profile(db: Session = Depends(get_db), current_user: User = Dep
     }
 
 @router.get("/leaderboard")
-async def get_leaderboard(db: Session = Depends(get_db)):
+def get_leaderboard(db: Session = Depends(get_db)):
     # Join with UserAvatar and Avatar to get the real equipped avatar name for each user
     results = db.query(User, Avatar.name).outerjoin(
         UserAvatar, (UserAvatar.user_id == User.id) & (UserAvatar.is_equipped == True)
@@ -63,7 +64,7 @@ async def get_leaderboard(db: Session = Depends(get_db)):
 
 # --- Other endpoints simplified to avoid missing columns ---
 @router.patch("/coins")
-async def update_user_coins(payload: UpdateCoinsRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def update_user_coins(payload: UpdateCoinsRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     current_user.coins += payload.amount
     # ป้องกัน coins ติดลบ
     if current_user.coins < 0:

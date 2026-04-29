@@ -5,6 +5,11 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from contextlib import asynccontextmanager
+import os
+import time
+import logging
+from fastapi.staticfiles import StaticFiles
 
 # นำเข้า Router และระบบฐานข้อมูล
 from app.api.v1.chatbot import router as chatbot_router
@@ -21,18 +26,42 @@ from app.utils.db import engine, Base
 from app.models import user, avatar, room, user_avatar, user_room
 from app.models import study_sheet, todo, chat_history, user_sheet, password_reset_token
 from app.models import notification, proof
+from app.models import notification, proof
+from app.services.ai_service import close_ai_service, init_ai_service
+from app.services.storage_service import _get_client as init_storage_service
 
-# สั่งสร้างตารางฐานข้อมูลทั้งหมด
-Base.metadata.create_all(bind=engine)
+# ─── Lifespan Handler (Startup & Shutdown) ───
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # [STARTUP]
+    # 1. สร้าง Folder สำหรับเก็บไฟล์ถ้ายังไม่มี
+    UPLOAD_DIRS = ["uploads", "uploads/sheets", "uploads/proofs"]
+    for d in UPLOAD_DIRS:
+        if not os.path.exists(d):
+            os.makedirs(d, exist_ok=True)
+    
+    # 2. สร้างตารางฐานข้อมูล (ถ้ายังไม่มี)
+    Base.metadata.create_all(bind=engine)
+    
+    # 3. Pre-init AI Service
+    await init_ai_service()
+    
+    # 4. Pre-init Storage Service
+    init_storage_service()
+    
+    yield
+    # [SHUTDOWN]
+    # ปิด connection pool เมื่อปิด server
+    engine.dispose()
+    await close_ai_service()
 
-from fastapi.staticfiles import StaticFiles
-import os
-
-# Create uploads directory if not exists
-if not os.path.exists("uploads"):
-    os.makedirs("uploads")
-if not os.path.exists("uploads/sheets"):
-    os.makedirs("uploads/sheets")
+# ─── Logging Configuration ───
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[logging.StreamHandler()]
+)
+logger = logging.getLogger("app")
 
 # ─── Rate Limiter (ป้องกัน Brute-force / DoS) ───
 limiter = Limiter(key_func=get_remote_address, default_limits=["120/minute"])
@@ -40,7 +69,8 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["120/minute"])
 app = FastAPI(
     title="Gen Z AI Study Planner API",
     description="Backend สำหรับระบบจัดตารางเรียนและ Chatbot AI พร้อมระบบผู้ใช้",
-    version="1.2.0"
+    version="1.2.0",
+    lifespan=lifespan
 )
 
 # ─── เก็บ limiter ไว้ใน app state ───
@@ -50,27 +80,41 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # ─── GZip Middleware (บีบอัด response ลด bandwidth 50-80%) ───
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
-# ─── Security Headers Middleware ───
+# ─── Profiling & Security Headers Middleware ───
 @app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response: Response = await call_next(request)
+async def process_time_and_security(request: Request, call_next):
+    start_time = time.time()
+    
+    # ดำเนินการ request
+    try:
+        response: Response = await call_next(request)
+    except Exception as e:
+        logger.error(f"Unhandled Exception: {str(e)}", exc_info=True)
+        return Response(
+            content="Internal Server Error",
+            status_code=500
+        )
+    
+    process_time = time.time() - start_time
+    
+    # 1. Security Headers
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-    # Cache control สำหรับ API responses
+    response.headers["X-Process-Time"] = f"{process_time:.4f}s"
+    
+    # 2. Cache Control Logic
     if request.url.path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
+    elif request.url.path.startswith("/uploads/"):
+        # อนุญาตให้ cache รูปภาพ/ชีทสรุป ได้ 1 วัน เพื่อประหยัด bandwidth
+        response.headers["Cache-Control"] = "public, max-age=86400"
+        
     return response
 
 # ─── Static Files Mounting (Consolidated) ───
 UPLOAD_DIR = "uploads"
-if not os.path.exists(UPLOAD_DIR):
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
-    os.makedirs(os.path.join(UPLOAD_DIR, "sheets"), exist_ok=True)
-    os.makedirs(os.path.join(UPLOAD_DIR, "proofs"), exist_ok=True)
 
 # Mount /uploads จุดเดียวให้เคลียร์
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")

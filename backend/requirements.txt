@@ -1,42 +1,39 @@
 # Web Framework
-fastapi
-uvicorn[standard]
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0
 
 # Database
-sqlalchemy
-pymysql
-cryptography
+sqlalchemy>=2.0.0
+pymysql>=1.1.0
+cryptography>=41.0.0
 
 # Authentication & Security
-python-jose[cryptography]
-passlib[bcrypt]
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
 bcrypt==4.0.1
 
 # File Upload & Forms
-python-multipart
+python-multipart>=0.0.6
 
-# PDF Text Extraction
-pypdf2
+# PDF Processing (PyMuPDF / fitz)
+pymupdf>=1.23.0
+pypdf2>=3.0.0
 
 # Data Validation
-pydantic
-pydantic-settings
-email-validator
+pydantic[email]>=2.0.0
+pydantic-settings>=2.0.0
+email-validator>=2.0.0
 
-# HTTP Requests (Ollama AI)
-httpx
+# HTTP Requests & AI
+httpx>=0.24.0
+google-genai>=0.3.0
 
 # Environment Variables
-python-dotenv
+python-dotenv>=1.0.0
 
 # Supabase Storage
-supabase
+supabase>=1.1.0
 
-# PDF Compression
-pymupdf
-
-# Rate Limiting (ป้องกัน Brute-force / DoS)
-slowapi
-
-# Google Gemini AI (Fallback เมื่อ Ollama ใช้ไม่ได้)
-google-genai
+# Utilities
+slowapi>=0.1.8
+aiofiles>=23.1.0

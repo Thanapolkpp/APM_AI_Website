@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+import asyncio
 from sqlalchemy.orm import Session
 
 from app.utils.db import get_db
@@ -47,26 +48,32 @@ async def upload_proof(
     file_type = ALLOWED_TYPES[file.content_type]
 
     # compress PDF ก่อน upload (รูปภาพ upload ตรงได้เลย)
-    if file_type == "pdf":
-        file_bytes = compress_pdf(file_bytes)
+    def _process_and_upload():
+        nonlocal file_bytes
+        processed_bytes = file_bytes
+        if file_type == "pdf":
+            processed_bytes = compress_pdf(file_bytes)
 
-    public_url = upload_file(
-        BUCKET,
-        file_bytes,
-        file.filename or f"proof.{file_type}",
-        content_type=file.content_type,
-    )
+        public_url = upload_file(
+            BUCKET,
+            processed_bytes,
+            file.filename or f"proof.{file_type}",
+            content_type=file.content_type,
+        )
 
-    new_proof = Proof(
-        user_id=current_user.id,
-        title=title,
-        description=description or None,
-        file_path=public_url,
-        file_type=file_type,
-    )
-    db.add(new_proof)
-    db.commit()
-    db.refresh(new_proof)
+        new_proof = Proof(
+            user_id=current_user.id,
+            title=title,
+            description=description or None,
+            file_path=public_url,
+            file_type=file_type,
+        )
+        db.add(new_proof)
+        db.commit()
+        db.refresh(new_proof)
+        return new_proof
+
+    new_proof = await asyncio.to_thread(_process_and_upload)
 
     return {
         "message": "อัปโหลดพรูฟสำเร็จ",

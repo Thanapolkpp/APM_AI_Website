@@ -11,6 +11,7 @@ from app.models.user import User
 from app.services.ai_service import get_ai_response
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+import asyncio
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -101,12 +102,12 @@ async def chat_stream(
         if req.mode not in current_modes:
             current_modes.add(req.mode)
             current_user.chat_modes_used = ",".join(filter(None, current_modes))
-            db.commit()
+            await asyncio.to_thread(db.commit)
             
     # Logic เหมือนเดิมในการเตรียม Prompt (ย่อเพื่อประหยัดเนื้อที่)
     pdf_context_block = ""
     if req.sheet_ids and current_user:
-        sheets = db.query(StudySheet).filter(StudySheet.user_id == current_user.id, StudySheet.id.in_(req.sheet_ids)).all()
+        sheets = await asyncio.to_thread(lambda: db.query(StudySheet).filter(StudySheet.user_id == current_user.id, StudySheet.id.in_(req.sheet_ids)).all())
         pdf_parts = [f"[เอกสาร: {s.title}]\n{s.extracted_text}" for s in sheets if s.extracted_text]
         pdf_context_block = "\n\n".join(pdf_parts)
 
@@ -131,12 +132,14 @@ async def chat_stream(
 
         # บันทึกประวัติเมื่อจบ (เฉพาะผู้ใช้ที่ Login)
         if current_user:
-            try:
-                 new_history = ChatHistory(user_id=current_user.id, user_message=req.message, ai_response=full_reply, mode=req.mode)
-                 db.add(new_history)
-                 db.commit()
-            except Exception:
-                 db.rollback()
+            def _save_history():
+                try:
+                    new_history = ChatHistory(user_id=current_user.id, user_message=req.message, ai_response=full_reply, mode=req.mode)
+                    db.add(new_history)
+                    db.commit()
+                except Exception:
+                    db.rollback()
+            await asyncio.to_thread(_save_history)
 
     return StreamingResponse(event_generator(), media_type="text/plain")
 
@@ -155,19 +158,19 @@ async def chat(
         if req.mode not in current_modes:
             current_modes.add(req.mode)
             current_user.chat_modes_used = ",".join(filter(None, current_modes))
-            db.commit()
+            await asyncio.to_thread(db.commit)
 
     # ดึง extracted_text จาก study sheets ที่เลือก (เฉพาะของ user นี้)
     pdf_context_block = ""
     if req.sheet_ids and current_user:
-        sheets = (
+        sheets = await asyncio.to_thread(lambda: (
             db.query(StudySheet)
             .filter(
                 StudySheet.user_id == current_user.id,
                 StudySheet.id.in_(req.sheet_ids)
             )
             .all()
-        )
+        ))
         pdf_parts = []
         for sheet in sheets:
             if sheet.extracted_text:
@@ -187,22 +190,24 @@ async def chat(
     else:
         # Fallback (ดึงบทสนทนาที่จะนำมาทำ Context จาก DB)
         if current_user:
-            if req.context_history_id:
-                target_history = (
-                    db.query(ChatHistory)
-                    .filter(ChatHistory.id == req.context_history_id, ChatHistory.user_id == current_user.id)
-                    .first()
-                )
-                recent_histories = [target_history] if target_history else []
-            else:
-                recent_histories = (
-                    db.query(ChatHistory)
-                    .filter(ChatHistory.user_id == current_user.id)
-                    .order_by(ChatHistory.created_at.desc())
-                    .limit(HISTORY_CONTEXT_COUNT)
-                    .all()
-                )
-                recent_histories = list(reversed(recent_histories))
+            def _get_recent_histories():
+                if req.context_history_id:
+                    target_history = (
+                        db.query(ChatHistory)
+                        .filter(ChatHistory.id == req.context_history_id, ChatHistory.user_id == current_user.id)
+                        .first()
+                    )
+                    return [target_history] if target_history else []
+                else:
+                    hists = (
+                        db.query(ChatHistory)
+                        .filter(ChatHistory.user_id == current_user.id)
+                        .order_by(ChatHistory.created_at.desc())
+                        .limit(HISTORY_CONTEXT_COUNT)
+                        .all()
+                    )
+                    return list(reversed(hists))
+            recent_histories = await asyncio.to_thread(_get_recent_histories)
         else:
             recent_histories = []
 
@@ -235,30 +240,33 @@ async def chat(
 
     # บันทึกบทสนทนาใหม่ลง DB (เฉพาะผู้ใช้ที่ Login)
     if current_user:
-        new_history = ChatHistory(
-            user_id=current_user.id,
-            user_message=req.message,
-            ai_response=ai_reply,
-            mode=req.mode,
-        )
-        db.add(new_history)
-        db.commit()
-
-        # จำกัดประวัติแชท: ถ้าเกิน 4 ให้ลบตัวที่เก่าที่สุดออก
-        MAX_HISTORY = 4
-        current_count = db.query(ChatHistory).filter(ChatHistory.user_id == current_user.id).count()
-        
-        if current_count > MAX_HISTORY:
-            oldest_to_delete = (
-                db.query(ChatHistory)
-                .filter(ChatHistory.user_id == current_user.id)
-                .order_by(ChatHistory.created_at.asc())
-                .limit(current_count - MAX_HISTORY)
-                .all()
+        def _save_and_limit_history():
+            new_history = ChatHistory(
+                user_id=current_user.id,
+                user_message=req.message,
+                ai_response=ai_reply,
+                mode=req.mode,
             )
-            for h in oldest_to_delete:
-                db.delete(h)
+            db.add(new_history)
             db.commit()
+
+            # จำกัดประวัติแชท: ถ้าเกิน 4 ให้ลบตัวที่เก่าที่สุดออก
+            MAX_HISTORY = 4
+            current_count = db.query(ChatHistory).filter(ChatHistory.user_id == current_user.id).count()
+            
+            if current_count > MAX_HISTORY:
+                oldest_to_delete = (
+                    db.query(ChatHistory)
+                    .filter(ChatHistory.user_id == current_user.id)
+                    .order_by(ChatHistory.created_at.asc())
+                    .limit(current_count - MAX_HISTORY)
+                    .all()
+                )
+                for h in oldest_to_delete:
+                    db.delete(h)
+                db.commit()
+        
+        await asyncio.to_thread(_save_and_limit_history)
 
     return {"reply": ai_reply}
 
@@ -299,7 +307,7 @@ async def summarize_sheet_stream(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    sheet = db.query(StudySheet).filter(StudySheet.id == sheet_id).first()
+    sheet = await asyncio.to_thread(lambda: db.query(StudySheet).filter(StudySheet.id == sheet_id).first())
     if not sheet:
         raise HTTPException(status_code=404, detail="ไม่พบชีทสรุปนี้ครับ")
 

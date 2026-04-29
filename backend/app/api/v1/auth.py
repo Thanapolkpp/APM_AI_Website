@@ -1,6 +1,6 @@
 import secrets
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.utils.db import get_db
 from app.utils.security import verify_password, create_access_token, hash_password, validate_password_strength
@@ -12,6 +12,7 @@ from typing import Optional
 from fastapi.security import OAuth2PasswordRequestForm
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+import asyncio
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -121,12 +122,13 @@ async def login(
 
     # ค้นหา User โดยเช็คว่าเป็นอีเมลหรือชื่อผู้ใช้
     if "@" in input_identifier:
-        user = get_user_by_email(db, email=input_identifier)
+        user = await asyncio.to_thread(get_user_by_email, db, email=input_identifier)
     else:
-        user = get_user_by_username(db, username=input_identifier)
+        user = await asyncio.to_thread(get_user_by_username, db, username=input_identifier)
     
     # 2. ตรวจสอบว่ามี User ไหม และรหัสผ่านถูกต้องไหม
-    if not user or not verify_password(input_password, user.hashed_password):
+    is_valid_password = await asyncio.to_thread(verify_password, input_password, user.hashed_password if user else "")
+    if not user or not is_valid_password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email/Username หรือ Password ไม่ถูกต้อง",
@@ -143,9 +145,10 @@ async def login(
     }
 
 
+
 @router.post("/forgot-password")
 @limiter.limit("3/minute")
-def forgot_password(request: Request, body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+def forgot_password(request: Request, body: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     user = get_user_by_email(db, email=body.email)
 
     # ไม่บอกว่าหาไม่เจอ กันคน brute force หา email
@@ -170,8 +173,8 @@ def forgot_password(request: Request, body: ForgotPasswordRequest, db: Session =
     db.add(reset_token)
     db.commit()
 
-    # ส่ง email
-    send_reset_password_email(to_email=user.email, token=token)
+    # ส่ง email แบบ Background Task
+    background_tasks.add_task(send_reset_password_email, to_email=user.email, token=token)
 
     return {"message": "หากอีเมลนี้มีในระบบ เราจะส่งลิงก์รีเซ็ตรหัสผ่านให้"}
 
