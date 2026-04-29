@@ -61,19 +61,26 @@ const Register = () => {
             await register(formData.username, formData.email, formData.password);
             navigate("/login");
         } catch (err) {
-            setError(err.response?.data?.detail || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
+            const detail = err.response?.data?.detail;
+            if (Array.isArray(detail)) {
+                // สำหรับ 422 Unprocessable Entity จาก FastAPI (Pydantic Validation)
+                setError(detail[0]?.msg || "ข้อมูลไม่ถูกต้อง");
+            } else {
+                setError(detail || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
+    const isUsernameValid = formData.username.length >= 3 && formData.username.length <= 30;
     const isLengthValid = formData.password.length >= 8;
     const hasUpperCase = /[A-Z]/.test(formData.password);
     const hasLowerCase = /[a-z]/.test(formData.password);
     const hasNumber = /[0-9]/.test(formData.password);
     const passwordsMatch = formData.password === formData.confirmPassword && formData.confirmPassword !== "";
 
-    const isReady = isLengthValid && hasUpperCase && hasLowerCase && hasNumber && passwordsMatch;
+    const isReady = isUsernameValid && isLengthValid && hasUpperCase && hasLowerCase && hasNumber && passwordsMatch;
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark font-display flex items-center justify-center p-6 lg:p-12 relative overflow-hidden transition-colors duration-300">
