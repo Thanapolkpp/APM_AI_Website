@@ -21,6 +21,7 @@ from app.api.v1.chat import router as chat_router
 from app.api.v1.user_profile import router as user_profile_router
 from app.api.v1.notifications import router as notifications_router
 from app.api.v1.proofs import router as proofs_router
+from app.api.v1.ai_assistant import router as ai_assistant_router
 from app.utils.db import engine, Base
 # นำเข้า models ทุกตัวเพื่อให้ SQLAlchemy มองเห็นตารางก่อนสร้าง
 from app.models import user, avatar, room, user_avatar, user_room
@@ -147,6 +148,7 @@ app.include_router(chat_router, prefix="/api/v1/chat", tags=["Chat"])
 app.include_router(user_profile_router, prefix="/api/v1/user", tags=["User Profile"])
 app.include_router(notifications_router, prefix="/api/v1/notifications", tags=["Notifications"])
 app.include_router(proofs_router, prefix="/api/v1/proofs", tags=["Proofs"])
+app.include_router(ai_assistant_router, prefix="/api/v1/ai-assistant", tags=["AI Assistant"])
 
 @app.get("/")
 def root():

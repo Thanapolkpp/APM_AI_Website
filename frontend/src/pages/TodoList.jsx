@@ -40,6 +40,7 @@ const TodoList = () => {
     const [isAdminView, setIsAdminView] = useState(false)
     const [pendingTasks, setPendingTasks] = useState([])
     const [proofPhotos, setProofPhotos] = useState({})
+    const [isAIPlanning, setIsAIPlanning] = useState(false)
 
     const refreshProfileImage = useCallback(() => {
         const savedAvatar = localStorage.getItem("avatar");
@@ -133,6 +134,33 @@ const TodoList = () => {
             setNewTask("")
         } catch { alert("ไม่สามารถเพิ่ม Todo ได้ในขณะนี้") }
     }
+
+    const handleAIPlan = async () => {
+        if (!newTask.trim()) return;
+        setIsAIPlanning(true);
+        try {
+            const { generateTodoPlan } = await import("../services/aiService");
+            const savedAvatar = localStorage.getItem("avatar") || "bro";
+            const mode = savedAvatar.includes("girl") ? "girl" : (savedAvatar.includes("nerd") ? "nerd" : "bro");
+            
+            const tasks = await generateTodoPlan(newTask.trim(), mode);
+            if (tasks && tasks.length > 0) {
+                // เพิ่มทุกงานที่ AI แนะนำลงไป
+                for (const t of tasks) {
+                    const created = await createTodo(t);
+                    setTasks(prev => [...prev, created]);
+                }
+                setNewTask("");
+            } else {
+                alert("AI ไม่สามารถวางแผนให้ได้ในขณะนี้");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("เกิดข้อผิดพลาดในการเรียก AI");
+        } finally {
+            setIsAIPlanning(false);
+        }
+    };
 
     const handleToggle = async (id) => {
         try {
@@ -264,6 +292,15 @@ const TodoList = () => {
                                     placeholder={t("todo.add_task")}
                                     className="w-full bg-white/40 dark:bg-white/5 backdrop-blur-xl border-2 border-white/60 dark:border-white/10 rounded-[22px] md:rounded-[32px] px-5 md:px-8 py-3 md:py-6 text-sm md:text-lg font-bold focus:outline-none focus:border-primary transition-all pr-20 md:pr-24 shadow-xl"
                                 />
+                                <button 
+                                    type="button" 
+                                    onClick={handleAIPlan}
+                                    disabled={isAIPlanning}
+                                    className="absolute right-24 md:right-32 top-2 md:top-3 bottom-2 md:bottom-3 px-3 md:px-4 rounded-xl md:rounded-2xl bg-purple-500 text-white font-black text-xs md:text-sm hover:scale-105 active:scale-95 transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50"
+                                    title="AI ช่วยวางแผน"
+                                >
+                                    {isAIPlanning ? "..." : <Sparkles size={18} />}
+                                </button>
                                 <button type="submit" className="absolute right-2 md:right-3 top-2 md:top-3 bottom-2 md:bottom-3 px-4 md:px-6 rounded-xl md:rounded-2xl bg-primary text-white font-black text-xs md:text-sm hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20">
                                     {t("todo.add_btn")}
                                 </button>

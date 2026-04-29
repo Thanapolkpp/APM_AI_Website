@@ -450,3 +450,19 @@ export const fetchLeaderboard = async () => {
     const response = await api.get(`/api/v1/user/leaderboard`);
     return response.data;
 };
+
+// ---------- AI Assistant Features ----------
+export const getAiGreeting = async (mode = "bro") => {
+    const response = await api.get(`/api/v1/ai-assistant/greeting`, { params: { mode } });
+    return response.data.reply;
+};
+
+export const generateTodoPlan = async (goal, mode = "bro") => {
+    const response = await api.get(`/api/v1/ai-assistant/todo-plan`, { params: { goal, mode } });
+    return response.data.tasks;
+};
+
+export const fetchSheetQuiz = async (sheetId) => {
+    const response = await api.get(`/api/v1/ai-assistant/study-sheets/${sheetId}/quiz`);
+    return response.data.quiz;
+};

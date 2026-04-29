@@ -26,6 +26,7 @@ const Home = () => {
   const { t, i18n } = useTranslation()
   const { coins, exp } = useCoins()
   const [showSupportAlert, setShowSupportAlert] = useState(false)
+  const [aiGreeting, setAiGreeting] = useState("")
 
   // Logic: เช็คว่าวันนี้เคยแสดง Alert ไปหรือยัง
   useEffect(() => {
@@ -112,6 +113,16 @@ const Home = () => {
     }
 
     window.addEventListener("avatarUpdated", refreshProfileImage)
+
+    // Fetch AI Greeting
+    if (isLoggedIn) {
+      import("../services/aiService").then(({ getAiGreeting }) => {
+        const savedAvatar = localStorage.getItem("avatar") || "bro";
+        const mode = savedAvatar.includes("girl") ? "girl" : (savedAvatar.includes("nerd") ? "nerd" : "bro");
+        getAiGreeting(mode).then(setAiGreeting).catch(e => console.error(e));
+      });
+    }
+
     return () => window.removeEventListener("avatarUpdated", refreshProfileImage)
   }, [isLoggedIn])
 
@@ -235,7 +246,7 @@ const Home = () => {
               <div className="inline-flex flex-col items-center px-8 py-3 md:px-14 md:py-7 rounded-[40px] md:rounded-[60px] bg-white/40 dark:bg-white/5 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-2xl transition-all duration-500 hover:shadow-primary/20 hover:scale-[1.02] active:scale-95">
                 <div className="flex items-center gap-3 mb-3 md:mb-4">
                   <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 dark:text-gray-500">
-                    {t("home.welcome", { username: (localStorage.getItem("username") || "BESTIE").toUpperCase() })}
+                    {aiGreeting || t("home.welcome", { username: (localStorage.getItem("username") || "BESTIE").toUpperCase() })}
                   </span>
                   {isLoggedIn && (
                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 text-[8px] md:text-[10px] font-black">

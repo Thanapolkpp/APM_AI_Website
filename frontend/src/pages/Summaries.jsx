@@ -24,6 +24,7 @@ import SummaryCard from "../components/Summaries/SummaryCard"
 import AIModal from "../components/Summaries/AIModal"
 import PdfViewerModal from "../components/Summaries/PdfViewerModal"
 import UploadModal from "../components/Summaries/UploadModal"
+import QuizModal from "../components/Summaries/QuizModal"
 
 const Logo = ASSETS.BRANDING.LOGO;
 
@@ -47,8 +48,10 @@ const Summaries = () => {
     const [isAIModalOpen, setIsAIModalOpen] = useState(false)
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false)
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+    const [isQuizModalOpen, setIsQuizModalOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null)
     const [summaryText, setSummaryText] = useState("")
+    const [quizData, setQuizData] = useState(null)
     const [isGenerating, setIsGenerating] = useState(false)
     const [uploadForm, setUploadForm] = useState({ title: "", price: 0, is_public: false })
     const [selectedFile, setSelectedFile] = useState(null)
@@ -128,6 +131,25 @@ const Summaries = () => {
             })
         } catch (error) {
             setSummaryText(prev => prev + "\n\nขออภัยครับเพื่อน พอดี AI สรุปชีทเล่มนี้ขัดข้องนิดหน่อย ลองใหม่อีกรอบนะ! 🌷")
+        } finally {
+            setIsGenerating(false)
+        }
+    }
+
+    const handleAIQuiz = async (item) => {
+        if (!checkAuth()) return
+        setIsGenerating(true)
+        setIsQuizModalOpen(true)
+        setQuizData(null)
+        try {
+            const { fetchSheetQuiz } = await import("../services/aiService")
+            const quiz = await fetchSheetQuiz(item.id)
+            setQuizData(quiz)
+            await updateExp(5)
+        } catch (error) {
+            console.error("AI Quiz error:", error)
+            alert("ไม่สามารถสร้างควิซได้ในขณะนี้")
+            setIsQuizModalOpen(false)
         } finally {
             setIsGenerating(false)
         }
@@ -425,7 +447,22 @@ const Summaries = () => {
                 onClose={() => setIsPdfModalOpen(false)} 
                 item={selectedItem} 
                 onAIGenerate={handleAIGenerate} 
+                onAIQuiz={handleAIQuiz}
                 onDownload={handleDownloadOriginal} 
+            />
+
+            <QuizModal
+                isOpen={isQuizModalOpen}
+                onClose={() => setIsQuizModalOpen(false)}
+                quiz={quizData}
+                isLoading={isGenerating}
+                onReward={async (score) => {
+                    if (score >= 4) {
+                        const { addReadingTime } = await import("../services/aiService");
+                        await addReadingTime(10);
+                        alert("สุดยอด! คุณทำคะแนนได้ดีมาก รับโบนัสพิเศษไปเลย 🌷");
+                    }
+                }}
             />
 
             <UploadModal 

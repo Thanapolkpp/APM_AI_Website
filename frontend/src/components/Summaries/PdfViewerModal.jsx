@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { HiOutlineDownload, HiOutlineX, HiOutlineSparkles, HiOutlineEye } from "react-icons/hi";
 import { FileText } from "lucide-react";
 
-const PdfViewerModal = ({ isOpen, onClose, item, onAIGenerate, onDownload }) => {
+const PdfViewerModal = ({ isOpen, onClose, item, onAIGenerate, onAIQuiz, onDownload }) => {
     useEffect(() => {
         if (!isOpen || !item) return;
 
@@ -94,6 +94,9 @@ const PdfViewerModal = ({ isOpen, onClose, item, onAIGenerate, onDownload }) => 
                     <div className="flex gap-4">
                         <button onClick={() => onAIGenerate(item)} className="px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-black text-sm flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-pink-500/20">
                             <HiOutlineSparkles size={20} /> AI สรุปให้
+                        </button>
+                        <button onClick={() => onAIQuiz(item)} className="px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-black text-sm flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-blue-500/20">
+                            <HiOutlineSparkles size={20} /> AI สร้างควิซ
                         </button>
                         <button
                             onClick={() => onDownload(item)}
